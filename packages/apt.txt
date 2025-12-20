@@ -1,5 +1,4 @@
-# APT packages (Debian/Ubuntu)
-# One package per line
+# Base System Tools
 git
 curl
 wget
@@ -9,8 +8,12 @@ apt-transport-https
 gnupg
 ca-certificates
 extrepo
+whois
+dnsutils
+numlockx
+brightnessctl
 
-# Build tools
+# Build Tools
 build-essential
 make
 gcc
@@ -29,31 +32,21 @@ check
 cppcheck
 gettext
 
-# Development tools and utilities (lib and -dev packages removed)
-# Keep distro-unique packages here; common packages moved to packages/duplicates.txt when appropriate.
-
-# Editors / terminals
+# Development Tools
 vim
 geany
 geany-plugins
-# neovim is installed via deb or built from source in scripts
-
-# Finder / search / fzf
 ripgrep
 fzf
 fd-find
-
-# Utilities
 tree
 htop
 btop
 batcat
-whois
-dnsutils
-numlockx
-brightnessctl
+neofetch
+rust-analyzer
 
-# Multimedia / graphics
+# Multimedia & Graphics
 mpv
 vlc
 audacity
@@ -71,7 +64,7 @@ qimgv
 sxiv
 eog
 
-# File managers
+# File Managers
 thunar
 pcmanfm
 krusader
@@ -82,7 +75,7 @@ ranger
 nnn
 lf
 
-# Alternative terminals
+# Terminals
 alacritty
 gnome-terminal
 kitty
@@ -90,7 +83,7 @@ konsole
 terminator
 xfce4-terminal
 
-# Printing / scanning
+# System Services
 cups
 cups-client
 cups-filters
@@ -104,8 +97,13 @@ sane
 sane-utils
 xsane
 simple-scan
-
-# Bluetooth
+lightdm
+lightdm-gtk-greeter
+lightdm-gtk-greeter-settings
+gdm3
+sddm
+lxdm
+slim
 bluetooth
 bluez
 bluez-tools
@@ -122,10 +120,10 @@ floorp
 helium-browser
 chromium
 
+# Applications
+wezterm-nightly
+
 # Helpers
 dpkg
 update-desktop-database
 update-alternatives
-neofetch
-rust-analyzer
-wget

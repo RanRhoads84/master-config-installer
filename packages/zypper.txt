@@ -1,5 +1,40 @@
-# Zypper / openSUSE packages (approximate names)
-# Most common packages are centralized in packages/duplicates.txt
-# Add only distro-unique packages here.
+# Core Utilities
+git
+vim
+ripgrep
+fzf
+fd
 
-# (Duplicates moved to packages/duplicates.txt)
+# Compiler & Build Tools
+gcc
+gcc-c++
+make
+cmake
+ninja
+gettext
+libtool
+automake
+pkg-config
+unzip
+curl
+
+# GUI & Display Libraries
+libgtk-3-devel
+gnutls-devel
+libxml2-devel
+libglade-devel
+libX11-devel
+libXrandr-devel
+libXrender-devel
+libXfixes-devel
+libxcb-devel
+pixman-devel
+dbus-1-devel
+pcre2-devel
+libev-devel
+libxkbcommon-devel
+glib2-devel
+pango-devel
+startup-notification-devel
+libXft-devel
+libXinerama-devel

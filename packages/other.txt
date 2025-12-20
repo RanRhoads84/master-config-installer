@@ -1,6 +1,0 @@
-# Other tools and notes
-fastfetch  # installed from deb in scripts
-nerd-fonts installer requires: wget, unzip
-st build deps: libx11-dev libxft-dev libxinerama-dev
-mkvtoolnix (mkvmerge) reference for merging MKVs
-# Many packages vary by distro name; verify names for your target OS

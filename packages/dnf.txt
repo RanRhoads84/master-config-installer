@@ -1,5 +1,14 @@
-# DNF / Fedora packages
-# Most common packages are centralized in packages/duplicates.txt
-# Add only distro-unique packages here.
+# Base Development Tools
+git
+vim
+ripgrep
+fzf
+fd
 
-# (Duplicates moved to packages/duplicates.txt)
+# Build Tools
+gtk3-devel
+intltool
+python3-docutils
+
+# Multimedia Tools
+mkvtoolnix

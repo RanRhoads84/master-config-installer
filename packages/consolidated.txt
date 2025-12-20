@@ -1,0 +1,221 @@
+# Browsers
+brave-browser
+chromium
+firefox
+opera
+tor-browser
+vivaldi
+
+# Build Dependencies
+atk
+cairo
+clang
+gdk-pixbuf
+glib2
+gtk3
+llvm
+mesa
+pango
+x11-libs
+
+# Database
+mongodb
+mysql
+postgresql
+redis
+sqlite3
+
+# Desktop Environment Tools
+dmenu
+feh
+gdm
+i3
+i3blocks
+i3status
+lightdm
+nitrogen
+picom
+polybar
+rofi
+sddm
+xorg-x11-server
+
+# Development Tools
+autoconf
+automake
+bison
+cargo
+check
+cmake
+cppcheck
+flex
+g++
+gcc
+gettext
+intltool
+libtool
+make
+ninja
+nodejs
+npm
+pkg-config
+python3
+python3-pip
+rust
+valac
+
+# File Managers
+dolphin
+lf
+nemo
+nnn
+pcmanfm
+ranger
+thunar
+
+# Fonts & Themes
+adapta-gtk-theme
+arc-theme
+nerd-fonts
+papirus-icon-theme
+
+# Gaming
+lutris
+playonlinux
+retroarch
+steam
+wine
+
+# Language Servers & Tools
+clangd
+gopls
+intelephense
+lua-language-server
+pyright
+rust-analyzer
+typescript-language-server
+
+# Multimedia
+audacity
+blender
+ffmpeg
+gimp
+inkscape
+kdenlive
+krita
+obs-studio
+vlc
+youtube-dl
+yt-dlp
+
+# Network Tools
+aria2
+netcat
+nmap
+rclone
+socat
+tcpdump
+wireshark
+
+# Office & Productivity
+dropbox
+evolution
+geary
+libreoffice
+megasync
+nextcloud-client
+thunderbird
+
+# Security Tools
+chkrootkit
+clamav
+fail2ban
+gnutls
+gpg
+openssl
+rkhunter
+
+# Shells & Tools
+bash-completion
+cheat
+fish
+thefuck
+tldr
+zsh
+
+# System Monitoring
+bandwhich
+duf
+iotop
+ncdu
+procs
+
+# System Services
+apparmor
+bluetooth
+bluez
+cups
+firewalld
+networkmanager
+pipewire
+pulseaudio
+sane
+selinux
+ufw
+
+# System Tools
+bat
+btop
+ca-certificates
+curl
+fd
+fzf
+git
+gnupg
+htop
+neofetch
+openssh
+ripgrep
+rsync
+software-properties-common
+tar
+tmux
+tree
+unzip
+vim
+wget
+zip
+
+# Terminal Emulators
+alacritty
+kitty
+terminator
+wezterm
+xfce4-terminal
+
+# Text Editors & IDEs
+codeblocks
+emacs
+geany
+neovim
+vscode
+
+# Version Control & Git Tools
+git-lfs
+lazygit
+tig
+
+# Virtualization
+docker
+lxc
+podman
+qemu
+virtualbox
+
+# Web Servers & Tools
+apache2
+certbot
+composer
+nginx
+php
+

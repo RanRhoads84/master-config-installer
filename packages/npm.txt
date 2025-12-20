@@ -1,3 +1,0 @@
-# NPM global packages
-typescript-language-server
-intelephense
