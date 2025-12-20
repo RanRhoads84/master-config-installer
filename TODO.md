@@ -1,6 +1,6 @@
-# Unified Installer Plan
+# ModularConfig Suite Plan (CSI)
 
-This repo will include a unified interactive installer `install.sh` that:
+This repo hosts the ModularConfig Suite (CSI) installer `install.sh` and supporting modules that:
 
 - Detects the host package manager (`apt`, `dnf`, `pacman`, `zypper`, `apk`, `brew`).
 - Loads package lists from `packages/consolidated.txt` (organized by functionality).

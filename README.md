@@ -1,17 +1,18 @@
-# 🧈 butterscripts
 ![Made for Debian](https://img.shields.io/badge/Made%20for-Debian-A81D33?style=for-the-badge&logo=debian&logoColor=white)
 
-A modular collection of scripts I use across my Debian setups — minimal and practical. These scripts automate installs, configure tools, apply theming, and tweak the system just how I like it.
+# ModularConfig Suite (CSI)
+
+ModularConfig Suite powers the CSI (Config Suite Installer) experience, a curated collection of installer helpers for Linux. The repository groups scripts by feature so you can immediately spot which module covers browsers, fastfetch, theming, system services, and tooling.
 
 ---
 
 ## Overview
 
-Butterscripts is a collection of utility scripts that help streamline various tasks in Linux. These scripts are organized into different directories based on their functionality and purpose, making it easy to find the script you need.
+CSI is built around a single interactive installer (`install.sh`) plus a handful of trusted utility directories. Each module ships with its own README so you can explore how it behaves outside the core installer.
 
 ## Unified Installer
 
-This repository includes a unified interactive installer: `install.sh`.
+This repository includes the CSI entry point: `install.sh`.
 
 Quick examples:
 
@@ -41,86 +42,55 @@ The installer uses a consolidated package list (`packages/consolidated.txt`) org
 Package names are automatically mapped for different distributions (e.g., `fd-find` on Debian vs `fd` on others).
 
 Notes:
-- Use `--log <file>` to change the logfile location.
+- Use `--log <file>` to change the logfile location (defaults to `./modularconfig-install.log`).
 - The script will attempt to skip already-installed packages and supports common package managers (`apt`, `dnf`, `pacman`, `zypper`, `apk`, `brew`).
 - Package names may vary by distribution; edit `packages/<pm>.txt` to customize.
 
 ## Repository Structure
 
-The repository is organized into the following directories:
+CSI focuses on the directories you see in this repository. The legacy Discord, MKVMerge, st, and WezTerm installers were removed so only actively maintained modules appear in the installer menu.
 
-> Trimmed scope: The Discord, MKVMerge, st, and WezTerm installers have been removed so the active modules listed below are the ones the unified installer still manages.
-
+Each directory below ships with its own README; hover on the links or open the file to see usage notes, dependencies, and configuration tips.
 
 ### `/browsers`
 
-- [Installation and Documentation](https://codeberg.org/justaguylinux/butterscripts/src/branch/main/browsers)
-- **brave**: Brave browser
-- **firefox**: Firefox latest
-- **floorp**: Floorp
-- **zen**: Zen browser
-- **more**
-
+- Hosts helpers for Brave, Firefox, Floorp, Zen, and related browser tooling. See [browsers/README.md](browsers/README.md) for install steps.
 
 ### `/fastfetch`
 
-- [Installation and Documentation](https://codeberg.org/justaguylinux/butterscripts/src/branch/main/fastfetch)
-- **fastfetch**: fastfetch latest
-- **Auto alias**: for Bash, Zsh, and Fish
-- **3 configurations**: default, minimal and server
-
----
+- Contains the OS-aware fastfetch installer plus alias helpers (Bash/Zsh/Fish) and three sample configs. See [fastfetch/README.md](fastfetch/README.md).
 
 ### `/git`
 
-- [Installation and Documentation](https://codeberg.org/justaguylinux/butterscripts/src/branch/main/git)
-- **gitup**: Quick commit and push workflow script
-- **git-notes-status.sh**: Background monitoring script for git repository status notifications
-- **CODEBERG_SSH_SETUP.md**: SSH setup guide for Codeberg
-
----
+- Git automation scripts (`gitup`, `git-notes-status.sh`) and the SSH setup guide (`CODEBERG_SSH_SETUP.md`) that help manage repositories from the CLI.
 
 ### `/neovim`
 
-- [Installation and Documentation](https://codeberg.org/justaguylinux/butterscripts/src/branch/main/neovim)
-- **buttervim.sh**: Installs Neovim and sets up JustAGuyLinux's configuration
-- **build-neovim.sh**: Builds and installs Neovim from source code
+- `buttervim.sh` and `build-neovim.sh` install Neovim and the ModularConfig vim stack. Details live in [neovim/README.md](neovim/README.md).
 
----
+### `/butternotes`
+
+- Modular note-taking tooling (notes/todos, backups, templates, and shell helpers). See [butternotes/README.md](butternotes/README.md).
 
 ### `/setup`
 
-- **install_caligula.sh**: Installs Caligula disk imaging TUI
-- **install_geany.sh**: Installs Geany text editor (APT or source build options)
-- **install_picom.sh**: Installs Picom compositor
-- **optional_tools.sh**: Interactive installer for development tools including [ButterBash](https://codeberg.org/justaguylinux/butterbash) ⭐
-
----
+- Utility installers such as `install_caligula.sh`, `install_geany.sh`, `install_picom.sh`, and `optional_tools.sh`. The optional tools menu now surfaces CSI-friendly bundles including `ButterBash` and the fastfetch installer.
 
 ### `/system`
 
-- **install_bluetooth.sh**: Installs and configures Bluetooth support
-- **install_lightdm.sh**: Installs LightDM display manager
-- **install_printer_support.sh**: Sets up printer support
-
----
+- Scripts for service support: Bluetooth, LightDM, and printer drivers.
 
 ### `/theming`
 
-- [Installation and Documentation](https://codeberg.org/justaguylinux/butterscripts/src/branch/main/theming)
-- **nerdfonts**: Installs curated list of popular Nerd Fonts.
-- **install-theme**: Installs my favorite GTK theme and Dracula Dark icon theme
+- Nerd font installs plus GTK theme setup. Documentation is available in [theming/README.md](theming/README.md).
 
----
+Thanks to everyone who has contributed—ModularConfig Suite (CSI) stands on top of your scripts, configurations, and feedback.
 
-Thanks to all contributors and the open source community for inspiration and code references.
-## 🧈 Built For
+## 🛠️ Built For
 
-- **Butter Bean (butterbian) Linux** (and other Debian-based systems)
-- Window manager setups (BSPWM, Openbox, etc.)
-- Users who like things lightweight, modular, and fast
-
-> Butterbian Linux is a joke... for now.
+- Debian-based distros (and the broader Linux ecosystem)
+- tiled/window manager users (BSPWM, Openbox, Sway, etc.)
+- people who prefer modular, fast tooling that can be riffed on
 
 ---
 
@@ -129,7 +99,7 @@ Thanks to all contributors and the open source community for inspiration and cod
 To test the unified installer:
 
 1. Run `./install.sh --dry-run` to preview actions without making changes.
-2. Check the log file (`./butter-install.log` by default) for detailed output.
+2. Check the log file (`./modularconfig-install.log` by default) for detailed output.
 3. For non-interactive testing, use `--groups <list> --yes`.
 4. Verify package installations and npm/cargo installs in a safe environment.
 

@@ -1,4 +1,4 @@
-# Master Config Installer - Development Log
+# ModularConfig Suite - Development Log
 
 ## Project Overview
 Unified Linux package installer supporting multiple distributions (apt, dnf, pacman, zypper) with intelligent package management and user-friendly interface.
@@ -10,7 +10,7 @@ Unified Linux package installer supporting multiple distributions (apt, dnf, pac
 - **Package Mapping**: Handles distribution-specific package naming (e.g., fd-find vs fd)
 - **Installation Commands**: Proper command generation for each package manager
 - **Dry Run Mode**: Preview installations without making changes
-- **Logging**: Comprehensive installation logging to butter-install.log
+- **Logging**: Comprehensive installation logging to modularconfig-install.log
 
 ### Package Organization  
 - **Consolidated Package List**: Single file (packages/consolidated.txt) with 22 categorized groups
@@ -96,4 +96,4 @@ Unified Linux package installer supporting multiple distributions (apt, dnf, pac
 
 ---
 *Last Updated: December 19, 2025*
-*Current Focus: Submenu functionality complete - ready for production use*
+*Current Focus: ModularConfig Suite stabilization and CSI branding rollout*

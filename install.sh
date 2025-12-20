@@ -4,7 +4,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-LOGFILE="./butter-install.log"
+LOGFILE="./modularconfig-install.log"
 DRY_RUN=0
 ASSUME_YES=0
 SELECT_GROUPS=""
@@ -19,7 +19,7 @@ Usage: $0 [--dry-run] [--yes] [--log <file>] [--groups <list>]
 Options:
   --dry-run        Print commands that would be run (no changes)
   --yes, -y        Assume yes to prompts
-  --log <file>     Path to log file (default: ./butter-install.log)
+  --log <file>     Path to log file (default: ./modularconfig-install.log)
   --groups <list>  Comma-separated group names to select non-interactively
   -h, --help       Show this help
 EOF

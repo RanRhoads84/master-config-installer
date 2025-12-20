@@ -1,6 +1,6 @@
-# Unified Installer
+# ModularConfig Suite Installer (CSI)
 
-This repository includes a unified interactive installer: `install.sh`.
+This repository includes the CSI (Config Suite Installer) entrypoint: `install.sh`.
 
 Quick examples:
 
@@ -29,7 +29,6 @@ Packages are organized in a consolidated list (`packages/consolidated.txt`) by c
 
 The installer automatically handles package name differences between distributions.
 
-Notes:
-- Use `--log <file>` to change the logfile location.
+- Use `--log <file>` to change the logfile location (defaults to `./modularconfig-install.log`).
 - The script will attempt to skip already-installed packages and supports common package managers (`apt`, `dnf`, `pacman`, `zypper`, `apk`, `brew`).
 - Package names may vary by distribution; edit `packages/<pm>.txt` to customize.
