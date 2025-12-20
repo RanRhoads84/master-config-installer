@@ -9,6 +9,42 @@ A modular collection of scripts I use across my Debian setups — minimal and pr
 
 Butterscripts is a collection of utility scripts that help streamline various tasks in Linux. These scripts are organized into different directories based on their functionality and purpose, making it easy to find the script you need.
 
+## Unified Installer
+
+This repository includes a unified interactive installer: `install.sh`.
+
+Quick examples:
+
+```bash
+# dry-run to preview actions
+./install.sh --dry-run
+
+# interactive install (choose groups)
+./install.sh
+
+# non-interactive: pick groups by name and assume yes
+./install.sh --groups "Zypper / openSUSE packages (approximate names)" --yes
+```
+
+Optional build-from-source flows are available at the end of the install run (Neovim, Picom, Rofi, st). Use `--dry-run` first to preview commands.
+
+The installer also includes an optional vim configuration setup that installs dependencies and copies a custom vimrc with plugins.
+
+## Package Management
+
+The installer uses a consolidated package list (`packages/consolidated.txt`) organized by functionality:
+- System Tools (git, curl, wget, vim, etc.)
+- Development Tools (gcc, cmake, python, nodejs, etc.)
+- Desktop Applications (browsers, editors, multimedia, etc.)
+- System Services (cups, bluetooth, networking, etc.)
+
+Package names are automatically mapped for different distributions (e.g., `fd-find` on Debian vs `fd` on others).
+
+Notes:
+- Use `--log <file>` to change the logfile location.
+- The script will attempt to skip already-installed packages and supports common package managers (`apt`, `dnf`, `pacman`, `zypper`, `apk`, `brew`).
+- Package names may vary by distribution; edit `packages/<pm>.txt` to customize.
+
 ## Repository Structure
 
 The repository is organized into the following directories:
@@ -111,6 +147,17 @@ Thanks to all contributors and the open source community for inspiration and cod
 - Users who like things lightweight, modular, and fast
 
 > Butterbian Linux is a joke... for now.
+
+---
+
+## Testing
+
+To test the unified installer:
+
+1. Run `./install.sh --dry-run` to preview actions without making changes.
+2. Check the log file (`./butter-install.log` by default) for detailed output.
+3. For non-interactive testing, use `--groups <list> --yes`.
+4. Verify package installations and npm/cargo installs in a safe environment.
 
 ---
 
