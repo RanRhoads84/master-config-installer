@@ -1,88 +1,184 @@
-#!/bin/bash
-# DESC: Install Fastfetch system info tool from official deb package
-set -e
-# fastfetch.sh: Install and configure Fastfetch from deb package
+#!/usr/bin/env bash
+set -euo pipefail
 
-command_exists() {
-    command -v "$1" &>/dev/null
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+INSTALL_DIR="${INSTALL_DIR:-/tmp/install-fastfetch}"
+RELEASE_API="https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest"
+
+fetch_release_json() {
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "$RELEASE_API"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -qO- "$RELEASE_API"
+  else
+    echo "curl or wget is required to query fastfetch releases." >&2
+    exit 1
+  fi
 }
 
-# User confirmation is now handled by the calling script
+download_file() {
+  local url="$1"
+  local destination="$2"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fL "$url" -o "$destination"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -qO "$destination" "$url"
+  else
+    echo "curl or wget is required to download fastfetch." >&2
+    exit 1
+  fi
+}
 
-INSTALL_DIR="${INSTALL_DIR:-/tmp/install-fastfetch}"
-mkdir -p "$INSTALL_DIR"
+find_asset_url() {
+  local asset_name="$1"
+  local url
+  if url=$(printf '%s' "$RELEASE_JSON" | python3 - "$asset_name" <<'PY'
+import json
+import sys
 
-# Step 1: Install fastfetch if not already installed
-if command_exists fastfetch; then
-    echo "Fastfetch is already installed. Skipping installation."
+data = json.load(sys.stdin)
+name = sys.argv[1]
+for asset in data.get('assets', []):
+    if asset.get('name') == name:
+        print(asset.get('browser_download_url'))
+        sys.exit(0)
+sys.exit(1)
+PY
+  ); then
+    printf '%s' "$url"
+    return 0
+  fi
+  return 1
+}
+
+append_alias() {
+  local rc_file="$1"
+  local alias_line="alias ff='fastfetch'"
+  if [ ! -f "$rc_file" ]; then
+    return
+  fi
+  if ! grep -Fxq "$alias_line" "$rc_file" >/dev/null 2>&1; then
+    {
+      printf '\n# Fastfetch shortcut\n%s\n' "$alias_line"
+    } >> "$rc_file"
+    echo "Added fastfetch alias to $rc_file"
+  fi
+}
+
+add_fish_function() {
+  local function_dir="$HOME/.config/fish/functions"
+  local function_file="$function_dir/ff.fish"
+  if ! command -v fish >/dev/null 2>&1; then
+    return
+  fi
+  mkdir -p "$function_dir"
+  if [ -f "$function_file" ]; then
+    return
+  fi
+  cat <<'EOF' > "$function_file"
+function ff
+    fastfetch $argv
+end
+EOF
+  echo "Created fish helper function at $function_file"
+}
+
+if [ "$(uname -s)" != "Linux" ]; then
+  echo "This installer currently supports Linux hosts only." >&2
+  exit 1
+fi
+
+raw_arch="$(uname -m)"
+case "$raw_arch" in
+  x86_64|amd64)
+    target_arch="amd64"
+    ;;
+  aarch64|arm64)
+    target_arch="aarch64"
+    ;;
+  armv7l)
+    target_arch="armv7l"
+    ;;
+  armv6l)
+    target_arch="armv6l"
+    ;;
+  i686)
+    target_arch="i686"
+    ;;
+  ppc64le)
+    target_arch="ppc64le"
+    ;;
+  riscv64)
+    target_arch="riscv64"
+    ;;
+  s390x)
+    target_arch="s390x"
+    ;;
+  *)
+    echo "Unsupported architecture: $raw_arch" >&2
+    exit 1
+    ;;
+esac
+
+echo "Detected host: Linux/$raw_arch (using fastfetch release for $target_arch)"
+
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "python3 is required to inspect fastfetch releases." >&2
+  exit 1
+fi
+
+RELEASE_JSON=""
+if ! command -v fastfetch >/dev/null 2>&1; then
+  echo "Fastfetch is not installed; downloading the latest release."
+  RELEASE_JSON="$(fetch_release_json)"
+  artifact_candidates=("fastfetch-linux-${target_arch}.tar.gz" "fastfetch-linux-${target_arch}-polyfilled.tar.gz")
+  asset_url=""
+  selected_asset=""
+  for artifact in "${artifact_candidates[@]}"; do
+    if asset_url=$(find_asset_url "$artifact"); then
+      selected_asset="$artifact"
+      break
+    fi
+  done
+  if [ -z "$asset_url" ]; then
+    echo "No fastfetch release artifact found for architecture: $target_arch" >&2
+    exit 1
+  fi
+  echo "Downloading $selected_asset..."
+  rm -rf "$INSTALL_DIR"
+  mkdir -p "$INSTALL_DIR"
+  archive_path="$INSTALL_DIR/$selected_asset"
+  download_file "$asset_url" "$archive_path"
+  echo "Extracting fastfetch archive..."
+  tar -xzf "$archive_path" -C "$INSTALL_DIR"
+  fastfetch_binary="$(find "$INSTALL_DIR" -type f -name fastfetch -print -quit)"
+  if [ -z "$fastfetch_binary" ]; then
+    fastfetch_binary="$(find "$INSTALL_DIR" -type f -name '*fastfetch*' -print -quit)"
+  fi
+  if [ -z "$fastfetch_binary" ]; then
+    echo "Unable to locate the fastfetch binary inside the archive." >&2
+    exit 1
+  fi
+  echo "Installing fastfetch binary to /usr/local/bin"
+  sudo install -m755 "$fastfetch_binary" /usr/local/bin/fastfetch
 else
-    echo "Downloading and installing Fastfetch package..."
-    
-    # Install only wget for downloading the package
-    sudo apt-get install -y wget
-    
-    # Get the latest release URL
-    DEB_URL=$(wget -qO- https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | grep -oP '"browser_download_url": "\K(.+?-linux-amd64\.deb)' | head -1)
-    
-    if [ -n "$DEB_URL" ]; then
-        # Download the latest deb package
-        wget -O "$INSTALL_DIR/fastfetch.deb" "$DEB_URL"
-        # Install it
-        sudo apt install -y "$INSTALL_DIR/fastfetch.deb"
-        echo "Fastfetch installed from deb package."
-    else
-        echo "Could not find prebuilt deb package. Installation failed."
-        exit 1
-    fi
+  echo "Fastfetch is already installed; skipping the binary download."
 fi
 
-# Step 2: Create configuration directory
-echo "Setting up Fastfetch config..."
-mkdir -p "$HOME/.config/fastfetch"
+config_destination="$HOME/.config/fastfetch"
+mkdir -p "$config_destination"
+for config_file in "$SCRIPT_DIR"/*.jsonc; do
+  if [ ! -f "$config_file" ]; then
+    continue
+  fi
+  install -m644 "$config_file" "$config_destination/$(basename "$config_file")"
+done
 
-# Step 3: Download configuration files directly from Codeberg
-echo "Downloading configuration files from Codeberg..."
+echo "Configuration files placed in $config_destination"
 
-wget -O "$HOME/.config/fastfetch/config.jsonc" "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/fastfetch/config.jsonc"
-wget -O "$HOME/.config/fastfetch/minimal.jsonc" "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/fastfetch/minimal.jsonc"
-wget -O "$HOME/.config/fastfetch/server.jsonc" "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/fastfetch/server.jsonc"
+append_alias "$HOME/.bashrc"
+append_alias "$HOME/.zshrc"
+add_fish_function
 
-echo "Configuration files downloaded successfully."
+echo "Fastfetch setup complete. Use 'ff' for the default configuration or pass '-c <preset>' to select another profile."
 
-# Step 4: Create an alias for fastfetch based on detected shell
-echo "Setting up shell alias..."
-
-# Check which shells are configured
-if [ -f "$HOME/.bashrc" ]; then
-    if ! grep -q "alias ff=" "$HOME/.bashrc"; then
-        echo "# Fastfetch alias" >> "$HOME/.bashrc"
-        echo "alias ff='fastfetch'" >> "$HOME/.bashrc"
-        echo "Added 'ff' alias to .bashrc"
-    fi
-fi
-
-if [ -f "$HOME/.zshrc" ]; then
-    if ! grep -q "alias ff=" "$HOME/.zshrc"; then
-        echo "# Fastfetch alias" >> "$HOME/.zshrc"
-        echo "alias ff='fastfetch'" >> "$HOME/.zshrc"
-        echo "Added 'ff' alias to .zshrc"
-    fi
-fi
-
-if [ -d "$HOME/.config/fish" ]; then
-    fish_alias_path="$HOME/.config/fish/functions/ff.fish"
-    if [ ! -f "$fish_alias_path" ]; then
-        mkdir -p "$(dirname "$fish_alias_path")"
-        echo "function ff" > "$fish_alias_path"
-        echo "    fastfetch \$argv" >> "$fish_alias_path"
-        echo "end" >> "$fish_alias_path"
-        echo "Added 'ff' function to fish shell"
-    fi
-fi
-
-echo "Fastfetch configuration complete."
-echo "Available configuration presets:"
-echo "  - Default: fastfetch"
-echo "  - Minimal: fastfetch -c ~/.config/fastfetch/minimal.jsonc"
-echo "  - Server: fastfetch -c ~/.config/fastfetch/server.jsonc"
-echo "You can also use the 'ff' alias for the default configuration."

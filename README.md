@@ -49,6 +49,8 @@ Notes:
 
 The repository is organized into the following directories:
 
+> Trimmed scope: The Discord, MKVMerge, st, and WezTerm installers have been removed so the active modules listed below are the ones the unified installer still manages.
+
 
 ### `/browsers`
 
@@ -59,14 +61,6 @@ The repository is organized into the following directories:
 - **zen**: Zen browser
 - **more**
 
----
-
-### `/discord` 
-
-- [Installation and Documentation](https://codeberg.org/justaguylinux/butterscripts/src/branch/main/discord)
-- **Install**: Discord latest binary and built-in updater.
-
----
 
 ### `/fastfetch`
 
@@ -83,12 +77,6 @@ The repository is organized into the following directories:
 - **gitup**: Quick commit and push workflow script
 - **git-notes-status.sh**: Background monitoring script for git repository status notifications
 - **CODEBERG_SSH_SETUP.md**: SSH setup guide for Codeberg
-
----
-
-### `/mkvmerge`
-
-- **mergemkvs**: Script for merging MKV files
 
 ---
 
@@ -109,12 +97,6 @@ The repository is organized into the following directories:
 
 ---
 
-### `/st`
-
-- **install_st.sh**: Installs st (simple terminal)
-
----
-
 ### `/system`
 
 - **install_bluetooth.sh**: Installs and configures Bluetooth support
@@ -128,14 +110,6 @@ The repository is organized into the following directories:
 - [Installation and Documentation](https://codeberg.org/justaguylinux/butterscripts/src/branch/main/theming)
 - **nerdfonts**: Installs curated list of popular Nerd Fonts.
 - **install-theme**: Installs my favorite GTK theme and Dracula Dark icon theme
-
----
-
-### `/wezterm`
-
-- [Installation and Documentation](https://codeberg.org/justaguylinux/butterscripts/src/branch/main/wezterm)
-- **install_wezterm.sh**: Installs WezTerm terminal emulator from official repository
-- **wezterm.lua**: Curated lua configuration file for WezTerm
 
 ---
 

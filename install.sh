@@ -80,6 +80,21 @@ set_pm_install_cmd() {
   esac
 }
 
+describe_module_scope() {
+  local modules=(browsers fastfetch git neovim setup system theming butterbash vim-config)
+  local available=()
+  for module in "${modules[@]}"; do
+    if [ -d "$module" ]; then
+      available+=("$module")
+    fi
+  done
+  if [ ${#available[@]} -eq 0 ]; then
+    available=(packages)
+  fi
+  echo "Installer modules: ${available[*]}"
+  log "Installer modules: ${available[*]}"
+}
+
 PM=$(detect_pm)
 if [ "$PM" = "unknown" ]; then
   log "Detected package manager: unknown"
@@ -337,6 +352,7 @@ process_group_selection() {
 }
 
 echo "Package manager: $PM"
+describe_module_scope
 
 if [ "$ASSUME_YES" -eq 1 ]; then
   for i in "${!GROUP_ORDER[@]}"; do
@@ -496,6 +512,27 @@ do_vim_config() {
 }
 
 do_vim_config
+
+do_fastfetch() {
+  local ff_dir="fastfetch"
+  local script="${ff_dir}/install_fastfetch.sh"
+  [ -f "$script" ] || return
+  local ans
+  if [ "$ASSUME_YES" -eq 1 ]; then
+    ans=y
+  else
+    read -r -p "Install fastfetch and its configuration files? [Y/n] " ans || true
+    ans=${ans:-y}
+  fi
+  if [[ "$ans" =~ ^[Yy] ]]; then
+    log "Running fastfetch installer"
+    run_cmd "cd \"$ff_dir\" && ./install_fastfetch.sh"
+  else
+    log "Skipped fastfetch installer"
+  fi
+}
+
+do_fastfetch
 
 log "Install step completed (dry-run=$DRY_RUN)"
 
