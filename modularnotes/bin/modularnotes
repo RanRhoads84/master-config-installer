@@ -1,16 +1,31 @@
 #!/bin/bash
 
-# Butter - Simplified note and todo management (no rofi)
+# ModularNotes - Simplified note and todo management (no rofi)
 # Terminal-only version with clean sub-prompts
 
 # Self-contained script - no dependencies on installation directory
 
+CONFIG_ROOT="$HOME/.config/modularnotes"
+MODULARNOTES_CONFIG="$CONFIG_ROOT/modularnotes.conf"
+CONFIG_LOADED=false
+
+load_modularnotes_config() {
+    if [ "$CONFIG_LOADED" != "true" ] && [ -f "$MODULARNOTES_CONFIG" ]; then
+        # shellcheck source=/dev/null
+        source "$MODULARNOTES_CONFIG"
+    fi
+    CONFIG_LOADED=true
+    MODULARNOTES_DIR="${MODULARNOTES_DIR:-$HOME/Documents/ModularNotes}"
+    NOTES_FILE="${NOTES_FILE:-$MODULARNOTES_DIR/notes.md}"
+    TODOS_FILE="${TODOS_FILE:-$MODULARNOTES_DIR/todos.md}"
+    MODULARNOTES_EDITOR="${MODULARNOTES_EDITOR:-${EDITOR:-nano}}"
+}
+
 # Note taking function with clipboard support
 note() {
-    # Source config if available
-    [ -f ~/.config/butternotes/butter.conf ] && source ~/.config/butternotes/butter.conf
+    load_modularnotes_config
 
-    local note_file="${NOTES_FILE:-$HOME/Documents/ButterNotes/notes.md}"
+    local note_file="$NOTES_FILE"
 
     # Migrate from old location if it exists
     if [ -f "$HOME/.notes" ] && [ ! -f "$note_file" ]; then
@@ -199,7 +214,7 @@ note() {
             echo "📝 No notes to clear"
         fi
     elif [ "$1" = "edit" ]; then
-        ${BUTTER_EDITOR:-${EDITOR:-nano}} "$note_file"
+        ${MODULARNOTES_EDITOR:-${EDITOR:-nano}} "$note_file"
     elif [ "$1" = "help" ]; then
         echo "Usage:"
         echo "  note              - List all notes numbered by entry"
@@ -219,10 +234,9 @@ note() {
 
 # Task/Todo management function
 todo() {
-    # Source config if available
-    [ -f ~/.config/butternotes/butter.conf ] && source ~/.config/butternotes/butter.conf
+    load_modularnotes_config
 
-    local todo_file="${TODOS_FILE:-$HOME/Documents/ButterNotes/todos.md}"
+    local todo_file="$TODOS_FILE"
 
     # Migrate from old location if it exists
     if [ -f "$HOME/.tasks" ] && [ ! -f "$todo_file" ]; then
@@ -393,10 +407,9 @@ todo() {
 
 # FZF integration functions
 select_project() {
-    # Source config to get BUTTER_NOTES_DIR
-    [ -f ~/.config/butternotes/butter.conf ] && source ~/.config/butternotes/butter.conf
-    
-    local projects_dir="${BUTTER_NOTES_DIR:-$HOME/Documents/ButterNotes}/projects"
+    load_modularnotes_config
+
+    local projects_dir="$MODULARNOTES_DIR/projects"
     
     # Create projects directory if it doesn't exist
     mkdir -p "$projects_dir"
@@ -481,9 +494,8 @@ apply_template() {
     local project_name="$2"
     local template="$3"
 
-    # Source config to get template directory
-    [ -f ~/.config/butternotes/butter.conf ] && source ~/.config/butternotes/butter.conf
-    local template_file="$HOME/.config/butternotes/templates/${template}.md"
+    load_modularnotes_config
+    local template_file="$CONFIG_ROOT/templates/${template}.md"
 
     if [ -f "$template_file" ]; then
         # Apply template with substitutions
@@ -500,9 +512,8 @@ create_new_project() {
     echo
     read -p "New project name: " new_name </dev/tty
     if [ -n "$new_name" ]; then
-        # Source config to get BUTTER_NOTES_DIR
-        [ -f ~/.config/butternotes/butter.conf ] && source ~/.config/butternotes/butter.conf
-        local projects_dir="${BUTTER_NOTES_DIR:-$HOME/Documents/ButterNotes}/projects"
+        load_modularnotes_config
+        local projects_dir="$MODULARNOTES_DIR/projects"
         local project_file="$projects_dir/${new_name}.md"
 
         # Create projects directory if it doesn't exist
@@ -511,47 +522,46 @@ create_new_project() {
         # Apply template and open for editing
         apply_template "$project_file" "$new_name" "$template"
         echo "✅ Project '$new_name' created with $template template"
-        ${BUTTER_EDITOR:-${EDITOR:-nano}} "$project_file"
+        ${MODULARNOTES_EDITOR:-${EDITOR:-nano}} "$project_file"
     fi
 }
 
 # Show help
 show_help() {
-    cat << EOF
-🧈 Butter - Smart note and todo management
+        cat << EOF
+📝 ModularNotes - Smart note and todo management
 
-Usage: butter [COMMAND] [ARGS...]
+Usage: modularnotes [COMMAND] [ARGS...]
 
 Commands:
-  add TEXT           Add a note with TEXT
-  clip              Save clipboard content as note
-  notes edit         Edit notes file (shortcut: n edit)
-  notes rm           Clear all notes (shortcut: n rm)
-  todo TEXT         Add a todo item
-  todos             List all todos
-  project NAME      View project notes (shortcut: p NAME)
-  project NAME edit Edit project file (shortcut: p NAME edit)  
-  project           Project manager - select/create/delete (shortcut: p)
-  projects          List all projects
-  list              List all notes
-  edit              Open notes file in editor (legacy)
-  help              Show this help
-  
+    add TEXT           Add a note with TEXT
+    clip               Save clipboard content as note
+    notes edit         Edit notes file (shortcut: n edit)
+    notes rm           Clear all notes (shortcut: n rm)
+    todo TEXT          Add a todo item
+    todos              List all todos
+    project NAME       View project notes (shortcut: p NAME)
+    project NAME edit  Edit project file (shortcut: p NAME edit)
+    project            Project manager - select/create/delete (shortcut: p)
+    projects           List all projects
+    list               List all notes
+    edit               Open notes file in editor (legacy)
+    help               Show this help
+
 Quick Usage:
-  butter "Quick note"           # Add note
-  butter todo "Fix bug"         # Add todo
-  butter project python        # View python project notes
-  butter project               # Project manager (fzf)
-  butter clip                   # Save clipboard
-  butter                        # Interactive mode
+    modularnotes "Quick note"        # Add note
+    modularnotes todo "Fix bug"      # Add todo
+    modularnotes project python      # View project notes
+    modularnotes project             # Project manager (fzf)
+    modularnotes clip                # Save clipboard
+    modularnotes                     # Interactive mode
 
 Examples:
-  # Add to your ~/.bashrc or ~/.config/bash/aliases
-  alias b='butter'
-  alias bc='butter clip'
-  alias bt='butter todo'
+    alias mn='modularnotes'
+    alias mnt='modularnotes todo'
+    alias mnl='modularnotes list'
 
-Note: When called without arguments, butter enters interactive mode.
+Note: When called without arguments, modularnotes enters interactive mode.
 EOF
 }
 
@@ -565,7 +575,7 @@ note_prompt() {
     echo
     
     while true; do
-        read -r -p "🧈 butter/notes ❯ " input
+        read -r -p "📝 modularnotes/notes ❯ " input
         
         # Split input into command and args
         cmd="${input%% *}"
@@ -603,10 +613,10 @@ note_prompt() {
                 ;;
             s|search|/)
                 if [ -n "$args" ]; then
-                    grep -i "$args" "${NOTES_FILE:-$HOME/Documents/ButterNotes/notes.md}" 2>/dev/null || echo "No matches found"
+                    grep -i "$args" "${NOTES_FILE:-$HOME/Documents/ModularNotes/notes.md}" 2>/dev/null || echo "No matches found"
                 else
                     read -r -p "Search for: " term
-                    [ -n "$term" ] && grep -i "$term" "${NOTES_FILE:-$HOME/Documents/ButterNotes/notes.md}" 2>/dev/null || echo "No matches found"
+                    [ -n "$term" ] && grep -i "$term" "${NOTES_FILE:-$HOME/Documents/ModularNotes/notes.md}" 2>/dev/null || echo "No matches found"
                 fi
                 ;;
             h|help|?)
@@ -645,7 +655,7 @@ todo_prompt() {
     echo
     
     while true; do
-        read -r -p "🧈 butter/todos ❯ " input
+        read -r -p "📝 modularnotes/todos ❯ " input
         
         # Split input into command and args
         cmd="${input%% *}"
@@ -709,15 +719,13 @@ todo_prompt() {
 notes_command() {
     local command="$1"
     shift
-    
-    # Source config to get BUTTER_NOTES_DIR
-    [ -f ~/.config/butternotes/butter.conf ] && source ~/.config/butternotes/butter.conf
-    
-    local notes_file="${NOTES_FILE:-$HOME/Documents/ButterNotes/notes.md}"
+    load_modularnotes_config
+
+    local notes_file="$NOTES_FILE"
     
     case "$command" in
         edit|e)
-            ${BUTTER_EDITOR:-${EDITOR:-nano}} "$notes_file"
+            ${MODULARNOTES_EDITOR:-${EDITOR:-nano}} "$notes_file"
             ;;
         rm|remove|delete)
             if [ -f "$notes_file" ]; then
@@ -749,10 +757,9 @@ project_note() {
     shift
     local command_or_text="$1"
     
-    # Source config to get BUTTER_NOTES_DIR
-    [ -f ~/.config/butternotes/butter.conf ] && source ~/.config/butternotes/butter.conf
+    load_modularnotes_config
     
-    local projects_dir="${BUTTER_NOTES_DIR:-$HOME/Documents/ButterNotes}/projects"
+    local projects_dir="$MODULARNOTES_DIR/projects"
     local project_file="$projects_dir/${project_name}.md"
     
     # Create projects directory if it doesn't exist
@@ -761,10 +768,10 @@ project_note() {
     # Check for edit or rm commands
     if [ "$command_or_text" = "edit" ]; then
         if [ -f "$project_file" ]; then
-            ${BUTTER_EDITOR:-${EDITOR:-nano}} "$project_file"
+            ${MODULARNOTES_EDITOR:-${EDITOR:-nano}} "$project_file"
         else
             echo "📁 Project '$project_name' doesn't exist yet."
-            echo "Create it with: butter project $project_name \"your note\""
+            echo "Create it with: modularnotes project $project_name \"your note\""
         fi
         return
     elif [ "$command_or_text" = "rm" ] || [ "$command_or_text" = "delete" ]; then
@@ -820,7 +827,7 @@ project_note() {
             fi
         else
             echo "📁 Project '$project_name' has no notes yet."
-            echo "Add a note with: butter project $project_name \"your note\""
+            echo "Add a note with: modularnotes project $project_name \"your note\""
         fi
     else
         # Add text to project
@@ -830,10 +837,9 @@ project_note() {
 }
 
 list_projects() {
-    # Source config to get BUTTER_NOTES_DIR
-    [ -f ~/.config/butternotes/butter.conf ] && source ~/.config/butternotes/butter.conf
+    load_modularnotes_config
     
-    local projects_dir="${BUTTER_NOTES_DIR:-$HOME/Documents/ButterNotes}/projects"
+    local projects_dir="$MODULARNOTES_DIR/projects"
     
     if [ -d "$projects_dir" ] && [ -n "$(ls -A "$projects_dir" 2>/dev/null)" ]; then
         echo "📁 Projects:"
@@ -846,7 +852,7 @@ list_projects() {
         done
     else
         echo "📁 No projects yet."
-        echo "Create one with: butter project <name> \"your note\""
+        echo "Create one with: modularnotes project <name> \"your note\""
     fi
 }
 
@@ -860,7 +866,7 @@ projects_prompt() {
     echo
     
     while true; do
-        read -r -p "🧈 butter/projects ❯ " input
+        read -r -p "📝 modularnotes/projects ❯ " input
         
         # Split input into command and args
         cmd="${input%% *}"
@@ -877,9 +883,8 @@ projects_prompt() {
                             create_new_project
                             ;;
                         "🗑️  Delete project")
-                            # Source config to get BUTTER_NOTES_DIR
-                            [ -f ~/.config/butternotes/butter.conf ] && source ~/.config/butternotes/butter.conf
-                            projects_dir="${BUTTER_NOTES_DIR:-$HOME/Documents/ButterNotes}/projects"
+                            load_modularnotes_config
+                            projects_dir="$MODULARNOTES_DIR/projects"
                             
                             if command -v fzf >/dev/null 2>&1 && [ -t 0 ] && [ -t 1 ]; then
                                 del_project=$(find "$projects_dir" -name "*.md" -exec basename {} .md \; 2>/dev/null | sort | fzf --prompt="Delete project: ")
@@ -942,7 +947,7 @@ projects_prompt() {
 
 # Interactive terminal mode
 interactive_terminal() {
-    echo "🧈 Butter - Interactive Mode"
+    echo "📝 ModularNotes - Interactive Mode"
     echo
     echo "Commands:"
     echo "  n         - Enter notes mode"
@@ -955,7 +960,7 @@ interactive_terminal() {
     echo
     
     while true; do
-        read -r -p "🧈 butter ❯ " input
+        read -r -p "📝 modularnotes ❯ " input
         
         # Split input into command and args
         cmd="${input%% *}"
@@ -989,9 +994,8 @@ interactive_terminal() {
                             create_new_project
                             ;;
                         "🗑️  Delete project")
-                            # Source config to get BUTTER_NOTES_DIR
-                            [ -f ~/.config/butternotes/butter.conf ] && source ~/.config/butternotes/butter.conf
-                            projects_dir="${BUTTER_NOTES_DIR:-$HOME/Documents/ButterNotes}/projects"
+                            load_modularnotes_config
+                            projects_dir="$MODULARNOTES_DIR/projects"
                             
                             if command -v fzf >/dev/null 2>&1; then
                                 del_project=$(find "$projects_dir" -name "*.md" -exec basename {} .md \; 2>/dev/null | sort | fzf --prompt="Delete project: ")
@@ -1016,7 +1020,7 @@ interactive_terminal() {
                 ;;
             c|clear|cls)
                 clear
-                echo "🧈 Butter - Interactive Mode"
+                echo "📝 ModularNotes - Interactive Mode"
                 echo
                 echo "Commands:"
                 echo "  n         - Enter notes mode"
@@ -1054,7 +1058,7 @@ main() {
             if [ -n "$*" ]; then
                 note "$*"
             else
-                echo "Usage: butter add <text>"
+                echo "Usage: modularnotes add <text>"
                 exit 1
             fi
             ;;
@@ -1085,9 +1089,8 @@ main() {
                             create_new_project
                             ;;
                         "🗑️  Delete project")
-                            # Source config to get BUTTER_NOTES_DIR
-                            [ -f ~/.config/butternotes/butter.conf ] && source ~/.config/butternotes/butter.conf
-                            projects_dir="${BUTTER_NOTES_DIR:-$HOME/Documents/ButterNotes}/projects"
+                            load_modularnotes_config
+                            projects_dir="$MODULARNOTES_DIR/projects"
                             
                             if command -v fzf >/dev/null 2>&1 && [ -t 0 ] && [ -t 1 ]; then
                                 del_project=$(find "$projects_dir" -name "*.md" -exec basename {} .md \; 2>/dev/null | sort | fzf --prompt="Delete project: ")

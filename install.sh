@@ -81,7 +81,7 @@ set_pm_install_cmd() {
 }
 
 describe_module_scope() {
-  local modules=(browsers fastfetch git neovim setup system theming butterbash vim-config)
+  local modules=(browsers fastfetch git neovim setup system theming modularshell vim-config)
   local available=()
   for module in "${modules[@]}"; do
     if [ -d "$module" ]; then

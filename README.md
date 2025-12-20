@@ -68,13 +68,13 @@ Each directory below ships with its own README; hover on the links or open the f
 
 - `buttervim.sh` and `build-neovim.sh` install Neovim and the ModularConfig vim stack. Details live in [neovim/README.md](neovim/README.md).
 
-### `/butternotes`
+### `/modularnotes`
 
-- Modular note-taking tooling (notes/todos, backups, templates, and shell helpers). See [butternotes/README.md](butternotes/README.md).
+- Modular note-taking tooling (notes/todos, backups, templates, and shell helpers). See [modularnotes/README.md](modularnotes/README.md).
 
 ### `/setup`
 
-- Utility installers such as `install_caligula.sh`, `install_geany.sh`, `install_picom.sh`, and `optional_tools.sh`. The optional tools menu now surfaces CSI-friendly bundles including `ButterBash` and the fastfetch installer.
+- Utility installers such as `install_caligula.sh`, `install_geany.sh`, `install_picom.sh`, and `optional_tools.sh`. The optional tools menu now surfaces CSI-friendly bundles including `ModularShell` and the fastfetch installer.
 
 ### `/system`
 

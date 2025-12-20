@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ButterBash Installation Script
+# ModularShell Installation Script
 
 set -e
 
@@ -11,8 +11,8 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-BUTTERBASH_DIR="$HOME/.config/bash"
-CONFIG_BACKUP_DIR="$HOME/.config/bash.backup.$(date +%Y%m%d_%H%M%S)"
+MODULARSHELL_DIR="$HOME/.config/modularshell"
+CONFIG_BACKUP_DIR="$HOME/.config/modularshell.backup.$(date +%Y%m%d_%H%M%S)"
 BASHRC_BACKUP="$HOME/.bashrc.backup.$(date +%Y%m%d_%H%M%S)"
 
 # Print colored message
@@ -23,8 +23,8 @@ print_msg() {
 # Print header
 print_header() {
     echo
-    print_msg "🧈 ButterBash Installer" "$YELLOW"
-    print_msg "======================" "$YELLOW"
+    print_msg "✨ ModularShell Installer" "$YELLOW"
+    print_msg "==========================" "$YELLOW"
     echo
 }
 
@@ -35,7 +35,7 @@ command_exists() {
 
 # Backup existing configuration
 backup_existing() {
-    if [ -d "$BUTTERBASH_DIR" ] || [ -f "$HOME/.bashrc" ]; then
+    if [ -d "$MODULARSHELL_DIR" ] || [ -f "$HOME/.bashrc" ]; then
         print_msg "📦 Backing up existing configuration..." "$BLUE"
         
         # Backup .bashrc if it exists
@@ -45,30 +45,29 @@ backup_existing() {
         fi
 
         # Backup existing bash config directory
-        if [ -d "$BUTTERBASH_DIR" ]; then
-            cp -a "$BUTTERBASH_DIR" "$CONFIG_BACKUP_DIR"
-            rm -rf "$BUTTERBASH_DIR"
+        if [ -d "$MODULARSHELL_DIR" ]; then
+            cp -a "$MODULARSHELL_DIR" "$CONFIG_BACKUP_DIR"
+            rm -rf "$MODULARSHELL_DIR"
             print_msg "   ✓ Backed up existing config to $CONFIG_BACKUP_DIR" "$GREEN"
         fi
     fi
 }
 
-# Install ButterBash
-install_butterbash() {
-    print_msg "🚀 Installing ButterBash..." "$BLUE"
+install_modularshell() {
+    print_msg "🚀 Installing ModularShell..." "$BLUE"
     
     # Check if required files exist
     if [ ! -d "bash" ] || [ ! -f "bashrc.example" ]; then
-        print_msg "   ❌ Error: ButterBash files not found!" "$RED"
-        print_msg "   Please run the installer from the cloned butterbash directory" "$YELLOW"
+        print_msg "   ❌ Error: ModularShell files not found!" "$RED"
+        print_msg "   Please run the installer from the cloned modularshell directory" "$YELLOW"
         exit 1
     fi
     
     # Create config directory
-    mkdir -p "$BUTTERBASH_DIR/functions"
+    mkdir -p "$MODULARSHELL_DIR/functions"
     
     # Copy configuration files
-    cp -r bash/* "$BUTTERBASH_DIR/"
+    cp -r bash/* "$MODULARSHELL_DIR/"
     print_msg "   ✓ Copied configuration files" "$GREEN"
 
     # Install main bashrc
@@ -152,7 +151,7 @@ main() {
     # Skip confirmation if called with --yes flag or from another installer
     if [[ "$1" != "--yes" ]] && [[ -z "$SKIP_CONFIRMATION" ]]; then
         # Confirm installation
-        echo "This will install ButterBash to $BUTTERBASH_DIR"
+        echo "This will install ModularShell to $MODULARSHELL_DIR"
         echo "Your existing configuration will be backed up."
         echo
         read -p "$(echo -e ${YELLOW}Continue with installation? \(y/N\): ${NC})" -n 1 -r
@@ -166,18 +165,18 @@ main() {
     
     # Run installation steps
     backup_existing
-    install_butterbash
+    install_modularshell
     install_dependencies
     
     # Success message
     echo
-    print_msg "✨ ButterBash installed successfully!" "$GREEN"
+    print_msg "✨ ModularShell installed successfully!" "$GREEN"
     echo
     print_msg "To get started:" "$BLUE"
     print_msg "  1. Reload your shell: source ~/.bashrc" "$NC"
     print_msg "  2. Check the README for full documentation" "$NC"
     echo
-    print_msg "Enjoy your butter-smooth shell experience! 🧈" "$YELLOW"
+    print_msg "Enjoy your ModularShell experience!" "$YELLOW"
 }
 
 # Run main function

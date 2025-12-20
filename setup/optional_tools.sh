@@ -1,9 +1,8 @@
 #!/bin/bash
 # DESC: Interactive installer for optional applications from butterscripts and APT repositories
 
-# Butter Applications Installer
-# This script allows you to choose which applications to install from the
-# butterscripts repository by drewgrif, and also provides APT-based installations.
+# ModularConfig Optional Tools Installer
+# This script lets you choose which CSI helper modules to install (local modules and remote APT bundles).
 
 # Define color codes
 GREEN='\033[0;32m'
@@ -11,6 +10,7 @@ CYAN='\033[0;36m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Define package categories globally for reuse
 declare -a PRINTER_PACKAGES=(
@@ -40,10 +40,10 @@ declare -a BLUETOOTH_PACKAGES=(
 show_header() {
     clear
     echo -e "${CYAN}=========================================================${NC}"
-    echo -e "${CYAN}           BUTTER APPLICATIONS INSTALLER                 ${NC}"
+    echo -e "${CYAN}        MODULARCONFIG OPTIONAL TOOLS INSTALLER           ${NC}"
     echo -e "${CYAN}=========================================================${NC}"
-    echo -e "${YELLOW}This script will help you install various applications${NC}"
-    echo -e "${YELLOW}from the butterscripts repository and APT packages.${NC}"
+    echo -e "${YELLOW}This script installs ModularConfig Suite helper modules${NC}"
+    echo -e "${YELLOW}alongside APT-based utilities.${NC}"
     echo
 }
 
@@ -332,16 +332,16 @@ install_apt_packages() {
     pause
 }
 
-# ButterScripts menu function
+# ModularConfig helper menu function
 show_butterscripts_menu() {
     local choice
-    
+
     while true; do
         show_header
-        echo -e "${YELLOW}Select a ButterScript to install:${NC}"
-        echo -e "${CYAN}1. ${NC}ButterBash - Modular bash configuration framework ⭐"
+        echo -e "${YELLOW}Select a ModularConfig Suite helper to install:${NC}"
+        echo -e "${CYAN}1. ${NC}ModularShell - Modular bash configuration framework ⭐"
         echo -e "${CYAN}2. ${NC}ButterZsh - Modular zsh configuration framework ⭐"
-        echo -e "${CYAN}3. ${NC}ButterNotes - Universal note-taking and project management tool"
+        echo -e "${CYAN}3. ${NC}ModularNotes - Universal note-taking and project organization tool"
         echo -e "${CYAN}4. ${NC}Geany - Text Editor with plugins (Latest version 2.1 from source)"
         echo -e "${CYAN}5. ${NC}Browsers - Firefox, LibreWolf, Brave, Floorp, Chromium, Zen"
         echo -e "${CYAN}6. ${NC}Discord - Chat and Voice Application"
@@ -357,32 +357,19 @@ show_butterscripts_menu() {
         
         case $choice in
             1)
-                echo -e "${CYAN}Installing ButterBash...${NC}"
-                echo -e "${YELLOW}ButterBash provides a modular bash configuration framework.${NC}"
-                echo -e "${YELLOW}This will backup your current .bashrc and install the full ButterBash configuration.${NC}"
+                echo -e "${CYAN}Installing ModularShell...${NC}"
+                echo -e "${YELLOW}ModularShell provides a modular bash configuration framework.${NC}"
+                echo -e "${YELLOW}This will backup your current .bashrc and install the ModularShell configuration.${NC}"
                 echo
                 
-                if ask_yes_no "Do you want to install ButterBash (will backup existing .bashrc)?"; then
-                    # Clone the repository to temp location
-                    temp_dir="/tmp/butterbash-$(date +%s)"
-                    echo -e "${YELLOW}Cloning ButterBash repository...${NC}"
-                    
-                    if git clone --quiet https://codeberg.org/justaguylinux/butterbash.git "$temp_dir" 2>/dev/null; then
-                        # Run installer from the cloned directory without confirmation
-                        cd "$temp_dir"
-                        export SKIP_CONFIRMATION=true
-                        if bash install.sh; then
-                            echo -e "${GREEN}ButterBash installation completed.${NC}"
-                        else
-                            echo -e "${RED}ButterBash installation failed or was cancelled.${NC}"
-                        fi
-                        cd - > /dev/null
-                        rm -rf "$temp_dir"
+                if ask_yes_no "Do you want to install ModularShell (will backup existing .bashrc)?"; then
+                    if (cd "$REPO_ROOT/modularshell" && bash install.sh --yes); then
+                        echo -e "${GREEN}ModularShell installation completed.${NC}"
                     else
-                        echo -e "${RED}Failed to clone ButterBash repository${NC}"
+                        echo -e "${RED}ModularShell installation failed or was cancelled.${NC}"
                     fi
                 else
-                    echo -e "${YELLOW}ButterBash installation cancelled.${NC}"
+                    echo -e "${YELLOW}ModularShell installation cancelled.${NC}"
                 fi
                 pause
                 ;;
@@ -393,12 +380,10 @@ show_butterscripts_menu() {
                 echo
 
                 if ask_yes_no "Do you want to install ButterZsh (will backup existing .zshrc)?"; then
-                    # Clone the repository to temp location
                     temp_dir="/tmp/butterzsh-$(date +%s)"
                     echo -e "${YELLOW}Cloning ButterZsh repository...${NC}"
 
                     if git clone --quiet https://codeberg.org/justaguylinux/butterzsh.git "$temp_dir" 2>/dev/null; then
-                        # Run installer from the cloned directory without confirmation
                         cd "$temp_dir"
                         export SKIP_CONFIRMATION=true
                         if bash install.sh; then
@@ -417,31 +402,19 @@ show_butterscripts_menu() {
                 pause
                 ;;
             3)
-                echo -e "${CYAN}Installing ButterNotes...${NC}"
-                echo -e "${YELLOW}ButterNotes provides note-taking, todo management, and project organization.${NC}"
-                echo -e "${YELLOW}Works with any shell (bash, zsh, fish) and integrates beautifully with ButterBash.${NC}"
+                echo -e "${CYAN}Installing ModularNotes...${NC}"
+                echo -e "${YELLOW}ModularNotes provides note-taking, todo management, and project organization.${NC}"
+                echo -e "${YELLOW}Works with any shell (bash, zsh, fish) and integrates beautifully with ModularShell.${NC}"
                 echo
 
-                if ask_yes_no "Do you want to install ButterNotes?"; then
-                    # Clone the repository to temp location
-                    temp_dir="/tmp/butternotes-$(date +%s)"
-                    echo -e "${YELLOW}Cloning ButterNotes repository...${NC}"
-
-                    if git clone --quiet https://codeberg.org/justaguylinux/butternotes.git "$temp_dir" 2>/dev/null; then
-                        # Run installer from the cloned directory
-                        cd "$temp_dir"
-                        if bash install.sh; then
-                            echo -e "${GREEN}ButterNotes installation completed.${NC}"
-                        else
-                            echo -e "${RED}ButterNotes installation failed or was cancelled.${NC}"
-                        fi
-                        cd - > /dev/null
-                        rm -rf "$temp_dir"
+                if ask_yes_no "Do you want to install ModularNotes?"; then
+                    if (cd "$REPO_ROOT/modularnotes" && bash install.sh); then
+                        echo -e "${GREEN}ModularNotes installation completed.${NC}"
                     else
-                        echo -e "${RED}Failed to clone ButterNotes repository${NC}"
+                        echo -e "${RED}ModularNotes installation failed or was cancelled.${NC}"
                     fi
                 else
-                    echo -e "${YELLOW}ButterNotes installation cancelled.${NC}"
+                    echo -e "${YELLOW}ModularNotes installation cancelled.${NC}"
                 fi
                 pause
                 ;;
@@ -542,7 +515,7 @@ show_main_menu() {
     while true; do
         show_header
         echo -e "${YELLOW}Please select an installation option:${NC}"
-        echo -e "${CYAN}1. ${NC}Butterscripts Installers"
+        echo -e "${CYAN}1. ${NC}ModularConfig helper installers"
         echo -e "${CYAN}2. ${NC}APT Package Installation"
         echo -e "${CYAN}3. ${NC}System Support (Printer & Bluetooth)"
         echo -e "${CYAN}4. ${NC}Reboot System"
@@ -556,7 +529,7 @@ show_main_menu() {
             3) show_system_support_menu ;;
             4) reboot_system ;;
             0)
-                echo -e "${GREEN}Exiting installer. Thank you for using Butter Installer!${NC}"
+                echo -e "${GREEN}Exiting installer. Thank you for using ModularConfig Optional Tools!${NC}"
                 exit 0
                 ;;
             *)

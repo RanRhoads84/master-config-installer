@@ -23,7 +23,7 @@ Work items:
 9. Remove the unused folders (`discord`, `mkvmerge`, `st`, `wezterm`) from the repo since those packages are no longer install options.
 10. Flesh out `fastfetch/install_fastfetch.sh` and the accompanying configs so they detect OS/architecture, then fetch and configure fastfetch from this repo.
 11. Document and/or simplify the usage of the scripts inside `browsers/`, `git/`, `theming/`, `system/`, and `setup/` to understand how (or if) they should appear in the installer.
-12. Incorporate the contents of `butterbash/` and `vim-config/` into the main installer options (e.g., new menu entries or post-install steps).
+12. Incorporate the contents of `modularshell/` and `vim-config/` into the main installer options (e.g., new menu entries or post-install steps).
 13. Refactor the main install script to streamline operations and improve execution speed across supported package managers.
 
 Backups: a compressed archive of the repo was created before any changes.

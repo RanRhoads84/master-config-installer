@@ -31,6 +31,7 @@ Unified Linux package installer supporting multiple distributions (apt, dnf, pac
 - **Vim Configuration**: Automated vim setup installation
 - **Non-Interactive Mode**: --groups flag for automated installation
 - **Command Line Options**: --dry-run, --yes, --log, --groups
+- **ModularNotes Rebrand**: Replaced ButterScripts naming with ModularNotes/ModularShell across installers, CLI helpers, and configs (now sourcing ~/.config/modularnotes/modularnotes.conf).
 
 ## Current Issues 🚨
 
@@ -95,5 +96,5 @@ Unified Linux package installer supporting multiple distributions (apt, dnf, pac
 - ✅ End-to-end installation flow works
 
 ---
-*Last Updated: December 19, 2025*
-*Current Focus: ModularConfig Suite stabilization and CSI branding rollout*
+*Last Updated: December 20, 2025*
+*Current Focus: ModularNotes rebrand completion and documentation cleanup*
