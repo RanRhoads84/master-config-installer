@@ -1,0 +1,2011 @@
+2025-12-20T00:24:35Z Detected package manager: zypper
+2025-12-20T00:24:35Z Found 18 candidate packages in packages/zypper.txt
+2025-12-20T00:28:59Z Detected package manager: zypper
+2025-12-20T00:29:33Z Detected package manager: zypper
+2025-12-20T00:29:57Z Will install 18 packages for zypper
+2025-12-20T00:31:12Z Detected package manager: zypper
+2025-12-20T00:31:13Z Skipping installed package: git
+2025-12-20T00:31:13Z Skipping installed package: vim
+2025-12-20T00:31:13Z Skipping installed package: ripgrep
+2025-12-20T00:31:13Z Skipping installed package: fzf
+2025-12-20T00:31:13Z Skipping installed package: fd
+2025-12-20T00:31:13Z Skipping installed package: make
+2025-12-20T00:31:13Z Skipping installed package: gcc
+2025-12-20T00:31:13Z Skipping installed package: pkg-config
+2025-12-20T00:31:13Z Skipping installed package: cmake
+2025-12-20T00:31:13Z Skipping installed package: meson
+2025-12-20T00:31:13Z Skipping installed package: ninja
+2025-12-20T00:31:13Z Skipping installed package: gettext
+2025-12-20T00:31:13Z Will install 6 packages for zypper
+2025-12-20T00:34:36Z Detected package manager: zypper
+2025-12-20T00:34:48Z Skipping installed package: git
+2025-12-20T00:34:48Z Skipping installed package: vim
+2025-12-20T00:34:48Z Skipping installed package: ripgrep
+2025-12-20T00:34:48Z Skipping installed package: fzf
+2025-12-20T00:34:48Z Skipping installed package: fd
+2025-12-20T00:34:48Z Skipping installed package: make
+2025-12-20T00:34:48Z Skipping installed package: gcc
+2025-12-20T00:34:48Z Skipping installed package: pkg-config
+2025-12-20T00:34:48Z Skipping installed package: cmake
+2025-12-20T00:34:48Z Skipping installed package: meson
+2025-12-20T00:34:48Z Skipping installed package: ninja
+2025-12-20T00:34:48Z Skipping installed package: gettext
+2025-12-20T00:34:48Z Will install 6 packages for zypper
+2025-12-20T00:34:52Z RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T00:43:05Z Detected package manager: zypper
+2025-12-20T00:43:16Z Skipping installed package: git
+2025-12-20T00:43:16Z Skipping installed package: vim
+2025-12-20T00:43:16Z Skipping installed package: ripgrep
+2025-12-20T00:43:16Z Skipping installed package: fzf
+2025-12-20T00:43:16Z Skipping installed package: fd
+2025-12-20T00:43:16Z Skipping installed package: make
+2025-12-20T00:43:16Z Skipping installed package: gcc
+2025-12-20T00:43:16Z Skipping installed package: pkg-config
+2025-12-20T00:43:16Z Skipping installed package: cmake
+2025-12-20T00:43:16Z Skipping installed package: meson
+2025-12-20T00:43:16Z Skipping installed package: ninja
+2025-12-20T00:43:16Z Skipping installed package: gettext
+2025-12-20T00:43:16Z Will install 6 packages for zypper
+2025-12-20T00:43:17Z RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T00:44:05Z Detected package manager: zypper
+2025-12-20T00:44:05Z Skipping installed package: git
+2025-12-20T00:44:05Z Skipping installed package: vim
+2025-12-20T00:44:05Z Skipping installed package: ripgrep
+2025-12-20T00:44:05Z Skipping installed package: fzf
+2025-12-20T00:44:05Z Skipping installed package: fd
+2025-12-20T00:44:05Z Skipping installed package: make
+2025-12-20T00:44:05Z Skipping installed package: gcc
+2025-12-20T00:44:05Z Skipping installed package: pkg-config
+2025-12-20T00:44:05Z Skipping installed package: cmake
+2025-12-20T00:44:05Z Skipping installed package: meson
+2025-12-20T00:44:05Z Skipping installed package: ninja
+2025-12-20T00:44:05Z Skipping installed package: gettext
+2025-12-20T00:44:06Z Will install 6 packages for zypper
+2025-12-20T00:44:11Z RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T00:45:41Z Detected package manager: zypper
+2025-12-20T00:45:41Z Skipping installed package: git
+2025-12-20T00:45:41Z Skipping installed package: vim
+2025-12-20T00:45:41Z Skipping installed package: ripgrep
+2025-12-20T00:45:41Z Skipping installed package: fzf
+2025-12-20T00:45:41Z Skipping installed package: fd
+2025-12-20T00:45:41Z Skipping installed package: make
+2025-12-20T00:45:41Z Skipping installed package: gcc
+2025-12-20T00:45:41Z Skipping installed package: pkg-config
+2025-12-20T00:45:41Z Skipping installed package: cmake
+2025-12-20T00:45:41Z Skipping installed package: meson
+2025-12-20T00:45:41Z Skipping installed package: ninja
+2025-12-20T00:45:41Z Skipping installed package: gettext
+2025-12-20T00:45:41Z Will install 6 packages for zypper
+2025-12-20T00:45:45Z RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T00:45:47Z Detected package manager: zypper
+2025-12-20T00:45:47Z Skipping installed package: git
+2025-12-20T00:45:47Z Skipping installed package: vim
+2025-12-20T00:45:47Z Skipping installed package: ripgrep
+2025-12-20T00:45:47Z Skipping installed package: fzf
+2025-12-20T00:45:47Z Skipping installed package: fd
+2025-12-20T00:45:47Z Skipping installed package: make
+2025-12-20T00:45:47Z Skipping installed package: gcc
+2025-12-20T00:45:47Z Skipping installed package: pkg-config
+2025-12-20T00:45:47Z Skipping installed package: cmake
+2025-12-20T00:45:47Z Skipping installed package: meson
+2025-12-20T00:45:47Z Skipping installed package: ninja
+2025-12-20T00:45:47Z Skipping installed package: gettext
+2025-12-20T00:45:47Z Skipping installed package: git
+2025-12-20T00:45:47Z Skipping installed package: vim
+2025-12-20T00:45:47Z Skipping installed package: ripgrep
+2025-12-20T00:45:47Z Skipping installed package: fzf
+2025-12-20T00:45:47Z Skipping installed package: fd
+2025-12-20T00:45:47Z Skipping installed package: make
+2025-12-20T00:45:47Z Skipping installed package: gcc
+2025-12-20T00:45:47Z Skipping installed package: pkg-config
+2025-12-20T00:45:47Z Skipping installed package: cmake
+2025-12-20T00:45:47Z Skipping installed package: meson
+2025-12-20T00:45:47Z Skipping installed package: ninja
+2025-12-20T00:45:47Z Skipping installed package: gettext
+2025-12-20T00:45:47Z Will install 12 packages for zypper
+2025-12-20T00:46:05Z RUN: sudo zypper install -y git
+vim
+ripgrep
+fzf
+fd
+make
+gcc
+pkg-config
+cmake
+meson
+ninja
+gettext
+libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+git
+vim
+ripgrep
+fzf
+fd
+make
+gcc
+pkg-config
+cmake
+meson
+ninja
+gettext
+libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T00:46:10Z RUN: npm install -g typescript-language-server
+2025-12-20T00:46:10Z RUN: npm install -g intelephense
+2025-12-20T00:46:12Z RUN: cargo install caligula || true
+2025-12-20T00:46:12Z Install step completed (dry-run=1)
+2025-12-20T00:48:50Z Detected package manager: zypper
+2025-12-20T00:48:51Z Skipping installed package: git
+2025-12-20T00:48:51Z Skipping installed package: vim
+2025-12-20T00:48:51Z Skipping installed package: ripgrep
+2025-12-20T00:48:51Z Skipping installed package: fzf
+2025-12-20T00:48:51Z Skipping installed package: fd
+2025-12-20T00:48:51Z Skipping installed package: make
+2025-12-20T00:48:51Z Skipping installed package: gcc
+2025-12-20T00:48:51Z Skipping installed package: pkg-config
+2025-12-20T00:48:51Z Skipping installed package: cmake
+2025-12-20T00:48:51Z Skipping installed package: meson
+2025-12-20T00:48:51Z Skipping installed package: ninja
+2025-12-20T00:48:51Z Skipping installed package: gettext
+2025-12-20T00:48:51Z Will install 6 packages for zypper
+2025-12-20T00:48:54Z RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T00:49:00Z RUN: npm install -g typescript-language-server
+2025-12-20T00:49:00Z RUN: npm install -g intelephense
+2025-12-20T00:49:04Z RUN: cargo install caligula || true
+2025-12-20T00:49:04Z Install step completed (dry-run=1)
+2025-12-20T00:49:27Z Detected package manager: zypper
+2025-12-20T00:49:27Z Skipping installed package: git
+2025-12-20T00:49:27Z Skipping installed package: vim
+2025-12-20T00:49:27Z Skipping installed package: ripgrep
+2025-12-20T00:49:27Z Skipping installed package: fzf
+2025-12-20T00:49:27Z Skipping installed package: fd
+2025-12-20T00:49:27Z Skipping installed package: make
+2025-12-20T00:49:27Z Skipping installed package: gcc
+2025-12-20T00:49:27Z Skipping installed package: pkg-config
+2025-12-20T00:49:27Z Skipping installed package: cmake
+2025-12-20T00:49:27Z Skipping installed package: meson
+2025-12-20T00:49:27Z Skipping installed package: ninja
+2025-12-20T00:49:27Z Skipping installed package: gettext
+2025-12-20T00:49:27Z Will install 6 packages for zypper
+2025-12-20T00:49:37Z RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T00:49:44Z Building Neovim in /tmp/butter-build.12jQ
+2025-12-20T00:49:44Z Ensuring build deps for Neovim: gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T00:49:47Z RUN: sudo zypper install -y gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T00:49:47Z RUN (safe): git clone --depth=1 https://github.com/neovim/neovim.git '/tmp/butter-build.12jQ/neovim'
+2025-12-20T00:49:47Z Make failed
+2025-12-20T00:50:10Z Detected package manager: zypper
+2025-12-20T00:50:10Z Skipping installed package: git
+2025-12-20T00:50:10Z Skipping installed package: vim
+2025-12-20T00:50:10Z Skipping installed package: ripgrep
+2025-12-20T00:50:11Z Skipping installed package: fzf
+2025-12-20T00:50:11Z Skipping installed package: fd
+2025-12-20T00:50:11Z Skipping installed package: make
+2025-12-20T00:50:11Z Skipping installed package: gcc
+2025-12-20T00:50:11Z Skipping installed package: pkg-config
+2025-12-20T00:50:11Z Skipping installed package: cmake
+2025-12-20T00:50:11Z Skipping installed package: meson
+2025-12-20T00:50:11Z Skipping installed package: ninja
+2025-12-20T00:50:11Z Skipping installed package: gettext
+2025-12-20T00:50:11Z Will install 6 packages for zypper
+2025-12-20T00:50:21Z RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T00:50:27Z Building Neovim in /tmp/butter-build.pdjD
+2025-12-20T00:50:27Z Ensuring build deps for Neovim: gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T00:50:29Z RUN: sudo zypper install -y gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T00:50:29Z RUN (safe): git clone --depth=1 https://github.com/neovim/neovim.git '/tmp/butter-build.pdjD/neovim'
+2025-12-20T00:50:29Z DRY-RUN: skipping actual build steps for Neovim
+2025-12-20T00:50:29Z Building Geany in /tmp/butter-build.pdjD
+2025-12-20T00:50:29Z Ensuring build deps for Geany: gcc gcc-c++ make cmake libgtk-3-devel gnutls-devel libxml2-devel libglade-devel
+2025-12-20T00:50:30Z RUN: sudo zypper install -y gcc gcc-c++ make cmake libgtk-3-devel gnutls-devel libxml2-devel libglade-devel
+2025-12-20T00:50:30Z RUN (safe): git clone --depth=1 https://github.com/geany/geany.git '/tmp/butter-build.pdjD/geany'
+2025-12-20T00:50:30Z DRY-RUN: skipping actual build steps for Geany
+2025-12-20T00:50:30Z Building picom in /tmp/butter-build.pdjD
+2025-12-20T00:50:30Z Ensuring build deps for picom: gcc gcc-c++ make meson ninja libX11-devel libXrandr-devel libXrender-devel libXfixes-devel libxcb-devel pixman-devel dbus-1-devel pcre2-devel libev-devel
+2025-12-20T00:50:34Z RUN: sudo zypper install -y gcc gcc-c++ make meson ninja libX11-devel libXrandr-devel libXrender-devel libXfixes-devel libxcb-devel pixman-devel dbus-1-devel pcre2-devel libev-devel
+2025-12-20T00:50:34Z RUN (safe): git clone --depth=1 https://github.com/r0stfall/picom.git '/tmp/butter-build.pdjD/picom'
+2025-12-20T00:50:34Z DRY-RUN: skipping actual build steps for picom
+2025-12-20T00:50:34Z Building rofi in /tmp/butter-build.pdjD
+2025-12-20T00:50:34Z Ensuring build deps for rofi: gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T00:50:37Z RUN: sudo zypper install -y gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T00:50:37Z RUN (safe): git clone --depth=1 https://github.com/davatorium/rofi.git '/tmp/butter-build.pdjD/rofi'
+2025-12-20T00:50:37Z DRY-RUN: skipping actual build steps for rofi
+2025-12-20T00:50:37Z Building st in /tmp/butter-build.pdjD
+2025-12-20T00:50:37Z Ensuring build deps for st: gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T00:50:38Z RUN: sudo zypper install -y gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T00:50:38Z RUN (safe): git clone --depth=1 https://git.suckless.org/st '/tmp/butter-build.pdjD/st'
+2025-12-20T00:50:38Z DRY-RUN: skipping actual build steps for st
+2025-12-20T00:50:40Z RUN: npm install -g typescript-language-server
+2025-12-20T00:50:40Z RUN: npm install -g intelephense
+2025-12-20T00:50:42Z RUN: cargo install caligula || true
+2025-12-20T00:50:42Z Install step completed (dry-run=1)
+2025-12-20T00:51:00Z Detected package manager: zypper
+2025-12-20T00:51:01Z Skipping installed package: git
+2025-12-20T00:51:01Z Skipping installed package: vim
+2025-12-20T00:51:01Z Skipping installed package: ripgrep
+2025-12-20T00:51:01Z Skipping installed package: fzf
+2025-12-20T00:51:01Z Skipping installed package: fd
+2025-12-20T00:51:01Z Skipping installed package: make
+2025-12-20T00:51:01Z Skipping installed package: gcc
+2025-12-20T00:51:01Z Skipping installed package: pkg-config
+2025-12-20T00:51:01Z Skipping installed package: cmake
+2025-12-20T00:51:01Z Skipping installed package: meson
+2025-12-20T00:51:01Z Skipping installed package: ninja
+2025-12-20T00:51:01Z Skipping installed package: gettext
+2025-12-20T00:51:01Z Will install 6 packages for zypper
+2025-12-20T00:51:06Z RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T00:51:14Z Building Neovim in /tmp/butter-build.8HAD
+2025-12-20T00:51:14Z Ensuring build deps for Neovim: gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T00:51:21Z RUN: sudo zypper install -y gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T00:51:21Z RUN (safe): git clone --depth=1 https://github.com/neovim/neovim.git '/tmp/butter-build.8HAD/neovim'
+2025-12-20T00:51:21Z DRY-RUN: skipping actual build steps for Neovim
+2025-12-20T00:51:21Z Building Geany in /tmp/butter-build.8HAD
+2025-12-20T00:51:21Z Ensuring build deps for Geany: gcc gcc-c++ make cmake libgtk-3-devel gnutls-devel libxml2-devel libglade-devel
+2025-12-20T00:51:21Z RUN: sudo zypper install -y gcc gcc-c++ make cmake libgtk-3-devel gnutls-devel libxml2-devel libglade-devel
+2025-12-20T00:51:21Z RUN (safe): git clone --depth=1 https://github.com/geany/geany.git '/tmp/butter-build.8HAD/geany'
+2025-12-20T00:51:21Z DRY-RUN: skipping actual build steps for Geany
+2025-12-20T00:51:21Z Building picom in /tmp/butter-build.8HAD
+2025-12-20T00:51:21Z Ensuring build deps for picom: gcc gcc-c++ make meson ninja libX11-devel libXrandr-devel libXrender-devel libXfixes-devel libxcb-devel pixman-devel dbus-1-devel pcre2-devel libev-devel
+2025-12-20T00:51:22Z RUN: sudo zypper install -y gcc gcc-c++ make meson ninja libX11-devel libXrandr-devel libXrender-devel libXfixes-devel libxcb-devel pixman-devel dbus-1-devel pcre2-devel libev-devel
+2025-12-20T00:51:22Z RUN (safe): git clone --depth=1 https://github.com/r0stfall/picom.git '/tmp/butter-build.8HAD/picom'
+2025-12-20T00:51:22Z DRY-RUN: skipping actual build steps for picom
+2025-12-20T00:51:22Z Building rofi in /tmp/butter-build.8HAD
+2025-12-20T00:51:22Z Ensuring build deps for rofi: gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T00:51:23Z RUN: sudo zypper install -y gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T00:51:23Z RUN (safe): git clone --depth=1 https://github.com/davatorium/rofi.git '/tmp/butter-build.8HAD/rofi'
+2025-12-20T00:51:23Z DRY-RUN: skipping actual build steps for rofi
+2025-12-20T00:51:23Z Building st in /tmp/butter-build.8HAD
+2025-12-20T00:51:23Z Ensuring build deps for st: gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T00:51:23Z RUN: sudo zypper install -y gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T00:51:23Z RUN (safe): git clone --depth=1 https://git.suckless.org/st '/tmp/butter-build.8HAD/st'
+2025-12-20T00:51:23Z DRY-RUN: skipping actual build steps for st
+2025-12-20T00:51:25Z RUN: npm install -g typescript-language-server
+2025-12-20T00:51:25Z RUN: npm install -g intelephense
+2025-12-20T00:51:26Z RUN: cargo install caligula || true
+2025-12-20T00:51:26Z Install step completed (dry-run=1)
+2025-12-20T00:51:31Z Building Neovim in /tmp/butter-build.8HAD
+2025-12-20T00:51:31Z Ensuring build deps for Neovim: gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T00:51:33Z RUN: sudo zypper install -y gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T00:51:33Z RUN (safe): git clone --depth=1 https://github.com/neovim/neovim.git '/tmp/butter-build.8HAD/neovim'
+2025-12-20T00:51:33Z DRY-RUN: skipping actual build steps for Neovim
+2025-12-20T00:51:33Z Building Geany from source in /tmp/butter-build.8HAD
+2025-12-20T00:51:33Z Ensuring build deps for Geany: gcc gcc-c++ make cmake libgtk-3-devel gnutls-devel libxml2-devel libglade-devel
+2025-12-20T00:51:33Z RUN: sudo zypper install -y gcc gcc-c++ make cmake libgtk-3-devel gnutls-devel libxml2-devel libglade-devel
+2025-12-20T00:51:33Z RUN (safe): git clone --depth=1 https://github.com/geany/geany.git '/tmp/butter-build.8HAD/geany'
+2025-12-20T00:51:33Z Geany build failed
+2025-12-20T01:22:06Z Building Neovim in /tmp/butter-build.vmWP
+2025-12-20T01:22:24Z Detected package manager: zypper
+2025-12-20T01:22:33Z Building Neovim in /tmp/butter-build.x76q
+2025-12-20T01:22:33Z Ensuring build deps for Neovim: gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T01:22:35Z RUN: sudo zypper install -y gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T01:22:44Z RUN (safe): git clone --depth=1 https://github.com/neovim/neovim.git '/tmp/butter-build.x76q/neovim'
+Cloning into '/tmp/butter-build.x76q/neovim'...
+2025-12-20T01:23:03Z RUN (safe): sudo make -C '/tmp/butter-build.x76q/neovim' install
+make: Entering directory '/tmp/butter-build.x76q/neovim'
+mkdir -p ".deps"
+/usr/bin/cmake -S /tmp/butter-build.x76q/neovim//cmake.deps -B ".deps" -G "Ninja" 
+-- Found GNU Make at /usr/bin/gmake
+-- CMAKE_BUILD_TYPE=RelWithDebInfo
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /tmp/butter-build.x76q/neovim/.deps
+mkdir -p build
+touch "build/.ran-deps-cmake"
+/usr/bin/cmake --build ".deps"
+ninja: no work to do.
+/usr/bin/cmake --build build
+[0/2] Re-checking globbed directories...
+[1/21] Running utility command for nvim_runtime_deps
+[2/21] cd /tmp/butter-build.x76q/neovim/build/src/nvim && /usr/bin/cmake -D NVIM_VERSION_MAJOR=0 -D NVIM_VERSION_MINOR=12 -D NVIM_VERSION_PATCH=0 -D NVIM_VERSION_PRERELEASE=-dev -D OUTPUT=/tmp/butter-build.x76q/neovim/build/cmake.config/auto/versiondef_git.h -D NVIM_SOURCE_DIR=/tmp/butter-build.x76q/neovim -P /tmp/butter-build.x76q/neovim/cmake/GenerateVersion.cmake
+/usr/bin/cmake --install build
+-- Install configuration: "RelWithDebInfo"
+make: Leaving directory '/tmp/butter-build.x76q/neovim'
+2025-12-20T01:23:03Z Neovim built and installed
+2025-12-20T01:23:03Z Building rofi in /tmp/butter-build.x76q
+2025-12-20T01:23:03Z Ensuring build deps for rofi: gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T01:24:16Z RUN: sudo zypper install -y gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T01:24:29Z RUN (safe): git clone --depth=1 https://github.com/davatorium/rofi.git '/tmp/butter-build.x76q/rofi'
+Cloning into '/tmp/butter-build.x76q/rofi'...
+2025-12-20T01:24:31Z Build failed
+2025-12-20T01:25:29Z Detected package manager: zypper
+2025-12-20T01:25:32Z Building Neovim in /tmp/butter-build.91Iy
+2025-12-20T01:25:32Z Ensuring build deps for Neovim: gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T01:25:32Z RUN: sudo zypper install -y gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T01:25:32Z DRY-RUN: sudo zypper install -y gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T01:25:32Z RUN (safe): git clone --depth=1 https://github.com/neovim/neovim.git '/tmp/butter-build.91Iy/neovim'
+2025-12-20T01:25:32Z DRY-RUN: git clone --depth=1 https://github.com/neovim/neovim.git '/tmp/butter-build.91Iy/neovim'
+2025-12-20T01:25:32Z DRY-RUN: skipping actual build steps for Neovim
+2025-12-20T01:25:32Z Building rofi in /tmp/butter-build.91Iy
+2025-12-20T01:25:32Z Ensuring build deps for rofi: gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T01:25:32Z RUN: sudo zypper install -y gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T01:25:32Z DRY-RUN: sudo zypper install -y gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T01:25:32Z RUN (safe): git clone --depth=1 https://github.com/davatorium/rofi.git '/tmp/butter-build.91Iy/rofi'
+2025-12-20T01:25:32Z DRY-RUN: git clone --depth=1 https://github.com/davatorium/rofi.git '/tmp/butter-build.91Iy/rofi'
+2025-12-20T01:25:32Z DRY-RUN: skipping actual build steps for rofi
+2025-12-20T01:25:32Z Building st in /tmp/butter-build.91Iy
+2025-12-20T01:25:32Z Ensuring build deps for st: gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T01:25:32Z RUN: sudo zypper install -y gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T01:25:32Z DRY-RUN: sudo zypper install -y gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T01:25:32Z RUN (safe): git clone --depth=1 https://git.suckless.org/st '/tmp/butter-build.91Iy/st'
+2025-12-20T01:25:32Z DRY-RUN: git clone --depth=1 https://git.suckless.org/st '/tmp/butter-build.91Iy/st'
+2025-12-20T01:25:32Z DRY-RUN: skipping actual build steps for st
+2025-12-20T01:25:50Z Install step completed (dry-run=1)
+2025-12-20T01:25:50Z Detected package manager: zypper
+2025-12-20T01:25:50Z Skipping installed package: git
+2025-12-20T01:25:50Z Skipping installed package: vim
+2025-12-20T01:25:50Z Skipping installed package: ripgrep
+2025-12-20T01:25:50Z Skipping installed package: fzf
+2025-12-20T01:25:50Z Skipping installed package: fd
+2025-12-20T01:25:50Z Skipping installed package: make
+2025-12-20T01:25:50Z Skipping installed package: gcc
+2025-12-20T01:25:50Z Skipping installed package: pkg-config
+2025-12-20T01:25:50Z Skipping installed package: cmake
+2025-12-20T01:25:50Z Skipping installed package: meson
+2025-12-20T01:25:50Z Skipping installed package: ninja
+2025-12-20T01:25:50Z Skipping installed package: gettext
+2025-12-20T01:25:50Z Will install 6 packages for zypper
+2025-12-20T01:25:50Z RUN: sudo zypper install -y git
+vim
+ripgrep
+fzf
+fd
+make
+gcc
+pkg-config
+cmake
+meson
+ninja
+gettext
+libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:25:50Z DRY-RUN: sudo zypper install -y git
+vim
+ripgrep
+fzf
+fd
+make
+gcc
+pkg-config
+cmake
+meson
+ninja
+gettext
+libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:25:54Z Install step completed (dry-run=1)
+2025-12-20T01:27:19Z Detected package manager: zypper
+2025-12-20T01:28:06Z Detected package manager: zypper
+2025-12-20T01:28:06Z Building Neovim in /tmp/butter-build.oMWs
+2025-12-20T01:28:06Z Ensuring build deps for Neovim: gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T01:28:06Z RUN: sudo zypper install -y gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T01:28:06Z DRY-RUN: sudo zypper install -y gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T01:28:06Z RUN (safe): git clone --depth=1 https://github.com/neovim/neovim.git '/tmp/butter-build.oMWs/neovim'
+2025-12-20T01:28:06Z DRY-RUN: git clone --depth=1 https://github.com/neovim/neovim.git '/tmp/butter-build.oMWs/neovim'
+2025-12-20T01:28:06Z DRY-RUN: skipping actual build steps for Neovim
+2025-12-20T01:28:06Z Building rofi in /tmp/butter-build.oMWs
+2025-12-20T01:28:06Z Ensuring build deps for rofi: gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T01:28:06Z RUN: sudo zypper install -y gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T01:28:06Z DRY-RUN: sudo zypper install -y gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T01:28:06Z RUN (safe): git clone --depth=1 https://github.com/davatorium/rofi.git '/tmp/butter-build.oMWs/rofi'
+2025-12-20T01:28:06Z DRY-RUN: git clone --depth=1 https://github.com/davatorium/rofi.git '/tmp/butter-build.oMWs/rofi'
+2025-12-20T01:28:06Z DRY-RUN: skipping actual build steps for rofi
+2025-12-20T01:28:06Z Building st in /tmp/butter-build.oMWs
+2025-12-20T01:28:06Z Ensuring build deps for st: gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T01:28:06Z RUN: sudo zypper install -y gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T01:28:06Z DRY-RUN: sudo zypper install -y gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T01:28:06Z RUN (safe): git clone --depth=1 https://git.suckless.org/st '/tmp/butter-build.oMWs/st'
+2025-12-20T01:28:06Z DRY-RUN: git clone --depth=1 https://git.suckless.org/st '/tmp/butter-build.oMWs/st'
+2025-12-20T01:28:06Z DRY-RUN: skipping actual build steps for st
+2025-12-20T01:28:09Z Detected package manager: zypper
+2025-12-20T01:28:09Z Building Neovim in /tmp/butter-build.8IKG
+2025-12-20T01:28:09Z Ensuring build deps for Neovim: gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T01:28:09Z RUN: sudo zypper install -y gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T01:28:09Z DRY-RUN: sudo zypper install -y gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T01:28:09Z RUN (safe): git clone --depth=1 https://github.com/neovim/neovim.git '/tmp/butter-build.8IKG/neovim'
+2025-12-20T01:28:09Z DRY-RUN: git clone --depth=1 https://github.com/neovim/neovim.git '/tmp/butter-build.8IKG/neovim'
+2025-12-20T01:28:09Z DRY-RUN: skipping actual build steps for Neovim
+2025-12-20T01:28:09Z Building rofi in /tmp/butter-build.8IKG
+2025-12-20T01:28:09Z Ensuring build deps for rofi: gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T01:28:09Z RUN: sudo zypper install -y gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T01:28:09Z DRY-RUN: sudo zypper install -y gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T01:28:09Z RUN (safe): git clone --depth=1 https://github.com/davatorium/rofi.git '/tmp/butter-build.8IKG/rofi'
+2025-12-20T01:28:09Z DRY-RUN: git clone --depth=1 https://github.com/davatorium/rofi.git '/tmp/butter-build.8IKG/rofi'
+2025-12-20T01:28:09Z DRY-RUN: skipping actual build steps for rofi
+2025-12-20T01:28:09Z Building st in /tmp/butter-build.8IKG
+2025-12-20T01:28:09Z Ensuring build deps for st: gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T01:28:09Z RUN: sudo zypper install -y gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T01:28:09Z DRY-RUN: sudo zypper install -y gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T01:28:09Z RUN (safe): git clone --depth=1 https://git.suckless.org/st '/tmp/butter-build.8IKG/st'
+2025-12-20T01:28:09Z DRY-RUN: git clone --depth=1 https://git.suckless.org/st '/tmp/butter-build.8IKG/st'
+2025-12-20T01:28:09Z DRY-RUN: skipping actual build steps for st
+2025-12-20T01:29:52Z Detected package manager: zypper
+2025-12-20T01:29:52Z Building Neovim in /tmp/butter-build.lqlH
+2025-12-20T01:29:52Z Ensuring build deps for Neovim: gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T01:29:52Z RUN: sudo zypper install -y gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T01:29:52Z DRY-RUN: sudo zypper install -y gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T01:29:52Z RUN (safe): git clone --depth=1 https://github.com/neovim/neovim.git '/tmp/butter-build.lqlH/neovim'
+2025-12-20T01:29:52Z DRY-RUN: git clone --depth=1 https://github.com/neovim/neovim.git '/tmp/butter-build.lqlH/neovim'
+2025-12-20T01:29:52Z DRY-RUN: skipping actual build steps for Neovim
+2025-12-20T01:29:52Z Building rofi in /tmp/butter-build.lqlH
+2025-12-20T01:29:52Z Ensuring build deps for rofi: gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T01:29:52Z RUN: sudo zypper install -y gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T01:29:52Z DRY-RUN: sudo zypper install -y gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T01:29:52Z RUN (safe): git clone --depth=1 https://github.com/davatorium/rofi.git '/tmp/butter-build.lqlH/rofi'
+2025-12-20T01:29:52Z DRY-RUN: git clone --depth=1 https://github.com/davatorium/rofi.git '/tmp/butter-build.lqlH/rofi'
+2025-12-20T01:29:52Z DRY-RUN: skipping actual build steps for rofi
+2025-12-20T01:29:52Z Building st in /tmp/butter-build.lqlH
+2025-12-20T01:29:52Z Ensuring build deps for st: gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T01:29:52Z RUN: sudo zypper install -y gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T01:29:52Z DRY-RUN: sudo zypper install -y gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T01:29:52Z RUN (safe): git clone --depth=1 https://git.suckless.org/st '/tmp/butter-build.lqlH/st'
+2025-12-20T01:29:52Z DRY-RUN: git clone --depth=1 https://git.suckless.org/st '/tmp/butter-build.lqlH/st'
+2025-12-20T01:29:52Z DRY-RUN: skipping actual build steps for st
+2025-12-20T01:30:05Z RUN: npm install -g typescript-language-server
+2025-12-20T01:30:05Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:30:05Z RUN: npm install -g intelephense
+2025-12-20T01:30:05Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:30:17Z Install step completed (dry-run=1)
+2025-12-20T01:30:17Z Detected package manager: zypper
+2025-12-20T01:30:18Z Skipping installed package: git
+2025-12-20T01:30:18Z Skipping installed package: vim
+2025-12-20T01:30:18Z Skipping installed package: ripgrep
+2025-12-20T01:30:18Z Skipping installed package: fzf
+2025-12-20T01:30:18Z Skipping installed package: fd
+2025-12-20T01:30:18Z Skipping installed package: make
+2025-12-20T01:30:18Z Skipping installed package: gcc
+2025-12-20T01:30:18Z Skipping installed package: pkg-config
+2025-12-20T01:30:18Z Skipping installed package: cmake
+2025-12-20T01:30:18Z Skipping installed package: meson
+2025-12-20T01:30:18Z Skipping installed package: ninja
+2025-12-20T01:30:18Z Skipping installed package: gettext
+2025-12-20T01:30:18Z Will install 6 packages for zypper
+2025-12-20T01:30:18Z RUN: sudo zypper install -y git
+vim
+ripgrep
+fzf
+fd
+make
+gcc
+pkg-config
+cmake
+meson
+ninja
+gettext
+libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:30:18Z DRY-RUN: sudo zypper install -y git
+vim
+ripgrep
+fzf
+fd
+make
+gcc
+pkg-config
+cmake
+meson
+ninja
+gettext
+libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:30:18Z RUN: npm install -g typescript-language-server
+2025-12-20T01:30:18Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:30:18Z RUN: npm install -g intelephense
+2025-12-20T01:30:18Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:30:18Z RUN: cargo install caligula || true
+2025-12-20T01:30:18Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:30:18Z Install step completed (dry-run=1)
+2025-12-20T01:32:21Z Detected package manager: zypper
+2025-12-20T01:32:21Z Building Neovim in /tmp/butter-build.E2bK
+2025-12-20T01:32:21Z Ensuring build deps for Neovim: gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T01:32:21Z RUN: sudo zypper install -y gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T01:32:21Z DRY-RUN: sudo zypper install -y gcc gcc-c++ make cmake ninja gettext libtool automake pkg-config unzip curl
+2025-12-20T01:32:21Z RUN (safe): git clone --depth=1 https://github.com/neovim/neovim.git '/tmp/butter-build.E2bK/neovim'
+2025-12-20T01:32:21Z DRY-RUN: git clone --depth=1 https://github.com/neovim/neovim.git '/tmp/butter-build.E2bK/neovim'
+2025-12-20T01:32:21Z DRY-RUN: skipping actual build steps for Neovim
+2025-12-20T01:32:21Z Building rofi in /tmp/butter-build.E2bK
+2025-12-20T01:32:21Z Ensuring build deps for rofi: gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T01:32:21Z RUN: sudo zypper install -y gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T01:32:21Z DRY-RUN: sudo zypper install -y gcc gcc-c++ make meson ninja libxkbcommon-devel glib2-devel pango-devel startup-notification-devel
+2025-12-20T01:32:21Z RUN (safe): git clone --depth=1 https://github.com/davatorium/rofi.git '/tmp/butter-build.E2bK/rofi'
+2025-12-20T01:32:21Z DRY-RUN: git clone --depth=1 https://github.com/davatorium/rofi.git '/tmp/butter-build.E2bK/rofi'
+2025-12-20T01:32:21Z DRY-RUN: skipping actual build steps for rofi
+2025-12-20T01:32:21Z Building st in /tmp/butter-build.E2bK
+2025-12-20T01:32:21Z Ensuring build deps for st: gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T01:32:21Z RUN: sudo zypper install -y gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T01:32:21Z DRY-RUN: sudo zypper install -y gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T01:32:21Z RUN (safe): git clone --depth=1 https://git.suckless.org/st '/tmp/butter-build.E2bK/st'
+2025-12-20T01:32:21Z DRY-RUN: git clone --depth=1 https://git.suckless.org/st '/tmp/butter-build.E2bK/st'
+2025-12-20T01:32:21Z DRY-RUN: skipping actual build steps for st
+2025-12-20T01:33:26Z RUN: npm install -g typescript-language-server
+2025-12-20T01:33:26Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:33:26Z RUN: npm install -g intelephense
+2025-12-20T01:33:26Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:33:35Z Install step completed (dry-run=1)
+2025-12-20T01:33:35Z Detected package manager: zypper
+2025-12-20T01:33:35Z Skipping installed package: git
+2025-12-20T01:33:35Z Skipping installed package: vim
+2025-12-20T01:33:35Z Skipping installed package: ripgrep
+2025-12-20T01:33:35Z Skipping installed package: fzf
+2025-12-20T01:33:35Z Skipping installed package: fd
+2025-12-20T01:33:35Z Skipping installed package: make
+2025-12-20T01:33:35Z Skipping installed package: gcc
+2025-12-20T01:33:35Z Skipping installed package: pkg-config
+2025-12-20T01:33:35Z Skipping installed package: cmake
+2025-12-20T01:33:35Z Skipping installed package: meson
+2025-12-20T01:33:35Z Skipping installed package: ninja
+2025-12-20T01:33:35Z Skipping installed package: gettext
+2025-12-20T01:33:35Z Will install 6 packages for zypper
+2025-12-20T01:33:35Z RUN: sudo zypper install -y git
+vim
+ripgrep
+fzf
+fd
+make
+gcc
+pkg-config
+cmake
+meson
+ninja
+gettext
+libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:33:35Z DRY-RUN: sudo zypper install -y git
+vim
+ripgrep
+fzf
+fd
+make
+gcc
+pkg-config
+cmake
+meson
+ninja
+gettext
+libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:33:35Z RUN: npm install -g typescript-language-server
+2025-12-20T01:33:35Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:33:35Z RUN: npm install -g intelephense
+2025-12-20T01:33:35Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:33:35Z RUN: cargo install caligula || true
+2025-12-20T01:33:35Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:33:35Z Install step completed (dry-run=1)
+2025-12-20T01:37:21Z Detected package manager: zypper
+2025-12-20T01:37:21Z Building st in /tmp/butter-build.BZ2T
+2025-12-20T01:37:22Z Ensuring build deps for st: gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T01:37:22Z RUN: sudo zypper install -y gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T01:37:22Z DRY-RUN: sudo zypper install -y gcc gcc-c++ make libX11-devel libXft-devel libXinerama-devel
+2025-12-20T01:37:22Z RUN (safe): git clone --depth=1 https://git.suckless.org/st '/tmp/butter-build.BZ2T/st'
+2025-12-20T01:37:22Z DRY-RUN: git clone --depth=1 https://git.suckless.org/st '/tmp/butter-build.BZ2T/st'
+2025-12-20T01:37:22Z DRY-RUN: skipping actual build steps for st
+2025-12-20T01:37:34Z RUN: npm install -g typescript-language-server
+2025-12-20T01:37:34Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:37:34Z RUN: npm install -g intelephense
+2025-12-20T01:37:34Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:37:35Z RUN: cargo install caligula || true
+2025-12-20T01:37:35Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:37:35Z Install step completed (dry-run=1)
+2025-12-20T01:37:35Z Detected package manager: zypper
+2025-12-20T01:37:35Z Skipping installed package: git
+2025-12-20T01:37:35Z Skipping installed package: vim
+2025-12-20T01:37:35Z Skipping installed package: ripgrep
+2025-12-20T01:37:35Z Skipping installed package: fzf
+2025-12-20T01:37:35Z Skipping installed package: fd
+2025-12-20T01:37:35Z Skipping installed package: make
+2025-12-20T01:37:35Z Skipping installed package: gcc
+2025-12-20T01:37:35Z Skipping installed package: pkg-config
+2025-12-20T01:37:35Z Skipping installed package: cmake
+2025-12-20T01:37:35Z Skipping installed package: meson
+2025-12-20T01:37:35Z Skipping installed package: ninja
+2025-12-20T01:37:35Z Skipping installed package: gettext
+2025-12-20T01:37:35Z Will install 6 packages for zypper
+2025-12-20T01:37:35Z RUN: sudo zypper install -y git
+vim
+ripgrep
+fzf
+fd
+make
+gcc
+pkg-config
+cmake
+meson
+ninja
+gettext
+libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:37:35Z DRY-RUN: sudo zypper install -y git
+vim
+ripgrep
+fzf
+fd
+make
+gcc
+pkg-config
+cmake
+meson
+ninja
+gettext
+libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:37:35Z RUN: npm install -g typescript-language-server
+2025-12-20T01:37:35Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:37:35Z RUN: npm install -g intelephense
+2025-12-20T01:37:35Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:37:35Z RUN: cargo install caligula || true
+2025-12-20T01:37:35Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:37:35Z Install step completed (dry-run=1)
+2025-12-20T01:38:46Z Install step completed (dry-run=1)
+2025-12-20T01:40:15Z Detected package manager: zypper
+2025-12-20T01:40:15Z Skipping installed package: git
+2025-12-20T01:40:15Z Skipping installed package: vim
+2025-12-20T01:40:15Z Skipping installed package: ripgrep
+2025-12-20T01:40:15Z Skipping installed package: fzf
+2025-12-20T01:40:15Z Skipping installed package: fd
+2025-12-20T01:40:15Z Skipping installed package: make
+2025-12-20T01:40:15Z Skipping installed package: gcc
+2025-12-20T01:40:15Z Skipping installed package: pkg-config
+2025-12-20T01:40:15Z Skipping installed package: cmake
+2025-12-20T01:40:15Z Skipping installed package: meson
+2025-12-20T01:40:15Z Skipping installed package: ninja
+2025-12-20T01:40:15Z Skipping installed package: gettext
+2025-12-20T01:40:15Z Will install 6 packages for zypper
+2025-12-20T01:40:15Z RUN: sudo zypper install -y git
+vim
+ripgrep
+fzf
+fd
+make
+gcc
+pkg-config
+cmake
+meson
+ninja
+gettext
+libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:40:15Z DRY-RUN: sudo zypper install -y git
+vim
+ripgrep
+fzf
+fd
+make
+gcc
+pkg-config
+cmake
+meson
+ninja
+gettext
+libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:40:15Z RUN: npm install -g typescript-language-server
+2025-12-20T01:40:15Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:40:15Z RUN: npm install -g intelephense
+2025-12-20T01:40:15Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:40:15Z RUN: cargo install caligula || true
+2025-12-20T01:40:15Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:40:15Z Install step completed (dry-run=1)
+2025-12-20T01:44:59Z Detected package manager: zypper
+2025-12-20T01:44:59Z Skipping installed package: git
+2025-12-20T01:44:59Z Skipping installed package: vim
+2025-12-20T01:44:59Z Skipping installed package: ripgrep
+2025-12-20T01:44:59Z Skipping installed package: fzf
+2025-12-20T01:44:59Z Skipping installed package: fd
+2025-12-20T01:44:59Z Skipping installed package: make
+2025-12-20T01:44:59Z Skipping installed package: gcc
+2025-12-20T01:44:59Z Skipping installed package: pkg-config
+2025-12-20T01:44:59Z Skipping installed package: cmake
+2025-12-20T01:44:59Z Skipping installed package: meson
+2025-12-20T01:44:59Z Skipping installed package: ninja
+2025-12-20T01:44:59Z Skipping installed package: gettext
+2025-12-20T01:44:59Z Will install 6 packages for zypper
+2025-12-20T01:44:59Z RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:44:59Z DRY-RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:44:59Z RUN: npm install -g typescript-language-server
+2025-12-20T01:44:59Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:44:59Z RUN: npm install -g intelephense
+2025-12-20T01:44:59Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:44:59Z RUN: cargo install caligula || true
+2025-12-20T01:44:59Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:44:59Z Install step completed (dry-run=1)
+2025-12-20T01:46:01Z Detected package manager: zypper
+2025-12-20T01:46:01Z Skipping installed package: git
+2025-12-20T01:46:01Z Skipping installed package: vim
+2025-12-20T01:46:01Z Skipping installed package: ripgrep
+2025-12-20T01:46:01Z Skipping installed package: fzf
+2025-12-20T01:46:01Z Skipping installed package: fd
+2025-12-20T01:46:01Z Skipping installed package: make
+2025-12-20T01:46:01Z Skipping installed package: gcc
+2025-12-20T01:46:01Z Skipping installed package: pkg-config
+2025-12-20T01:46:01Z Skipping installed package: cmake
+2025-12-20T01:46:01Z Skipping installed package: meson
+2025-12-20T01:46:02Z Skipping installed package: ninja
+2025-12-20T01:46:02Z Skipping installed package: gettext
+2025-12-20T01:46:02Z Will install 6 packages for zypper
+2025-12-20T01:46:02Z RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:46:02Z DRY-RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:46:02Z RUN: npm install -g typescript-language-server
+2025-12-20T01:46:02Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:46:02Z RUN: npm install -g intelephense
+2025-12-20T01:46:02Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:46:02Z RUN: cargo install caligula || true
+2025-12-20T01:46:02Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:46:02Z Install step completed (dry-run=1)
+2025-12-20T01:47:06Z Detected package manager: apt
+2025-12-20T01:47:08Z Skipping installed package: git
+2025-12-20T01:47:08Z Skipping installed package: curl
+2025-12-20T01:47:08Z Skipping installed package: wget
+2025-12-20T01:47:08Z Skipping installed package: unzip
+2025-12-20T01:47:08Z Skipping installed package: make
+2025-12-20T01:47:08Z Skipping installed package: gcc
+2025-12-20T01:47:08Z Skipping installed package: pkg-config
+2025-12-20T01:47:08Z Skipping installed package: cmake
+2025-12-20T01:47:08Z Skipping installed package: meson
+2025-12-20T01:47:08Z Skipping installed package: autoconf
+2025-12-20T01:47:08Z Skipping installed package: automake
+2025-12-20T01:47:08Z Skipping installed package: libtool
+2025-12-20T01:47:08Z Skipping installed package: bison
+2025-12-20T01:47:08Z Skipping installed package: flex
+2025-12-20T01:47:08Z Skipping installed package: cppcheck
+2025-12-20T01:47:08Z Skipping installed package: gettext
+2025-12-20T01:47:08Z Skipping installed package: vim
+2025-12-20T01:47:08Z Skipping installed package: fzf
+2025-12-20T01:47:08Z Skipping installed package: tree
+2025-12-20T01:47:08Z Skipping installed package: htop
+2025-12-20T01:47:08Z Skipping installed package: btop
+2025-12-20T01:47:08Z Skipping installed package: bat
+2025-12-20T01:47:08Z Skipping installed package: numlockx
+2025-12-20T01:47:08Z Skipping installed package: vlc
+2025-12-20T01:47:09Z Skipping installed package: gimp
+2025-12-20T01:47:09Z Skipping installed package: inkscape
+2025-12-20T01:47:09Z Skipping installed package: dolphin
+2025-12-20T01:47:09Z Skipping installed package: konsole
+2025-12-20T01:47:09Z Skipping installed package: firefox
+2025-12-20T01:47:09Z Skipping installed package: update-desktop-database
+2025-12-20T01:47:09Z Skipping installed package: wget
+2025-12-20T01:47:09Z Will install 124 packages for apt
+2025-12-20T01:47:09Z RUN: sudo apt update
+2025-12-20T01:47:09Z DRY-RUN: sudo apt update
+2025-12-20T01:47:09Z RUN: sudo apt install -y software-properties-common
+apt-transport-https
+gnupg
+ca-certificates
+extrepo
+build-essential
+ninja-build
+intltool
+valac
+check
+libpango1.0-dev
+libcairo2-dev
+libglib2.0-dev
+libgdk-pixbuf-2.0-dev
+libstartup-notification0-dev
+libxkbcommon-dev
+libxkbcommon-x11-dev
+libxcb-xkb-dev
+libxcb-randr0-dev
+libxcb-xinerama0-dev
+libxcb-ewmh-dev
+libxcb-icccm4-dev
+libxcb-cursor-dev
+libxcb-util-dev
+libxcb-keysyms1-dev
+libwayland-dev
+wayland-protocols
+libconfig-dev
+libdbus-1-dev
+libegl-dev
+libev-dev
+libgl-dev
+libepoxy-dev
+libpcre2-dev
+libpixman-1-dev
+libx11-xcb-dev
+libxcb1-dev
+libxcb-composite0-dev
+libxcb-damage0-dev
+libxcb-dpms0-dev
+libxcb-glx0-dev
+libxcb-image0-dev
+libxcb-present-dev
+libxcb-render0-dev
+libxcb-render-util0-dev
+libxcb-shape0-dev
+libxcb-xfixes0-dev
+libxext-dev
+uthash-dev
+libgtk-3-dev
+libxml2-dev
+libxml2-utils
+python3-docutils
+python3-lxml
+libgirepository1.0-dev
+libenchant-2-dev
+libgit2-dev
+libgpgme-dev
+libctpl-dev
+libmarkdown2-dev
+libwebkit2gtk-4.1-dev
+geany
+geany-plugins
+wezterm-nightly
+ripgrep
+fd-find
+whois
+dnsutils
+brightnessctl
+mpv
+audacity
+kdenlive
+obs-studio
+rhythmbox
+ncmpcpp
+mkvtoolnix
+mkvtoolnix-gui
+maim
+flameshot
+qimgv
+sxiv
+eog
+thunar
+pcmanfm
+krusader
+nautilus
+nemo
+ranger
+nnn
+lf
+alacritty
+gnome-terminal
+kitty
+terminator
+xfce4-terminal
+cups
+cups-client
+cups-filters
+cups-bsd
+cups-pdf
+printer-driver-all
+printer-driver-cups-pdf
+system-config-printer
+hplip
+sane
+sane-utils
+xsane
+simple-scan
+bluetooth
+bluez
+bluez-tools
+bluez-cups
+blueman
+pulseaudio-module-bluetooth
+firefox-esr
+librewolf
+brave-browser
+floorp
+helium-browser
+chromium
+dpkg
+update-alternatives
+neofetch
+rust-analyzer
+2025-12-20T01:47:09Z DRY-RUN: sudo apt install -y software-properties-common
+apt-transport-https
+gnupg
+ca-certificates
+extrepo
+build-essential
+ninja-build
+intltool
+valac
+check
+libpango1.0-dev
+libcairo2-dev
+libglib2.0-dev
+libgdk-pixbuf-2.0-dev
+libstartup-notification0-dev
+libxkbcommon-dev
+libxkbcommon-x11-dev
+libxcb-xkb-dev
+libxcb-randr0-dev
+libxcb-xinerama0-dev
+libxcb-ewmh-dev
+libxcb-icccm4-dev
+libxcb-cursor-dev
+libxcb-util-dev
+libxcb-keysyms1-dev
+libwayland-dev
+wayland-protocols
+libconfig-dev
+libdbus-1-dev
+libegl-dev
+libev-dev
+libgl-dev
+libepoxy-dev
+libpcre2-dev
+libpixman-1-dev
+libx11-xcb-dev
+libxcb1-dev
+libxcb-composite0-dev
+libxcb-damage0-dev
+libxcb-dpms0-dev
+libxcb-glx0-dev
+libxcb-image0-dev
+libxcb-present-dev
+libxcb-render0-dev
+libxcb-render-util0-dev
+libxcb-shape0-dev
+libxcb-xfixes0-dev
+libxext-dev
+uthash-dev
+libgtk-3-dev
+libxml2-dev
+libxml2-utils
+python3-docutils
+python3-lxml
+libgirepository1.0-dev
+libenchant-2-dev
+libgit2-dev
+libgpgme-dev
+libctpl-dev
+libmarkdown2-dev
+libwebkit2gtk-4.1-dev
+geany
+geany-plugins
+wezterm-nightly
+ripgrep
+fd-find
+whois
+dnsutils
+brightnessctl
+mpv
+audacity
+kdenlive
+obs-studio
+rhythmbox
+ncmpcpp
+mkvtoolnix
+mkvtoolnix-gui
+maim
+flameshot
+qimgv
+sxiv
+eog
+thunar
+pcmanfm
+krusader
+nautilus
+nemo
+ranger
+nnn
+lf
+alacritty
+gnome-terminal
+kitty
+terminator
+xfce4-terminal
+cups
+cups-client
+cups-filters
+cups-bsd
+cups-pdf
+printer-driver-all
+printer-driver-cups-pdf
+system-config-printer
+hplip
+sane
+sane-utils
+xsane
+simple-scan
+bluetooth
+bluez
+bluez-tools
+bluez-cups
+blueman
+pulseaudio-module-bluetooth
+firefox-esr
+librewolf
+brave-browser
+floorp
+helium-browser
+chromium
+dpkg
+update-alternatives
+neofetch
+rust-analyzer
+2025-12-20T01:47:09Z RUN: npm install -g typescript-language-server
+2025-12-20T01:47:09Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:47:09Z RUN: npm install -g intelephense
+2025-12-20T01:47:09Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:47:09Z RUN: cargo install caligula || true
+2025-12-20T01:47:09Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:47:09Z Install step completed (dry-run=1)
+2025-12-20T01:47:09Z Detected package manager: dnf
+2025-12-20T01:47:09Z Skipping installed package: git
+2025-12-20T01:47:09Z Skipping installed package: vim
+2025-12-20T01:47:09Z Skipping installed package: ripgrep
+2025-12-20T01:47:09Z Skipping installed package: fzf
+2025-12-20T01:47:09Z Skipping installed package: fd
+2025-12-20T01:47:09Z Skipping installed package: make
+2025-12-20T01:47:09Z Skipping installed package: gcc
+2025-12-20T01:47:09Z Skipping installed package: pkg-config
+2025-12-20T01:47:09Z Skipping installed package: cmake
+2025-12-20T01:47:09Z Skipping installed package: meson
+2025-12-20T01:47:09Z Skipping installed package: ninja
+2025-12-20T01:47:09Z Will install 3 packages for dnf
+2025-12-20T01:47:09Z RUN: sudo dnf install -y gtk3-devel
+intltool
+python3-docutils
+2025-12-20T01:47:09Z DRY-RUN: sudo dnf install -y gtk3-devel
+intltool
+python3-docutils
+2025-12-20T01:47:09Z RUN: npm install -g typescript-language-server
+2025-12-20T01:47:09Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:47:09Z RUN: npm install -g intelephense
+2025-12-20T01:47:09Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:47:09Z RUN: cargo install caligula || true
+2025-12-20T01:47:09Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:47:09Z Install step completed (dry-run=1)
+2025-12-20T01:47:09Z Detected package manager: pacman
+2025-12-20T01:47:09Z Skipping installed package: git
+2025-12-20T01:47:09Z Skipping installed package: vim
+2025-12-20T01:47:09Z Skipping installed package: ripgrep
+2025-12-20T01:47:09Z Skipping installed package: fzf
+2025-12-20T01:47:09Z Skipping installed package: fd
+2025-12-20T01:47:09Z Skipping installed package: rust-analyzer
+2025-12-20T01:47:09Z Skipping installed package: mkvtoolnix-cli
+2025-12-20T01:47:09Z Skipping installed package: make
+2025-12-20T01:47:09Z Skipping installed package: gcc
+2025-12-20T01:47:09Z Skipping installed package: pkg-config
+2025-12-20T01:47:09Z Skipping installed package: cmake
+2025-12-20T01:47:09Z Skipping installed package: meson
+2025-12-20T01:47:09Z Skipping installed package: ninja
+2025-12-20T01:47:09Z Will install 0 packages for pacman
+2025-12-20T01:47:09Z Detected package manager: zypper
+2025-12-20T01:47:09Z Skipping installed package: git
+2025-12-20T01:47:09Z Skipping installed package: vim
+2025-12-20T01:47:09Z Skipping installed package: ripgrep
+2025-12-20T01:47:09Z Skipping installed package: fzf
+2025-12-20T01:47:09Z Skipping installed package: fd
+2025-12-20T01:47:09Z Skipping installed package: make
+2025-12-20T01:47:09Z Skipping installed package: gcc
+2025-12-20T01:47:10Z Skipping installed package: pkg-config
+2025-12-20T01:47:10Z Skipping installed package: cmake
+2025-12-20T01:47:10Z Skipping installed package: meson
+2025-12-20T01:47:10Z Skipping installed package: ninja
+2025-12-20T01:47:10Z Skipping installed package: gettext
+2025-12-20T01:47:10Z Will install 6 packages for zypper
+2025-12-20T01:47:10Z RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:47:10Z DRY-RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:47:10Z RUN: npm install -g typescript-language-server
+2025-12-20T01:47:10Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:47:10Z RUN: npm install -g intelephense
+2025-12-20T01:47:10Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:47:10Z RUN: cargo install caligula || true
+2025-12-20T01:47:10Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:47:10Z Install step completed (dry-run=1)
+2025-12-20T01:47:10Z Detected package manager: zypper
+2025-12-20T01:47:10Z Skipping installed package: git
+2025-12-20T01:47:10Z Skipping installed package: vim
+2025-12-20T01:47:10Z Skipping installed package: ripgrep
+2025-12-20T01:47:10Z Skipping installed package: fzf
+2025-12-20T01:47:10Z Skipping installed package: fd
+2025-12-20T01:47:10Z Skipping installed package: make
+2025-12-20T01:47:10Z Skipping installed package: gcc
+2025-12-20T01:47:10Z Skipping installed package: pkg-config
+2025-12-20T01:47:10Z Skipping installed package: cmake
+2025-12-20T01:47:10Z Skipping installed package: meson
+2025-12-20T01:47:10Z Skipping installed package: ninja
+2025-12-20T01:47:10Z Skipping installed package: gettext
+2025-12-20T01:47:10Z Will install 6 packages for zypper
+2025-12-20T01:47:10Z RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:47:10Z DRY-RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:47:10Z RUN: npm install -g typescript-language-server
+2025-12-20T01:47:10Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:47:10Z RUN: npm install -g intelephense
+2025-12-20T01:47:10Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:47:10Z RUN: cargo install caligula || true
+2025-12-20T01:47:10Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:47:10Z Install step completed (dry-run=1)
+2025-12-20T01:47:16Z Detected package manager: apt
+2025-12-20T01:47:18Z Skipping installed package: git
+2025-12-20T01:47:18Z Skipping installed package: curl
+2025-12-20T01:47:18Z Skipping installed package: wget
+2025-12-20T01:47:18Z Skipping installed package: unzip
+2025-12-20T01:47:18Z Skipping installed package: make
+2025-12-20T01:47:18Z Skipping installed package: gcc
+2025-12-20T01:47:18Z Skipping installed package: pkg-config
+2025-12-20T01:47:18Z Skipping installed package: cmake
+2025-12-20T01:47:18Z Skipping installed package: meson
+2025-12-20T01:47:18Z Skipping installed package: autoconf
+2025-12-20T01:47:18Z Skipping installed package: automake
+2025-12-20T01:47:18Z Skipping installed package: libtool
+2025-12-20T01:47:18Z Skipping installed package: bison
+2025-12-20T01:47:18Z Skipping installed package: flex
+2025-12-20T01:47:18Z Skipping installed package: cppcheck
+2025-12-20T01:47:18Z Skipping installed package: gettext
+2025-12-20T01:47:18Z Skipping installed package: vim
+2025-12-20T01:47:18Z Skipping installed package: fzf
+2025-12-20T01:47:18Z Skipping installed package: tree
+2025-12-20T01:47:18Z Skipping installed package: htop
+2025-12-20T01:47:18Z Skipping installed package: btop
+2025-12-20T01:47:18Z Skipping installed package: bat
+2025-12-20T01:47:18Z Skipping installed package: numlockx
+2025-12-20T01:47:18Z Skipping installed package: vlc
+2025-12-20T01:47:18Z Skipping installed package: gimp
+2025-12-20T01:47:18Z Skipping installed package: inkscape
+2025-12-20T01:47:18Z Skipping installed package: dolphin
+2025-12-20T01:47:18Z Skipping installed package: konsole
+2025-12-20T01:47:18Z Skipping installed package: firefox
+2025-12-20T01:47:18Z Skipping installed package: update-desktop-database
+2025-12-20T01:47:18Z Skipping installed package: wget
+2025-12-20T01:47:18Z Will install 124 packages for apt
+2025-12-20T01:47:18Z RUN: sudo apt update
+2025-12-20T01:47:18Z DRY-RUN: sudo apt update
+2025-12-20T01:47:18Z RUN: sudo apt install -y software-properties-common
+apt-transport-https
+gnupg
+ca-certificates
+extrepo
+build-essential
+ninja-build
+intltool
+valac
+check
+libpango1.0-dev
+libcairo2-dev
+libglib2.0-dev
+libgdk-pixbuf-2.0-dev
+libstartup-notification0-dev
+libxkbcommon-dev
+libxkbcommon-x11-dev
+libxcb-xkb-dev
+libxcb-randr0-dev
+libxcb-xinerama0-dev
+libxcb-ewmh-dev
+libxcb-icccm4-dev
+libxcb-cursor-dev
+libxcb-util-dev
+libxcb-keysyms1-dev
+libwayland-dev
+wayland-protocols
+libconfig-dev
+libdbus-1-dev
+libegl-dev
+libev-dev
+libgl-dev
+libepoxy-dev
+libpcre2-dev
+libpixman-1-dev
+libx11-xcb-dev
+libxcb1-dev
+libxcb-composite0-dev
+libxcb-damage0-dev
+libxcb-dpms0-dev
+libxcb-glx0-dev
+libxcb-image0-dev
+libxcb-present-dev
+libxcb-render0-dev
+libxcb-render-util0-dev
+libxcb-shape0-dev
+libxcb-xfixes0-dev
+libxext-dev
+uthash-dev
+libgtk-3-dev
+libxml2-dev
+libxml2-utils
+python3-docutils
+python3-lxml
+libgirepository1.0-dev
+libenchant-2-dev
+libgit2-dev
+libgpgme-dev
+libctpl-dev
+libmarkdown2-dev
+libwebkit2gtk-4.1-dev
+geany
+geany-plugins
+wezterm-nightly
+ripgrep
+fd-find
+whois
+dnsutils
+brightnessctl
+mpv
+audacity
+kdenlive
+obs-studio
+rhythmbox
+ncmpcpp
+mkvtoolnix
+mkvtoolnix-gui
+maim
+flameshot
+qimgv
+sxiv
+eog
+thunar
+pcmanfm
+krusader
+nautilus
+nemo
+ranger
+nnn
+lf
+alacritty
+gnome-terminal
+kitty
+terminator
+xfce4-terminal
+cups
+cups-client
+cups-filters
+cups-bsd
+cups-pdf
+printer-driver-all
+printer-driver-cups-pdf
+system-config-printer
+hplip
+sane
+sane-utils
+xsane
+simple-scan
+bluetooth
+bluez
+bluez-tools
+bluez-cups
+blueman
+pulseaudio-module-bluetooth
+firefox-esr
+librewolf
+brave-browser
+floorp
+helium-browser
+chromium
+dpkg
+update-alternatives
+neofetch
+rust-analyzer
+2025-12-20T01:47:18Z DRY-RUN: sudo apt install -y software-properties-common
+apt-transport-https
+gnupg
+ca-certificates
+extrepo
+build-essential
+ninja-build
+intltool
+valac
+check
+libpango1.0-dev
+libcairo2-dev
+libglib2.0-dev
+libgdk-pixbuf-2.0-dev
+libstartup-notification0-dev
+libxkbcommon-dev
+libxkbcommon-x11-dev
+libxcb-xkb-dev
+libxcb-randr0-dev
+libxcb-xinerama0-dev
+libxcb-ewmh-dev
+libxcb-icccm4-dev
+libxcb-cursor-dev
+libxcb-util-dev
+libxcb-keysyms1-dev
+libwayland-dev
+wayland-protocols
+libconfig-dev
+libdbus-1-dev
+libegl-dev
+libev-dev
+libgl-dev
+libepoxy-dev
+libpcre2-dev
+libpixman-1-dev
+libx11-xcb-dev
+libxcb1-dev
+libxcb-composite0-dev
+libxcb-damage0-dev
+libxcb-dpms0-dev
+libxcb-glx0-dev
+libxcb-image0-dev
+libxcb-present-dev
+libxcb-render0-dev
+libxcb-render-util0-dev
+libxcb-shape0-dev
+libxcb-xfixes0-dev
+libxext-dev
+uthash-dev
+libgtk-3-dev
+libxml2-dev
+libxml2-utils
+python3-docutils
+python3-lxml
+libgirepository1.0-dev
+libenchant-2-dev
+libgit2-dev
+libgpgme-dev
+libctpl-dev
+libmarkdown2-dev
+libwebkit2gtk-4.1-dev
+geany
+geany-plugins
+wezterm-nightly
+ripgrep
+fd-find
+whois
+dnsutils
+brightnessctl
+mpv
+audacity
+kdenlive
+obs-studio
+rhythmbox
+ncmpcpp
+mkvtoolnix
+mkvtoolnix-gui
+maim
+flameshot
+qimgv
+sxiv
+eog
+thunar
+pcmanfm
+krusader
+nautilus
+nemo
+ranger
+nnn
+lf
+alacritty
+gnome-terminal
+kitty
+terminator
+xfce4-terminal
+cups
+cups-client
+cups-filters
+cups-bsd
+cups-pdf
+printer-driver-all
+printer-driver-cups-pdf
+system-config-printer
+hplip
+sane
+sane-utils
+xsane
+simple-scan
+bluetooth
+bluez
+bluez-tools
+bluez-cups
+blueman
+pulseaudio-module-bluetooth
+firefox-esr
+librewolf
+brave-browser
+floorp
+helium-browser
+chromium
+dpkg
+update-alternatives
+neofetch
+rust-analyzer
+2025-12-20T01:47:18Z RUN: npm install -g typescript-language-server
+2025-12-20T01:47:18Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:47:18Z RUN: npm install -g intelephense
+2025-12-20T01:47:18Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:47:18Z RUN: cargo install caligula || true
+2025-12-20T01:47:18Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:47:18Z Install step completed (dry-run=1)
+2025-12-20T01:47:18Z Detected package manager: dnf
+2025-12-20T01:47:19Z Skipping installed package: git
+2025-12-20T01:47:19Z Skipping installed package: vim
+2025-12-20T01:47:19Z Skipping installed package: ripgrep
+2025-12-20T01:47:19Z Skipping installed package: fzf
+2025-12-20T01:47:19Z Skipping installed package: fd
+2025-12-20T01:47:19Z Skipping installed package: make
+2025-12-20T01:47:19Z Skipping installed package: gcc
+2025-12-20T01:47:19Z Skipping installed package: pkg-config
+2025-12-20T01:47:19Z Skipping installed package: cmake
+2025-12-20T01:47:19Z Skipping installed package: meson
+2025-12-20T01:47:19Z Skipping installed package: ninja
+2025-12-20T01:47:19Z Will install 3 packages for dnf
+2025-12-20T01:47:19Z RUN: sudo dnf install -y gtk3-devel
+intltool
+python3-docutils
+2025-12-20T01:47:19Z DRY-RUN: sudo dnf install -y gtk3-devel
+intltool
+python3-docutils
+2025-12-20T01:47:19Z RUN: npm install -g typescript-language-server
+2025-12-20T01:47:19Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:47:19Z RUN: npm install -g intelephense
+2025-12-20T01:47:19Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:47:19Z RUN: cargo install caligula || true
+2025-12-20T01:47:19Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:47:19Z Install step completed (dry-run=1)
+2025-12-20T01:47:19Z Detected package manager: pacman
+2025-12-20T01:47:19Z Skipping installed package: git
+2025-12-20T01:47:19Z Skipping installed package: vim
+2025-12-20T01:47:19Z Skipping installed package: ripgrep
+2025-12-20T01:47:19Z Skipping installed package: fzf
+2025-12-20T01:47:19Z Skipping installed package: fd
+2025-12-20T01:47:19Z Skipping installed package: rust-analyzer
+2025-12-20T01:47:19Z Skipping installed package: mkvtoolnix-cli
+2025-12-20T01:47:19Z Skipping installed package: make
+2025-12-20T01:47:19Z Skipping installed package: gcc
+2025-12-20T01:47:19Z Skipping installed package: pkg-config
+2025-12-20T01:47:19Z Skipping installed package: cmake
+2025-12-20T01:47:19Z Skipping installed package: meson
+2025-12-20T01:47:19Z Skipping installed package: ninja
+2025-12-20T01:47:19Z Will install 0 packages for pacman
+2025-12-20T01:47:19Z Detected package manager: zypper
+2025-12-20T01:47:19Z Skipping installed package: git
+2025-12-20T01:47:19Z Skipping installed package: vim
+2025-12-20T01:47:19Z Skipping installed package: ripgrep
+2025-12-20T01:47:19Z Skipping installed package: fzf
+2025-12-20T01:47:19Z Skipping installed package: fd
+2025-12-20T01:47:19Z Skipping installed package: make
+2025-12-20T01:47:19Z Detected package manager: apt
+2025-12-20T01:47:21Z Skipping installed package: git
+2025-12-20T01:47:21Z Skipping installed package: curl
+2025-12-20T01:47:21Z Skipping installed package: wget
+2025-12-20T01:47:21Z Skipping installed package: unzip
+2025-12-20T01:47:21Z Skipping installed package: make
+2025-12-20T01:47:21Z Skipping installed package: gcc
+2025-12-20T01:47:21Z Skipping installed package: pkg-config
+2025-12-20T01:47:21Z Skipping installed package: cmake
+2025-12-20T01:47:21Z Skipping installed package: meson
+2025-12-20T01:47:21Z Skipping installed package: autoconf
+2025-12-20T01:47:21Z Skipping installed package: automake
+2025-12-20T01:47:21Z Skipping installed package: libtool
+2025-12-20T01:47:21Z Skipping installed package: bison
+2025-12-20T01:47:21Z Skipping installed package: flex
+2025-12-20T01:47:21Z Skipping installed package: cppcheck
+2025-12-20T01:47:21Z Skipping installed package: gettext
+2025-12-20T01:47:21Z Skipping installed package: vim
+2025-12-20T01:47:21Z Skipping installed package: fzf
+2025-12-20T01:47:21Z Skipping installed package: tree
+2025-12-20T01:47:21Z Skipping installed package: htop
+2025-12-20T01:47:21Z Skipping installed package: btop
+2025-12-20T01:47:21Z Skipping installed package: bat
+2025-12-20T01:47:21Z Skipping installed package: numlockx
+2025-12-20T01:47:21Z Skipping installed package: vlc
+2025-12-20T01:47:21Z Skipping installed package: gimp
+2025-12-20T01:47:21Z Skipping installed package: inkscape
+2025-12-20T01:47:21Z Skipping installed package: dolphin
+2025-12-20T01:47:21Z Skipping installed package: konsole
+2025-12-20T01:47:21Z Skipping installed package: firefox
+2025-12-20T01:47:21Z Skipping installed package: update-desktop-database
+2025-12-20T01:47:21Z Skipping installed package: wget
+2025-12-20T01:47:21Z Will install 124 packages for apt
+2025-12-20T01:47:21Z RUN: sudo apt update
+2025-12-20T01:47:21Z DRY-RUN: sudo apt update
+2025-12-20T01:47:21Z RUN: sudo apt install -y software-properties-common
+apt-transport-https
+gnupg
+ca-certificates
+extrepo
+build-essential
+ninja-build
+intltool
+valac
+check
+libpango1.0-dev
+libcairo2-dev
+libglib2.0-dev
+libgdk-pixbuf-2.0-dev
+libstartup-notification0-dev
+libxkbcommon-dev
+libxkbcommon-x11-dev
+libxcb-xkb-dev
+libxcb-randr0-dev
+libxcb-xinerama0-dev
+libxcb-ewmh-dev
+libxcb-icccm4-dev
+libxcb-cursor-dev
+libxcb-util-dev
+libxcb-keysyms1-dev
+libwayland-dev
+wayland-protocols
+libconfig-dev
+libdbus-1-dev
+libegl-dev
+libev-dev
+libgl-dev
+libepoxy-dev
+libpcre2-dev
+libpixman-1-dev
+libx11-xcb-dev
+libxcb1-dev
+libxcb-composite0-dev
+libxcb-damage0-dev
+libxcb-dpms0-dev
+libxcb-glx0-dev
+libxcb-image0-dev
+libxcb-present-dev
+libxcb-render0-dev
+libxcb-render-util0-dev
+libxcb-shape0-dev
+libxcb-xfixes0-dev
+libxext-dev
+uthash-dev
+libgtk-3-dev
+libxml2-dev
+libxml2-utils
+python3-docutils
+python3-lxml
+libgirepository1.0-dev
+libenchant-2-dev
+libgit2-dev
+libgpgme-dev
+libctpl-dev
+libmarkdown2-dev
+libwebkit2gtk-4.1-dev
+geany
+geany-plugins
+wezterm-nightly
+ripgrep
+fd-find
+whois
+dnsutils
+brightnessctl
+mpv
+audacity
+kdenlive
+obs-studio
+rhythmbox
+ncmpcpp
+mkvtoolnix
+mkvtoolnix-gui
+maim
+flameshot
+qimgv
+sxiv
+eog
+thunar
+pcmanfm
+krusader
+nautilus
+nemo
+ranger
+nnn
+lf
+alacritty
+gnome-terminal
+kitty
+terminator
+xfce4-terminal
+cups
+cups-client
+cups-filters
+cups-bsd
+cups-pdf
+printer-driver-all
+printer-driver-cups-pdf
+system-config-printer
+hplip
+sane
+sane-utils
+xsane
+simple-scan
+bluetooth
+bluez
+bluez-tools
+bluez-cups
+blueman
+pulseaudio-module-bluetooth
+firefox-esr
+librewolf
+brave-browser
+floorp
+helium-browser
+chromium
+dpkg
+update-alternatives
+neofetch
+rust-analyzer
+2025-12-20T01:47:21Z DRY-RUN: sudo apt install -y software-properties-common
+apt-transport-https
+gnupg
+ca-certificates
+extrepo
+build-essential
+ninja-build
+intltool
+valac
+check
+libpango1.0-dev
+libcairo2-dev
+libglib2.0-dev
+libgdk-pixbuf-2.0-dev
+libstartup-notification0-dev
+libxkbcommon-dev
+libxkbcommon-x11-dev
+libxcb-xkb-dev
+libxcb-randr0-dev
+libxcb-xinerama0-dev
+libxcb-ewmh-dev
+libxcb-icccm4-dev
+libxcb-cursor-dev
+libxcb-util-dev
+libxcb-keysyms1-dev
+libwayland-dev
+wayland-protocols
+libconfig-dev
+libdbus-1-dev
+libegl-dev
+libev-dev
+libgl-dev
+libepoxy-dev
+libpcre2-dev
+libpixman-1-dev
+libx11-xcb-dev
+libxcb1-dev
+libxcb-composite0-dev
+libxcb-damage0-dev
+libxcb-dpms0-dev
+libxcb-glx0-dev
+libxcb-image0-dev
+libxcb-present-dev
+libxcb-render0-dev
+libxcb-render-util0-dev
+libxcb-shape0-dev
+libxcb-xfixes0-dev
+libxext-dev
+uthash-dev
+libgtk-3-dev
+libxml2-dev
+libxml2-utils
+python3-docutils
+python3-lxml
+libgirepository1.0-dev
+libenchant-2-dev
+libgit2-dev
+libgpgme-dev
+libctpl-dev
+libmarkdown2-dev
+libwebkit2gtk-4.1-dev
+geany
+geany-plugins
+wezterm-nightly
+ripgrep
+fd-find
+whois
+dnsutils
+brightnessctl
+mpv
+audacity
+kdenlive
+obs-studio
+rhythmbox
+ncmpcpp
+mkvtoolnix
+mkvtoolnix-gui
+maim
+flameshot
+qimgv
+sxiv
+eog
+thunar
+pcmanfm
+krusader
+nautilus
+nemo
+ranger
+nnn
+lf
+alacritty
+gnome-terminal
+kitty
+terminator
+xfce4-terminal
+cups
+cups-client
+cups-filters
+cups-bsd
+cups-pdf
+printer-driver-all
+printer-driver-cups-pdf
+system-config-printer
+hplip
+sane
+sane-utils
+xsane
+simple-scan
+bluetooth
+bluez
+bluez-tools
+bluez-cups
+blueman
+pulseaudio-module-bluetooth
+firefox-esr
+librewolf
+brave-browser
+floorp
+helium-browser
+chromium
+dpkg
+update-alternatives
+neofetch
+rust-analyzer
+2025-12-20T01:47:21Z RUN: npm install -g typescript-language-server
+2025-12-20T01:47:21Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:47:21Z RUN: npm install -g intelephense
+2025-12-20T01:47:21Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:47:21Z RUN: cargo install caligula || true
+2025-12-20T01:47:21Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:47:21Z Install step completed (dry-run=1)
+2025-12-20T01:47:21Z Detected package manager: dnf
+2025-12-20T01:47:21Z Skipping installed package: git
+2025-12-20T01:47:21Z Skipping installed package: vim
+2025-12-20T01:47:22Z Skipping installed package: ripgrep
+2025-12-20T01:47:22Z Skipping installed package: fzf
+2025-12-20T01:47:22Z Skipping installed package: fd
+2025-12-20T01:47:22Z Skipping installed package: make
+2025-12-20T01:47:22Z Skipping installed package: gcc
+2025-12-20T01:47:22Z Skipping installed package: pkg-config
+2025-12-20T01:47:22Z Skipping installed package: cmake
+2025-12-20T01:47:22Z Skipping installed package: meson
+2025-12-20T01:47:22Z Skipping installed package: ninja
+2025-12-20T01:47:22Z Will install 3 packages for dnf
+2025-12-20T01:47:22Z RUN: sudo dnf install -y gtk3-devel
+intltool
+python3-docutils
+2025-12-20T01:47:22Z DRY-RUN: sudo dnf install -y gtk3-devel
+intltool
+python3-docutils
+2025-12-20T01:47:22Z RUN: npm install -g typescript-language-server
+2025-12-20T01:47:22Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:47:22Z RUN: npm install -g intelephense
+2025-12-20T01:47:22Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:47:22Z RUN: cargo install caligula || true
+2025-12-20T01:47:22Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:47:22Z Install step completed (dry-run=1)
+2025-12-20T01:47:22Z Detected package manager: pacman
+2025-12-20T01:47:22Z Skipping installed package: git
+2025-12-20T01:47:22Z Skipping installed package: vim
+2025-12-20T01:47:22Z Skipping installed package: ripgrep
+2025-12-20T01:47:22Z Skipping installed package: fzf
+2025-12-20T01:47:22Z Skipping installed package: fd
+2025-12-20T01:47:22Z Skipping installed package: rust-analyzer
+2025-12-20T01:47:22Z Skipping installed package: mkvtoolnix-cli
+2025-12-20T01:47:22Z Skipping installed package: make
+2025-12-20T01:47:22Z Skipping installed package: gcc
+2025-12-20T01:47:22Z Skipping installed package: pkg-config
+2025-12-20T01:47:22Z Skipping installed package: cmake
+2025-12-20T01:47:22Z Skipping installed package: meson
+2025-12-20T01:47:22Z Skipping installed package: ninja
+2025-12-20T01:47:22Z Will install 0 packages for pacman
+2025-12-20T01:47:22Z Detected package manager: zypper
+2025-12-20T01:47:22Z Skipping installed package: git
+2025-12-20T01:47:22Z Skipping installed package: vim
+2025-12-20T01:47:22Z Skipping installed package: ripgrep
+2025-12-20T01:47:22Z Skipping installed package: fzf
+2025-12-20T01:47:22Z Skipping installed package: fd
+2025-12-20T01:47:22Z Skipping installed package: make
+2025-12-20T01:47:22Z Skipping installed package: gcc
+2025-12-20T01:47:22Z Skipping installed package: pkg-config
+2025-12-20T01:47:22Z Skipping installed package: cmake
+2025-12-20T01:47:22Z Skipping installed package: meson
+2025-12-20T01:47:22Z Skipping installed package: ninja
+2025-12-20T01:47:22Z Skipping installed package: gettext
+2025-12-20T01:47:22Z Will install 6 packages for zypper
+2025-12-20T01:47:22Z RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:47:22Z DRY-RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:47:22Z RUN: npm install -g typescript-language-server
+2025-12-20T01:47:22Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:47:22Z RUN: npm install -g intelephense
+2025-12-20T01:47:22Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:47:22Z RUN: cargo install caligula || true
+2025-12-20T01:47:22Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:47:22Z Install step completed (dry-run=1)
+2025-12-20T01:47:22Z Detected package manager: zypper
+2025-12-20T01:47:23Z Skipping installed package: git
+2025-12-20T01:47:23Z Skipping installed package: vim
+2025-12-20T01:47:23Z Skipping installed package: ripgrep
+2025-12-20T01:47:23Z Skipping installed package: fzf
+2025-12-20T01:47:23Z Skipping installed package: fd
+2025-12-20T01:47:23Z Skipping installed package: make
+2025-12-20T01:47:23Z Skipping installed package: gcc
+2025-12-20T01:47:23Z Skipping installed package: pkg-config
+2025-12-20T01:47:23Z Skipping installed package: cmake
+2025-12-20T01:47:23Z Skipping installed package: meson
+2025-12-20T01:47:23Z Skipping installed package: ninja
+2025-12-20T01:47:23Z Skipping installed package: gettext
+2025-12-20T01:47:23Z Will install 6 packages for zypper
+2025-12-20T01:47:23Z RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:47:23Z DRY-RUN: sudo zypper install -y libgtk-3-devel
+libxml2-devel
+python3-doc
+libgirepository1_0-devel
+libgit2-devel
+gpgme-devel
+2025-12-20T01:47:23Z RUN: npm install -g typescript-language-server
+2025-12-20T01:47:23Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:47:23Z RUN: npm install -g intelephense
+2025-12-20T01:47:23Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:47:23Z RUN: cargo install caligula || true
+2025-12-20T01:47:23Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:47:23Z Install step completed (dry-run=1)
+2025-12-20T01:47:49Z Detected package manager: apk
+2025-12-20T01:47:49Z Skipping installed package: git
+2025-12-20T01:47:49Z Skipping installed package: vim
+2025-12-20T01:47:49Z Skipping installed package: fzf
+2025-12-20T01:47:49Z Skipping installed package: fd
+2025-12-20T01:47:49Z Skipping installed package: wget
+2025-12-20T01:47:49Z Skipping installed package: unzip
+2025-12-20T01:47:49Z Will install 1 packages for apk
+2025-12-20T01:47:49Z RUN: sudo apk add ripgrep
+2025-12-20T01:47:49Z DRY-RUN: sudo apk add ripgrep
+2025-12-20T01:47:49Z RUN: npm install -g typescript-language-server
+2025-12-20T01:47:49Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:47:49Z RUN: npm install -g intelephense
+2025-12-20T01:47:49Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:47:49Z RUN: cargo install caligula || true
+2025-12-20T01:47:49Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:47:49Z Install step completed (dry-run=1)
+2025-12-20T01:47:49Z Detected package manager: brew
+2025-12-20T01:47:49Z Skipping installed package: git
+2025-12-20T01:47:49Z Skipping installed package: vim
+2025-12-20T01:47:49Z Skipping installed package: fd
+2025-12-20T01:47:49Z Skipping installed package: fzf
+2025-12-20T01:47:49Z Will install 5 packages for brew
+2025-12-20T01:47:49Z RUN: brew install ripgrep || true
+2025-12-20T01:47:49Z DRY-RUN: brew install ripgrep || true
+2025-12-20T01:47:49Z RUN: brew install rust-analyzer || true
+2025-12-20T01:47:49Z DRY-RUN: brew install rust-analyzer || true
+2025-12-20T01:47:49Z RUN: brew install mkvtoolnix || true
+2025-12-20T01:47:49Z DRY-RUN: brew install mkvtoolnix || true
+2025-12-20T01:47:49Z RUN: brew install wezterm || true
+2025-12-20T01:47:49Z DRY-RUN: brew install wezterm || true
+2025-12-20T01:47:49Z RUN: brew install neovim || true
+2025-12-20T01:47:49Z DRY-RUN: brew install neovim || true
+2025-12-20T01:47:49Z RUN: npm install -g typescript-language-server
+2025-12-20T01:47:49Z DRY-RUN: npm install -g typescript-language-server
+2025-12-20T01:47:49Z RUN: npm install -g intelephense
+2025-12-20T01:47:49Z DRY-RUN: npm install -g intelephense
+2025-12-20T01:47:49Z RUN: cargo install caligula || true
+2025-12-20T01:47:49Z DRY-RUN: cargo install caligula || true
+2025-12-20T01:47:49Z Install step completed (dry-run=1)

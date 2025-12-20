@@ -1,0 +1,3 @@
+# Cargo-installed crates
+caligula
+# Note: requires rustup / cargo toolchain

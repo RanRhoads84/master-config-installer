@@ -1,0 +1,5 @@
+# Zypper / openSUSE packages (approximate names)
+# Most common packages are centralized in packages/duplicates.txt
+# Add only distro-unique packages here.
+
+# (Duplicates moved to packages/duplicates.txt)

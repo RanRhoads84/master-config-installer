@@ -1,0 +1,131 @@
+#!/bin/bash
+# DESC: Launch Discord - download and install if not present
+set -e
+
+# Define variables
+SCRIPT_NAME="discord"
+LOCAL_BIN_DIR="$HOME/.local/bin"
+DISCORD_DIR="/opt/Discord"
+DISCORD_BIN="/usr/bin/Discord"
+DESKTOP_FILE="/usr/share/applications/discord.desktop"
+TAR_FILE="discord.tar.gz"
+
+# Download function with fallback
+download_discord() {
+    if command -v wget >/dev/null 2>&1; then
+        wget -q "https://discord.com/api/download?platform=linux&format=tar.gz" -O "$TAR_FILE" || return 1
+    elif command -v curl >/dev/null 2>&1; then
+        curl -sL "https://discord.com/api/download?platform=linux&format=tar.gz" -o "$TAR_FILE" || return 1
+    else
+        echo "Error: Neither wget nor curl found"
+        return 1
+    fi
+}
+
+# Auto-setup function (runs on first install)
+auto_setup() {
+    # Check if we're already running from ~/.local/bin
+    if [[ "$0" == "$LOCAL_BIN_DIR/$SCRIPT_NAME" ]]; then
+        return 0
+    fi
+
+    echo "First-time setup: Installing discord updater to ~/.local/bin..."
+
+    mkdir -p "$LOCAL_BIN_DIR"
+    cp "$0" "$LOCAL_BIN_DIR/$SCRIPT_NAME"
+    chmod +x "$LOCAL_BIN_DIR/$SCRIPT_NAME"
+
+    # Add to PATH if not present
+    case "$(basename "$SHELL")" in
+        bash)
+            CONFIG_FILE="$HOME/.bashrc"
+            if ! grep -q "$LOCAL_BIN_DIR" "$CONFIG_FILE" 2>/dev/null; then
+                echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> "$CONFIG_FILE"
+            fi
+            ;;
+        zsh)
+            CONFIG_FILE="$HOME/.zshrc"
+            if ! grep -q "$LOCAL_BIN_DIR" "$CONFIG_FILE" 2>/dev/null; then
+                echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> "$CONFIG_FILE"
+            fi
+            ;;
+        fish)
+            CONFIG_FILE="$HOME/.config/fish/config.fish"
+            mkdir -p "$(dirname "$CONFIG_FILE")"
+            if ! grep -q "$LOCAL_BIN_DIR" "$CONFIG_FILE" 2>/dev/null; then
+                echo "set -x PATH \$HOME/.local/bin \$PATH" >> "$CONFIG_FILE"
+            fi
+            ;;
+        *)
+            CONFIG_FILE="$HOME/.profile"
+            if ! grep -q "$LOCAL_BIN_DIR" "$CONFIG_FILE" 2>/dev/null; then
+                echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> "$CONFIG_FILE"
+            fi
+            ;;
+    esac
+
+    echo "✓ Discord updater installed to ~/.local/bin"
+    echo ""
+
+    # Re-execute from the installed location
+    exec "$LOCAL_BIN_DIR/$SCRIPT_NAME" "$@"
+}
+
+# Install function
+install() {
+    # Auto-setup on first run
+    auto_setup
+
+    download_discord || exit 1
+    
+    # Clean old installation
+    sudo rm -rf "$DISCORD_DIR" "$DISCORD_BIN" "$DESKTOP_FILE" 2>/dev/null
+    
+    # Extract and install
+    sudo tar -xf "$TAR_FILE" -C /opt/
+    rm "$TAR_FILE"
+    
+    # Create symlink
+    sudo ln -sf "$DISCORD_DIR/Discord" "$DISCORD_BIN"
+    
+    # Create desktop entry
+    sudo bash -c "cat > '$DESKTOP_FILE' << EOF
+[Desktop Entry]
+Name=Discord
+StartupWMClass=discord
+Comment=All-in-one voice and text chat
+GenericName=Internet Messenger
+Exec=/usr/bin/Discord
+Icon=/opt/Discord/discord.png
+Type=Application
+Categories=Network;InstantMessaging;
+Path=/usr/bin
+EOF"
+    
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "✨ 🎉 DISCORD INSTALLED SUCCESSFULLY! 🎉 ✨"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+}
+
+# Uninstall function
+uninstall() {
+    sudo rm -rf "$DISCORD_DIR" "$DISCORD_BIN" "$DESKTOP_FILE" 2>/dev/null
+}
+
+# Show help
+help() {
+    echo "Usage: $0 [install|uninstall|help]"
+    echo "  install    Install/update Discord (default)"
+    echo "  uninstall  Remove Discord"
+    echo "  help       Show this help"
+    echo ""
+    echo "Note: First run automatically installs the updater to ~/.local/bin"
+}
+
+# Main
+case "$1" in
+    install|update|"") install ;;
+    uninstall) uninstall ;;
+    help|-h|--help) help ;;
+    *) echo "Unknown option: $1"; help; exit 1 ;;
+esac

@@ -1,0 +1,2 @@
+# Homebrew support removed by request. This file retained as placeholder.
+# If you need a macOS/homebrew list again, recreate this file with desired packages.

@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# Check if there are changes
+if [[ -z $(git status -s) ]]; then
+    echo "No changes to commit"
+    exit 0
+fi
+
+# Show status
+echo "Changes detected:"
+git status -s
+echo
+
+# Get commit message
+echo "Commit message (empty line to finish):"
+msg=""
+while IFS= read -r line; do
+    [[ -z "$line" ]] && break
+    msg="${msg}${msg:+$'\n'}$line"
+done
+
+# If no message provided, exit
+if [[ -z "$msg" ]]; then
+    echo "No commit message provided, aborting"
+    exit 1
+fi
+
+# Execute git commands
+git add -A && git commit -m "$msg" && git push
+
+# Show result
+if [[ $? -eq 0 ]]; then
+    echo -e "\n✓ Changes pushed successfully"
+else
+    echo -e "\n✗ Error occurred"
+fi
