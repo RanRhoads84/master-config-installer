@@ -18,5 +18,6 @@ Work items:
 4. Add `npm`/`cargo` handling and optional source-build flows. ✅
 5. Add logging, `--dry-run`, and `--yes` non-interactive mode. ✅
 6. Add README usage and test instructions. ✅
+7. Consolidate the main menu layout so it mirrors `packages/consolidated.txt` and avoids duplicate entries.
 
 Backups: a compressed archive of the repo was created before any changes.
