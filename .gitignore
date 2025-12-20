@@ -1,3 +1,4 @@
+backups/
 backups/butterscripts-backup-20251219192321.tar.gz
 .kdev4/butterscripts.kdev4
 git-push.sh
