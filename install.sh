@@ -260,21 +260,20 @@ show_package_submenu() {
     return 0
   fi
 
-  pkg_options+=("Install ALL packages in this group")
-  pkg_options+=("Back to main menu")
-  local all_index=$(( ${#pkg_options[@]} - 2 ))
-  local back_index=$(( ${#pkg_options[@]} - 1 ))
+  local install_all_choice=$(( ${#pkg_options[@]} + 1 ))
 
   for i in "${!pkg_options[@]}"; do
     echo "$((i+1))) ${pkg_options[$i]}"
   done
+  printf " %2d) Install ALL packages in this group\n" "$install_all_choice"
+  echo "  0) Back to main menu"
   echo
 
   local selected_packages=()
   local choice
   local invalid=0
   while true; do
-    echo -n "Enter choice(s) (1-${#pkg_options[@]}), separated by commas, or press Enter to install all pending packages: "
+    echo -n "Enter choice(s) (0-${install_all_choice}), separated by commas, or press Enter to install all pending packages: "
     if ! read -r choice; then
       echo
       echo "Input stream ended while selecting packages. Returning to main menu..."
@@ -302,12 +301,15 @@ show_package_submenu() {
         invalid=1
         break
       fi
-      idx=$((pick - 1))
-      if [ "$idx" -lt 0 ] || [ "$idx" -ge "${#pkg_options[@]}" ]; then
+      if [ "$pick" -eq 0 ]; then
+        echo "Returning to main menu..."
+        return 0
+      fi
+      if [ "$pick" -gt "$install_all_choice" ]; then
         invalid=1
         break
       fi
-      if [ "$idx" -eq "$all_index" ]; then
+      if [ "$pick" -eq "$install_all_choice" ]; then
         selected_packages=()
         for pending in "${!pkg_status[@]}"; do
           if [ "${pkg_status[$pending]}" = "to_install" ]; then
@@ -316,16 +318,17 @@ show_package_submenu() {
         done
         echo "Selected all packages that need installation (${#selected_packages[@]} packages)"
         break 2
-      elif [ "$idx" -eq "$back_index" ]; then
-        echo "Returning to main menu..."
-        return 0
+      fi
+      idx=$((pick - 1))
+      if [ "$idx" -lt 0 ] || [ "$idx" -ge "${#pkg_options[@]}" ]; then
+        invalid=1
+        break
+      fi
+      if [ "${pkg_status[$idx]}" = "installed" ]; then
+        echo "Package '${pkg_names[$idx]}' is already installed. Skipping."
       else
-        if [ "${pkg_status[$idx]}" = "installed" ]; then
-          echo "Package '${pkg_names[$idx]}' is already installed. Skipping."
-        else
-          selected_packages+=("${pkg_names[$idx]}")
-          echo "Selected: ${pkg_names[$idx]}"
-        fi
+        selected_packages+=("${pkg_names[$idx]}")
+        echo "Selected: ${pkg_names[$idx]}"
       fi
     done
     if [ "$invalid" -eq 1 ]; then
@@ -411,15 +414,13 @@ else
     echo "+----+-------------------------------+-----------+------------+"
 
     all_idx=$(( ${#actions[@]} + 1 ))
-    done_idx=$(( all_idx + 1 ))
     actions+=("all")
-    actions+=("done")
 
+    printf "  %2d) %-56s\n" 0 "Exit installer"
     printf " %2d) %-56s\n" "$all_idx" "Install every group sequentially"
-    printf " %2d) %-56s\n" "$done_idx" "Done (exit installer)"
     echo
     echo "Select a number to open that group's submenu; runs install immediately and returns here."
-    echo -n "Enter your choice (1-${#actions[@]}): "
+    echo -n "Enter your choice (0-${all_idx}): "
     if ! read -r main_choice; then
       echo
       log "Input stream ended; exiting menu."
@@ -432,6 +433,10 @@ else
     if [[ ! "$main_choice" =~ ^[0-9]+$ ]]; then
       echo "Invalid input: $main_choice"
       continue
+    fi
+    if [ "$main_choice" -eq 0 ]; then
+      echo "Exiting installer..."
+      break
     fi
     sel_index=$((main_choice - 1))
     if [ "$sel_index" -lt 0 ] || [ "$sel_index" -ge "${#actions[@]}" ]; then
@@ -447,9 +452,6 @@ else
         for j in "${!GROUP_ORDER[@]}"; do
           process_group_selection "$j"
         done
-        ;;
-      done)
-        break
         ;;
     esac
   done
