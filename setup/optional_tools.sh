@@ -17,34 +17,37 @@ declare -a PRINTER_PACKAGES=(
     "cups" 
     "cups-client" 
     "cups-filters" 
-            5)
-                echo -e "${CYAN}Browsing installers...${NC}"
-                echo -e "${YELLOW}Selecting browsers will run the browser suite from butterscripts.${NC}"
-                echo -e "${YELLOW}You can pick one or more browsers during that installer.${NC}"
-                echo
-                bash "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/browsers/install.sh"
-                pause
-                ;;
-            6)
-                install_fastfetch
-                ;;
-            7)
-                echo -e "${CYAN}Custom Neovim Installation...${NC}"
-                echo -e "${YELLOW}Configures JustAGuy Linux's prebuilt Neovim set-up.${NC}"
-                echo
-                bash "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/neovim/buttervim.sh"
-                pause
-                ;;
-            8)
-                echo -e "${CYAN}Vanilla Neovim Installation...${NC}"
-                echo -e "${YELLOW}Builds and installs Neovim from source.${NC}"
-                echo
-                bash "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/neovim/build-neovim.sh"
-                pause
-                ;;
-            9)
-                return
-                ;;
+    "cups-pdf" 
+    "printer-driver-all" 
+    "printer-driver-cups-pdf" 
+    "system-config-printer" 
+    "hplip" 
+    "sane-utils" 
+    "xsane" 
+    "simple-scan"
+)
+
+declare -a BLUETOOTH_PACKAGES=(
+    "bluetooth" 
+    "bluez" 
+    "bluez-tools" 
+    "bluez-cups" 
+    "blueman" 
+    "pulseaudio-module-bluetooth"
+)
+
+# Function to display script header
+show_header() {
+    clear
+    echo -e "${CYAN}=========================================================${NC}"
+    echo -e "${CYAN}           BUTTER APPLICATIONS INSTALLER                 ${NC}"
+    echo -e "${CYAN}=========================================================${NC}"
+    echo -e "${YELLOW}This script will help you install various applications${NC}"
+    echo -e "${YELLOW}from the butterscripts repository and APT packages.${NC}"
+    echo
+}
+
+# Function to pause
 pause() {
     read -p "Press Enter to continue..." -r
 }
@@ -116,13 +119,35 @@ download_script() {
 }
 
 
+# Function to install Discord
+install_discord() {
+    show_header
+    echo -e "${CYAN}Installing Discord...${NC}"
+    echo -e "${YELLOW}Note: The Discord installer has various options${NC}"
+    echo -e "${YELLOW}      (install, uninstall, setup, etc.)${NC}"
+    echo
+    
+    # Download the script
+    download_script "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/discord/discord" "discord"
+    
+    echo -e "${YELLOW}Starting Discord installer...${NC}"
+    echo -e "${YELLOW}Follow the prompts during installation.${NC}"
+    echo
+    
+    # Execute the script with install option
+    bash "/tmp/discord" install
+    
+    echo -e "${GREEN}Discord installation process completed.${NC}"
+    pause
+}
+
 # Function to install Fastfetch
 install_fastfetch() {
     show_header
     echo -e "${CYAN}Installing Fastfetch...${NC}"
     
-    # Execute the local installer
-    local repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    local repo_root
+    repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
     bash "$repo_root/fastfetch/install_fastfetch.sh"
     
     echo -e "${GREEN}Fastfetch installation completed.${NC}"
@@ -319,15 +344,16 @@ show_butterscripts_menu() {
         echo -e "${CYAN}3. ${NC}ButterNotes - Universal note-taking and project management tool"
         echo -e "${CYAN}4. ${NC}Geany - Text Editor with plugins (Latest version 2.1 from source)"
         echo -e "${CYAN}5. ${NC}Browsers - Firefox, LibreWolf, Brave, Floorp, Chromium, Zen"
-        echo -e "${CYAN}6. ${NC}Fastfetch - System Information Display Tool"
-        echo -e "${CYAN}7. ${NC}Custom Neovim - JustAGuy Linux Pre-configured Editor"
-        echo -e "${CYAN}8. ${NC}Vanilla Neovim (Latest Build) - Compiled from Source"
-        echo -e "${CYAN}9. ${NC}Return to Main Menu"
+        echo -e "${CYAN}6. ${NC}Discord - Chat and Voice Application"
+        echo -e "${CYAN}7. ${NC}Fastfetch - System Information Display Tool"
+        echo -e "${CYAN}8. ${NC}Custom Neovim - JustAGuy Linux Pre-configured Editor"
+        echo -e "${CYAN}9. ${NC}Vanilla Neovim (Latest Build) - Compiled from Source"
+        echo -e "${CYAN}0. ${NC}Return to Main Menu"
         echo
         echo -e "${YELLOW}NOTE: Each installer has its own interactive options.${NC}"
         echo -e "${YELLOW}      It's recommended to install one at a time.${NC}"
         echo
-        read -p "Enter your choice [1-10]: " choice
+        read -p "Enter your choice [0-9]: " choice
         
         case $choice in
             1)
@@ -437,10 +463,9 @@ show_butterscripts_menu() {
                 fi
                 pause
                 ;;
-            6)
-                install_fastfetch
-                ;;
-            7)
+            6) install_discord ;;
+            7) install_fastfetch ;;
+            8)
                 download_script "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/neovim/buttervim.sh" "buttervim.sh"
                 if bash "/tmp/buttervim.sh"; then
                     echo -e "${GREEN}Neovim installation process completed.${NC}"
@@ -449,7 +474,7 @@ show_butterscripts_menu() {
                 fi
                 pause
                 ;;
-            8)
+            9)
                 download_script "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/neovim/build-neovim.sh" "build-neovim.sh"
                 if bash "/tmp/build-neovim.sh"; then
                     echo -e "${GREEN}Neovim build and installation completed.${NC}"
@@ -458,7 +483,7 @@ show_butterscripts_menu() {
                 fi
                 pause
                 ;;
-            9) return ;;
+            0) return ;; 
             *)
                 echo -e "${RED}Invalid option. Please try again.${NC}"
                 pause
@@ -476,14 +501,14 @@ show_system_support_menu() {
         echo -e "${YELLOW}System Support Installations:${NC}"
         echo -e "${CYAN}1. ${NC}Printer Support - CUPS and related drivers"
         echo -e "${CYAN}2. ${NC}Bluetooth Support - BluezZ and related utilities"
-        echo -e "${CYAN}3. ${NC}Return to Main Menu"
+        echo -e "${CYAN}0. ${NC}Return to Main Menu"
         echo
-        read -p "Enter your choice [1-3]: " choice
+        read -p "Enter your choice [0-2]: " choice
         
         case $choice in
             1) install_printer_support ;;
             2) install_bluetooth_support ;;
-            3) return ;;
+            0) return ;;
             *)
                 echo -e "${RED}Invalid option. Please try again.${NC}"
                 pause
@@ -521,16 +546,16 @@ show_main_menu() {
         echo -e "${CYAN}2. ${NC}APT Package Installation"
         echo -e "${CYAN}3. ${NC}System Support (Printer & Bluetooth)"
         echo -e "${CYAN}4. ${NC}Reboot System"
-        echo -e "${CYAN}5. ${NC}Exit"
+        echo -e "${CYAN}0. ${NC}Exit"
         echo
-        read -p "Enter your choice [1-5]: " choice
+        read -p "Enter your choice [0-4]: " choice
         
         case $choice in
             1) show_butterscripts_menu ;;
             2) install_apt_packages ;;
             3) show_system_support_menu ;;
             4) reboot_system ;;
-            5) 
+            0)
                 echo -e "${GREEN}Exiting installer. Thank you for using Butter Installer!${NC}"
                 exit 0
                 ;;
