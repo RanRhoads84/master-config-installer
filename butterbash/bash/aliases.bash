@@ -64,7 +64,7 @@ alias listening='lsof -P -i -n'
 # GIT
 # ============================================================================
 alias g='git'
-alias gs='git status'
+alias gs='git status -sb'
 alias gaa='git add'
 alias ga='git add -A'
 alias gcm='git commit'
