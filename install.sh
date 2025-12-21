@@ -388,7 +388,7 @@ else
     echo "+-------------------------------------------------------------+"
     echo "|                   Package group overview                    |"
     echo "+----+-------------------------------+-----------+------------+"
-    printf "| %2s | %-29s | %9s | %10s |\n" "ID" "Group" "Installed" "To install"
+    printf "| %2s | %-29s | %9s | %10s |\n" "ID" "Group" "Installed" "Available"
     echo "+----+-------------------------------+-----------+------------+"
 
     actions=()
