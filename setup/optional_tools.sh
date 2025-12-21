@@ -12,6 +12,21 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+menu_border() {
+    echo "+-------------------------------------------------------------+"
+}
+
+print_menu_block() {
+    local title="$1"
+    local subtitle="$2"
+    echo -e "${CYAN}"$(menu_border)"${NC}"
+    printf "${CYAN}| ${NC}%-57s${CYAN} |${NC}\n" "$title"
+    if [ -n "$subtitle" ]; then
+        printf "${CYAN}| ${NC}%-57s${CYAN} |${NC}\n" "$subtitle"
+    fi
+    echo -e "${CYAN}"$(menu_border)"${NC}"
+}
+
 # Define package categories globally for reuse
 declare -a PRINTER_PACKAGES=(
     "cups" 
@@ -39,9 +54,7 @@ declare -a BLUETOOTH_PACKAGES=(
 # Function to display script header
 show_header() {
     clear
-    echo -e "${CYAN}=========================================================${NC}"
-    echo -e "${CYAN}        MODULARCONFIG OPTIONAL TOOLS INSTALLER           ${NC}"
-    echo -e "${CYAN}=========================================================${NC}"
+    print_menu_block "MODULARCONFIG OPTIONAL TOOLS INSTALLER" "Helper modules + APT utilities"
     echo -e "${YELLOW}This script installs ModularConfig Suite helper modules${NC}"
     echo -e "${YELLOW}alongside APT-based utilities.${NC}"
     echo
@@ -338,6 +351,7 @@ show_butterscripts_menu() {
 
     while true; do
         show_header
+        print_menu_block "ModularConfig helper installers" "Choose one helper to install"
         echo -e "${YELLOW}Select a ModularConfig Suite helper to install:${NC}"
         echo -e "${CYAN}1. ${NC}ModularShell - Modular bash configuration framework ⭐"
         echo -e "${CYAN}2. ${NC}ButterZsh - Modular zsh configuration framework ⭐"
@@ -471,6 +485,7 @@ show_system_support_menu() {
     
     while true; do
         show_header
+        print_menu_block "System Support Installations" "Printer & Bluetooth utilities"
         echo -e "${YELLOW}System Support Installations:${NC}"
         echo -e "${CYAN}1. ${NC}Printer Support - CUPS and related drivers"
         echo -e "${CYAN}2. ${NC}Bluetooth Support - BluezZ and related utilities"
@@ -514,6 +529,7 @@ show_main_menu() {
     
     while true; do
         show_header
+        print_menu_block "ModularConfig Installer Options" "Select the next installation step"
         echo -e "${YELLOW}Please select an installation option:${NC}"
         echo -e "${CYAN}1. ${NC}ModularConfig helper installers"
         echo -e "${CYAN}2. ${NC}APT Package Installation"
