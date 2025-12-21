@@ -90,20 +90,21 @@ set_pm_install_cmd() {
   esac
 }
 
-describe_module_scope() {
-  local modules=(browsers fastfetch git neovim setup system theming modularshell vim-config)
-  local available=()
-  for module in "${modules[@]}"; do
-    if [ -d "$module" ]; then
-      available+=("$module")
-    fi
-  done
-  if [ ${#available[@]} -eq 0 ]; then
-    available=(packages)
-  fi
-  echo "Installer modules: ${available[*]}"
-  log "Installer modules: ${available[*]}"
-}
+# Leave this commented out for now
+#describe_module_scope() {
+#  local modules=(browsers fastfetch git neovim setup system theming modularshell vim-config)
+#  local available=()
+#  for module in "${modules[@]}"; do
+#    if [ -d "$module" ]; then
+#      available+=("$module")
+#    fi
+#  done
+#  if [ ${#available[@]} -eq 0 ]; then
+#    available=(packages)
+#  fi
+#  echo "Installer modules: ${available[*]}"
+#  log "Installer modules: ${available[*]}"
+#}
 
 if [ -n "$OVERRIDE_PM" ]; then
   PM="$OVERRIDE_PM"
