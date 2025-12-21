@@ -33,11 +33,23 @@ The installer also includes an optional vim configuration setup that installs de
 
 ## Package Management
 
-The installer uses a consolidated package list (`packages/consolidated.txt`) organized by functionality:
-- System Tools (git, curl, wget, vim, etc.)
-- Development Tools (gcc, cmake, python, nodejs, etc.)
-- Desktop Applications (browsers, editors, multimedia, etc.)
-- System Services (cups, bluetooth, networking, etc.)
+The installer uses a consolidated package list (`packages/consolidated.txt`) organized into the same categories you see in the menu. Each header in the file (and the corresponding menu entry) covers a group such as:
+- Browsers
+- Build Dependencies
+- Database
+- Development Tools
+- Fonts & Themes
+- Network Tools
+- Office & Productivity
+- Security Tools
+- Shell Tools
+- System Monitoring
+- System Services
+- System Tools
+- Terminal Emulators
+- Text Editors
+- Virtualization
+- Web Servers & Tools
 
 Package names are automatically mapped for different distributions (e.g., `fd-find` on Debian vs `fd` on others).
 

@@ -16,7 +16,6 @@ gtk3
 llvm
 mesa
 pango
-x11-libs
 
 # Database
 mongodb
@@ -24,21 +23,6 @@ mysql
 postgresql
 redis
 sqlite3
-
-# Desktop Environment Tools
-dmenu
-feh
-gdm
-i3
-i3blocks
-i3status
-lightdm
-nitrogen
-picom
-polybar
-rofi
-sddm
-xorg-x11-server
 
 # Development Tools
 autoconf
@@ -64,49 +48,11 @@ python3-pip
 rust
 valac
 
-# File Managers
-dolphin
-lf
-nemo
-nnn
-pcmanfm
-ranger
-thunar
-
 # Fonts & Themes
 adapta-gtk-theme
 arc-theme
 nerd-fonts
 papirus-icon-theme
-
-# Gaming
-lutris
-playonlinux
-retroarch
-steam
-wine
-
-# Language Servers & Tools
-clangd
-gopls
-intelephense
-lua-language-server
-pyright
-rust-analyzer
-typescript-language-server
-
-# Multimedia
-audacity
-blender
-ffmpeg
-gimp
-inkscape
-kdenlive
-krita
-obs-studio
-vlc
-youtube-dl
-yt-dlp
 
 # Network Tools
 aria2
@@ -135,20 +81,22 @@ gpg
 openssl
 rkhunter
 
-# Shells & Tools
+# Shell Tools
 bash-completion
+bat
 cheat
-fish
+fd
+fzf
 thefuck
+tmux
 tldr
 zsh
 
 # System Monitoring
-bandwhich
-duf
-iotop
-ncdu
-procs
+btop
+htop
+nvtop
+neotop
 
 # System Services
 apparmor
@@ -164,53 +112,42 @@ selinux
 ufw
 
 # System Tools
-bat
-btop
 ca-certificates
 curl
-fd
-fzf
 git
 gnupg
-htop
 neofetch
 openssh
 ripgrep
 rsync
 software-properties-common
 tar
-tmux
 tree
 unzip
-vim
 wget
 zip
 
 # Terminal Emulators
 alacritty
-kitty
-terminator
-wezterm
-xfce4-terminal
+konsole
+ptyxis
 
-# Text Editors & IDEs
-codeblocks
-emacs
-geany
+# Text Editors
+ktexteditor
+gedit
 neovim
 vscode
 
-# Version Control & Git Tools
-git-lfs
-lazygit
-tig
-
 # Virtualization
-docker
-lxc
-podman
-qemu
-virtualbox
+virt-bridge-setup
+virt-firmware
+virt-install
+virt-manager
+virt-p2v
+virt-v2v-bash-completion
+virt-v2v
+virt-viewer
+virt-win-reg
 
 # Web Servers & Tools
 apache2

@@ -21,11 +21,23 @@ The installer also includes an optional vim configuration setup that installs de
 
 ## Package Organization
 
-Packages are organized in a consolidated list (`packages/consolidated.txt`) by category:
-- System Tools (git, curl, wget, vim, etc.)
-- Development Tools (gcc, cmake, python, nodejs, etc.)
-- Desktop Applications (browsers, editors, multimedia, etc.)
-- System Services (cups, bluetooth, networking, etc.)
+Packages are organized in a consolidated list (`packages/consolidated.txt`) by the same categories you encounter in the installer menu. Examples include:
+- Browsers
+- Build Dependencies
+- Database
+- Development Tools
+- Fonts & Themes
+- Network Tools
+- Office & Productivity
+- Security Tools
+- Shell Tools
+- System Monitoring
+- System Services
+- System Tools
+- Terminal Emulators
+- Text Editors
+- Virtualization
+- Web Servers & Tools
 
 The installer automatically handles package name differences between distributions.
 
