@@ -4,6 +4,10 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
 LOGFILE="./modularconfig-install.log"
 DRY_RUN=0
 ASSUME_YES=0
@@ -50,6 +54,21 @@ run_cmd() {
     return 0
   fi
   bash -c "$cmd"
+}
+
+menu_border() {
+  echo "+-------------------------------------------------------------+"
+}
+
+print_menu_block() {
+  local title="$1"
+  local subtitle="$2"
+  echo -e "${CYAN}"$(menu_border)"${NC}"
+  printf "${CYAN}| ${NC}%-57s${CYAN} |${NC}\n" "$title"
+  if [ -n "$subtitle" ]; then
+    printf "${CYAN}| ${NC}%-57s${CYAN} |${NC}\n" "$subtitle"
+  fi
+  echo -e "${CYAN}"$(menu_border)"${NC}"
 }
 
 safe_run() {
@@ -232,7 +251,7 @@ show_package_submenu() {
   local group_data="${GROUP_VALUES[$group_idx]}"
 
   echo
-  echo "=== $group_name ==="
+  print_menu_block "${group_name^^} Packages" "Choose files to install"
   echo "Select individual packages to install:"
   echo
 
@@ -385,6 +404,7 @@ elif [ -n "$SELECT_GROUPS" ]; then
 else
   while true; do
     echo
+    print_menu_block "Package Group Overview" "Select a group to inspect"
     echo "+-------------------------------------------------------------+"
     echo "|                   Package group overview                    |"
     echo "+----+-------------------------------+-----------+------------+"
