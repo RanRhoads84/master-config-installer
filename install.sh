@@ -237,10 +237,62 @@ install_package_batch() {
     echo "No installation command configured for $PM" >&2
     exit 4
   fi
-  log "Installing ${#to_install[@]} packages for $PM"
+  # Check repository availability per-package, install what's available and
+  # report packages that are not found in the configured repositories.
+  pkg_available() {
+    local p="$1"
+    if [ "${IGNORE_PKG_DB:-0}" -eq 1 ]; then
+      return 0
+    fi
+    case "$PM" in
+      apt)
+        if apt-cache policy "$p" >/dev/null 2>&1; then
+          apt-cache policy "$p" 2>/dev/null | grep -q "Candidate: (none)" && return 1 || return 0
+        fi
+        return 1
+        ;;
+      dnf)
+        dnf --quiet list available "$p" >/dev/null 2>&1 && return 0 || return 1
+        ;;
+      pacman)
+        pacman -Si "$p" >/dev/null 2>&1 && return 0 || return 1
+        ;;
+      zypper)
+        zypper se -s "$p" >/dev/null 2>&1 && return 0 || return 1
+        ;;
+      *)
+        return 1
+        ;;
+    esac
+  }
+
+  local avail=()
+  local missing=()
+  for pkg in "${to_install[@]}"; do
+    if pkg_available "$pkg"; then
+      avail+=("$pkg")
+    else
+      missing+=("$pkg")
+    fi
+  done
+
+  if [ ${#avail[@]} -eq 0 ]; then
+    log "No available packages found in repositories for: ${missing[*]}"
+    if [ ${#missing[@]} -gt 0 ]; then
+      log "Skipping ${#missing[@]} missing packages"
+    fi
+    return 0
+  fi
+
+  log "Installing ${#avail[@]} packages for $PM"
   local pkg_list
-  pkg_list=$(printf '%s ' "${to_install[@]}")
-  run_cmd "$PM_INSTALL_CMD $pkg_list"
+  pkg_list=$(printf '%s ' "${avail[@]}")
+  if ! run_cmd "$PM_INSTALL_CMD $pkg_list"; then
+    log "Install command failed for some packages; continuing"
+  fi
+  if [ ${#missing[@]} -gt 0 ]; then
+    log "Packages not found in repos and skipped: ${missing[*]}"
+  fi
 }
 
 show_package_submenu() {

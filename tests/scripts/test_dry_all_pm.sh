@@ -7,7 +7,7 @@ ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT_DIR"
 
 PMS=(apt dnf pacman zypper)
-OUTDIR="test_dry_results"
+OUTDIR="tests/test_dry_results"
 mkdir -p "$OUTDIR"
 
 echo "Starting dry-run tests for package managers: ${PMS[*]}"
