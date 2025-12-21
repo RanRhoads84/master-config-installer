@@ -41,6 +41,12 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
+# When running in dry-run mode, avoid interactive prompts by assuming yes.
+# This prevents `read` prompts from blocking CI or non-interactive runs.
+if [ "${DRY_RUN:-0}" -eq 1 ] && [ "${ASSUME_YES:-0}" -eq 0 ]; then
+  ASSUME_YES=1
+fi
+
 log() {
   local msg="$1"
   printf "%s %s\n" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$msg" | tee -a "$LOGFILE"
