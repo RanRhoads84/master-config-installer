@@ -536,6 +536,35 @@ do_fastfetch() {
 
 do_fastfetch
 
+do_flatpak_setup() {
+  local ans
+  if [ "$ASSUME_YES" -eq 1 ]; then
+    ans=y
+  else
+    read -r -p "Set up Flatpak (install + add Flathub remote)? [Y/n] " ans || true
+    ans=${ans:-y}
+  fi
+  if [[ ! "$ans" =~ ^[Yy] ]]; then
+    log "Skipped Flatpak setup"
+    return
+  fi
+  if ! command -v flatpak >/dev/null 2>&1; then
+    if [ -n "$PM_INSTALL_CMD" ]; then
+      log "Installing Flatpak via $PM_INSTALL_CMD"
+      run_cmd "$PM_INSTALL_CMD flatpak"
+    else
+      echo "Flatpak is not installed and there is no configured package manager command. See https://flatpak.org/setup/ for manual steps."
+      return
+    fi
+  fi
+  log "Configuring Flatpak remote (https://flatpak.org/setup/)"
+  run_cmd "flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo"
+  run_cmd "flatpak update --assumeyes"
+  echo "Flatpak is ready. See https://flatpak.org/setup/ for distro-specific guidance."
+}
+
+do_flatpak_setup
+
 log "Install step completed (dry-run=$DRY_RUN)"
 
 echo "Done. Review $LOGFILE for details."

@@ -19,6 +19,10 @@ Optional build-from-source flows are available at the end of the install run (Ne
 
 The installer also includes an optional vim configuration setup that installs dependencies (git, vim, ripgrep, fzf, fd) and copies a custom vimrc with plugins.
 
+## Flatpak Support
+
+When prompted, `install.sh` can follow the official instructions from https://flatpak.org/setup/ by installing `flatpak` through the detected package manager, adding the Flathub remote within the user scope, and running `flatpak update --assumeyes` so the runtime catalog stays current.
+
 ## Package Organization
 
 Packages are organized in a consolidated list (`packages/consolidated.txt`) by the same categories you encounter in the installer menu. Examples include:

@@ -31,6 +31,10 @@ Optional build-from-source flows are available at the end of the install run (Ne
 
 The installer also includes an optional vim configuration setup that installs dependencies and copies a custom vimrc with plugins.
 
+## Flatpak Setup
+
+CSI can optionally walk through the official Flatpak setup steps from https://flatpak.org/setup/. When you agree, `install.sh` installs the `flatpak` package via the detected package manager (if it is not already available), adds the Flathub remote in the user scope, and runs `flatpak update --assumeyes` so the runtime catalog is up to date.
+
 ## Package Management
 
 The installer uses a consolidated package list (`packages/consolidated.txt`) organized into the same categories you see in the menu. Each header in the file (and the corresponding menu entry) covers a group such as:
