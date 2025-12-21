@@ -33,92 +33,90 @@ while [ "$#" -gt 0 ]; do
     --groups) if [ -n "${2:-}" ]; then SELECT_GROUPS="$2"; shift 2; else shift; fi ;;
     -h|--help) usage; exit 0 ;;
     --) shift; break ;;
-    *) break ;;
-  esac
-done
+    do_vscode_setup() {
+      local ans
+      if [ "$ASSUME_YES" -eq 1 ]; then
+        ans=y
+      else
+        read -r -p "Set up Visual Studio Code repository and install code? [Y/n] " ans || true
+        ans=${ans:-y}
+      fi
+      if [[ ! "$ans" =~ ^[Yy] ]]; then
+        log "Skipped VS Code setup"
+        return
+      fi
+      if command -v code >/dev/null 2>&1; then
+        log "VS Code already installed; skipping repository setup"
+        return
+      fi
+      case "$PM" in
+        apt)
+          run_cmd "sudo apt-get install -y wget gpg"
+          local keyring="/usr/share/keyrings/microsoft-vscode.gpg"
+          if [ ! -f "$keyring" ]; then
+            local tmp_key
+            tmp_key=$(mktemp)
+            run_cmd "wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > $tmp_key"
+            run_cmd "sudo install -D -o root -g root -m 644 $tmp_key $keyring"
+            run_cmd "rm -f $tmp_key"
+          fi
+          local sources="/etc/apt/sources.list.d/vscode.sources"
+          if [ ! -f "$sources" ]; then
+            run_cmd "sudo tee $sources > /dev/null <<'EOF'
+    Types: deb
+    URIs: https://packages.microsoft.com/repos/code
+    Suites: stable
+    Components: main
+    Architectures: amd64,arm64,armhf
+    Signed-By: $keyring
+    EOF"
+          fi
+          run_cmd "sudo apt update"
+          run_cmd "$PM_INSTALL_CMD code"
+          ;;
+        dnf)
+          run_cmd "sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc"
+          local repo_file="/etc/yum.repos.d/vscode.repo"
+          if [ ! -f "$repo_file" ]; then
+            run_cmd "sudo tee $repo_file > /dev/null <<'EOF'
+    [code]
+    name=Visual Studio Code
+    baseurl=https://packages.microsoft.com/yumrepos/vscode
+    enabled=1
+    autorefresh=1
+    type=rpm-md
+    gpgcheck=1
+    gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+    EOF"
+          fi
+          run_cmd "sudo dnf check-update"
+          run_cmd "sudo dnf install -y code"
+          ;;
+        zypper)
+          run_cmd "sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc"
+          local repo_file="/etc/zypp/repos.d/vscode.repo"
+          if [ ! -f "$repo_file" ]; then
+            run_cmd "sudo tee $repo_file > /dev/null <<'EOF'
+    [code]
+    name=Visual Studio Code
+    baseurl=https://packages.microsoft.com/yumrepos/vscode
+    enabled=1
+    autorefresh=1
+    type=rpm-md
+    gpgcheck=1
+    gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+    EOF"
+          fi
+          run_cmd "sudo zypper refresh"
+          run_cmd "sudo zypper install -y code"
+          ;;
+        *)
+          log "VS Code setup is only wired for apt/dnf/zypper; skipping for $PM"
+          ;;
+      esac
+    }
 
-log() {
-  local msg="$1"
-  printf "%s %s\n" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$msg" | tee -a "$LOGFILE"
-}
-
-run_cmd() {
-  local cmd="$*"
-  log "RUN: $cmd"
-  if [ "$DRY_RUN" -eq 1 ]; then
-    log "DRY-RUN: $cmd"
-    return 0
-  fi
-  bash -c "$cmd"
-}
-
-safe_run() {
-  local cmd="$*"
-  log "RUN (safe): $cmd"
-  if [ "$DRY_RUN" -eq 1 ]; then
-    log "DRY-RUN: $cmd"
-    return 0
-  fi
-  bash -c "$cmd" >>"$LOGFILE" 2>&1 || return 1
-}
-
-detect_pm() {
-  if command -v apt >/dev/null 2>&1; then echo apt; return 0; fi
-  if command -v dnf >/dev/null 2>&1; then echo dnf; return 0; fi
-  if command -v pacman >/dev/null 2>&1; then echo pacman; return 0; fi
-  if command -v zypper >/dev/null 2>&1; then echo zypper; return 0; fi
-  echo unknown
-}
-
-set_pm_install_cmd() {
-  case "$1" in
-    apt) PM_INSTALL_CMD="sudo apt install -y" ;;
-    dnf) PM_INSTALL_CMD="sudo dnf install -y" ;;
-    pacman) PM_INSTALL_CMD="sudo pacman -Syu --noconfirm" ;;
-    zypper) PM_INSTALL_CMD="sudo zypper install -y" ;;
-    *) PM_INSTALL_CMD="sudo apt install -y" ;;
-  esac
-}
-
-describe_module_scope() {
-  local modules=(browsers fastfetch git neovim setup system theming modularshell vim-config)
-  local available=()
-  for module in "${modules[@]}"; do
-    if [ -d "$module" ]; then
-      available+=("$module")
-    fi
-  done
-  if [ ${#available[@]} -eq 0 ]; then
-    available=(packages)
-  fi
-  echo "Installer modules: ${available[*]}"
-  log "Installer modules: ${available[*]}"
-}
-
-PM=$(detect_pm)
-if [ "$PM" = "unknown" ]; then
-  log "Detected package manager: unknown"
-  PM_INSTALL_CMD=""
-else
-  log "Detected package manager: $PM"
-  set_pm_install_cmd "$PM"
-fi
-
-if [ ! -f "$CONSOLIDATED_FILE" ]; then
-  echo "Package list file not found: $CONSOLIDATED_FILE" >&2
-  exit 3
-fi
-
-declare -a GROUP_ORDER
-declare -a GROUP_VALUES
-GROUP_ORDER=()
-GROUP_VALUES=()
-current_group_index=-1
-while IFS= read -r line || [ -n "$line" ]; do
-  line_trim=$(echo "$line" | sed -E 's/^\s+|\s+$//g')
-  if [ -z "$line_trim" ]; then
-    continue
-  fi
+    do_vscode_setup
   if [[ "$line_trim" =~ ^# ]]; then
     header=$(echo "$line_trim" | sed -E 's/^#\s*//')
     if [ -n "$header" ]; then
@@ -564,6 +562,91 @@ do_flatpak_setup() {
 }
 
 do_flatpak_setup
+
+do_vscode_setup() {
+  local ans
+  if [ "$ASSUME_YES" -eq 1 ]; then
+    ans=y
+  else
+    read -r -p "Set up Visual Studio Code repository and install code? [Y/n] " ans || true
+    ans=${ans:-y}
+  fi
+  if [[ ! "$ans" =~ ^[Yy] ]]; then
+    log "Skipped VS Code setup"
+    return
+  fi
+  if command -v code >/dev/null 2>&1; then
+    log "VS Code already installed; skipping repository setup"
+    return
+  fi
+  case "$PM" in
+    apt)
+      run_cmd "sudo apt-get install -y wget gpg"
+      local keyring="/usr/share/keyrings/microsoft-vscode.gpg"
+      if [ ! -f "$keyring" ]; then
+        local tmp_key
+        tmp_key=$(mktemp)
+        run_cmd "wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > $tmp_key"
+        run_cmd "sudo install -D -o root -g root -m 644 $tmp_key $keyring"
+        run_cmd "rm -f $tmp_key"
+      fi
+      local sources="/etc/apt/sources.list.d/vscode.sources"
+      if [ ! -f "$sources" ]; then
+        run_cmd "sudo tee $sources > /dev/null <<'EOF'
+Types: deb
+URIs: https://packages.microsoft.com/repos/code
+Suites: stable
+Components: main
+Architectures: amd64,arm64,armhf
+Signed-By: $keyring
+EOF"
+      fi
+      run_cmd "sudo apt update"
+      run_cmd "$PM_INSTALL_CMD code"
+      ;;
+    dnf)
+      run_cmd "sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc"
+      local repo_file="/etc/yum.repos.d/vscode.repo"
+      if [ ! -f "$repo_file" ]; then
+        run_cmd "sudo tee $repo_file > /dev/null <<'EOF'
+[code]
+name=Visual Studio Code
+baseurl=https://packages.microsoft.com/yumrepos/vscode
+enabled=1
+autorefresh=1
+type=rpm-md
+gpgcheck=1
+gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+EOF"
+      fi
+      run_cmd "sudo dnf check-update"
+      run_cmd "sudo dnf install -y code"
+      ;;
+    zypper)
+      run_cmd "sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc"
+      local repo_file="/etc/zypp/repos.d/vscode.repo"
+      if [ ! -f "$repo_file" ]; then
+        run_cmd "sudo tee $repo_file > /dev/null <<'EOF'
+[code]
+name=Visual Studio Code
+baseurl=https://packages.microsoft.com/yumrepos/vscode
+enabled=1
+autorefresh=1
+type=rpm-md
+gpgcheck=1
+gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+EOF"
+      fi
+      run_cmd "sudo zypper refresh"
+      run_cmd "sudo zypper install -y code"
+      ;;
+    *)
+      log "VS Code setup is only wired for apt/dnf/zypper; skipping for $PM"
+      ;;
+  esac
+}
+
+do_vscode_setup
 
 log "Install step completed (dry-run=$DRY_RUN)"
 

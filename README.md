@@ -35,6 +35,10 @@ The installer also includes an optional vim configuration setup that installs de
 
 CSI can optionally walk through the official Flatpak setup steps from https://flatpak.org/setup/. When you agree, `install.sh` installs the `flatpak` package via the detected package manager (if it is not already available), adds the Flathub remote in the user scope, and runs `flatpak update --assumeyes` so the runtime catalog is up to date.
 
+## VS Code Repository Setup
+
+When you agree, `install.sh` follows the official guidance at https://code.visualstudio.com/docs/setup/linux to import the Microsoft signing key, add the VS Code repository, and install the `code` package for `apt`, `dnf`, or `zypper`-based systems. That means Windows-style releases are served through the native package manager and stay up to date automatically.
+
 ## Package Management
 
 The installer uses a consolidated package list (`packages/consolidated.txt`) organized into the same categories you see in the menu. Each header in the file (and the corresponding menu entry) covers a group such as:

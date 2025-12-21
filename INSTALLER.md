@@ -23,6 +23,10 @@ The installer also includes an optional vim configuration setup that installs de
 
 When prompted, `install.sh` can follow the official instructions from https://flatpak.org/setup/ by installing `flatpak` through the detected package manager, adding the Flathub remote within the user scope, and running `flatpak update --assumeyes` so the runtime catalog stays current.
 
+## Visual Studio Code
+
+The installer can also configure the Microsoft VS Code repository and install `code` on `apt`, `dnf`, or `zypper` systems. It follows the steps described at https://code.visualstudio.com/docs/setup/linux by importing the signing key, creating the appropriate repo definition, and installing `code` so the application receives automatic updates through the standard package manager.
+
 ## Package Organization
 
 Packages are organized in a consolidated list (`packages/consolidated.txt`) by the same categories you encounter in the installer menu. Examples include:
