@@ -1,0 +1,6411 @@
+mc () {  . /usr/share/mc/mc-wrapper.sh
+}
+#!/usr/bin/env bash
+
+# Simplified installer (neovim and rofi removed)
+set -euo pipefail
++ set -euo pipefail
+IFS=$'\n\t'
++ IFS=$'\n\t'
+
+LOGFILE="./modularconfig-install.log"
++ LOGFILE=./modularconfig-install.log
+DRY_RUN=0
++ DRY_RUN=0
+ASSUME_YES=0
++ ASSUME_YES=0
+SELECT_GROUPS=""
++ SELECT_GROUPS=
+PM_INSTALL_CMD=""
++ PM_INSTALL_CMD=
+OVERRIDE_PM=""
++ OVERRIDE_PM=
+CONSOLIDATED_FILE="packages/consolidated.txt"
++ CONSOLIDATED_FILE=packages/consolidated.txt
+declare -a ORDERED_GROUP_INDICES=()
++ ORDERED_GROUP_INDICES=()
++ declare -a ORDERED_GROUP_INDICES
+
+usage() {
+  cat <<EOF
+Usage: $0 [--dry-run] [--yes] [--log <file>] [--groups <list>]
+
+Options:
+  --dry-run        Print commands that would be run (no changes)
+  --yes, -y        Assume yes to prompts
+  --pm <name>      Override detected package manager (apt|dnf|pacman|zypper)
+  --log <file>     Path to log file (default: ./modularconfig-install.log)
+  --groups <list>  Comma-separated group names to select non-interactively
+  -h, --help       Show this help
+EOF
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --dry-run) DRY_RUN=1; shift ;;
+    --yes|-y|--assume-yes) ASSUME_YES=1; shift ;;
+    --log) if [ -n "${2:-}" ]; then LOGFILE="$2"; shift 2; else shift; fi ;;
+    --groups) if [ -n "${2:-}" ]; then SELECT_GROUPS="$2"; shift 2; else shift; fi ;;
+    --pm) if [ -n "${2:-}" ]; then OVERRIDE_PM="$2"; shift 2; else shift; fi ;;
+    -h|--help) usage; exit 0 ;;
+    --) shift; break ;;
+    *) break ;;
+  esac
+done
++ '[' 4 -gt 0 ']'
++ case "$1" in
++ DRY_RUN=1
++ shift
++ '[' 3 -gt 0 ']'
++ case "$1" in
++ ASSUME_YES=1
++ shift
++ '[' 2 -gt 0 ']'
++ case "$1" in
++ '[' -n apt ']'
++ OVERRIDE_PM=apt
++ shift 2
++ '[' 0 -gt 0 ']'
+
+log() {
+  local msg="$1"
+  printf "%s %s\n" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$msg" | tee -a "$LOGFILE"
+}
+
+run_cmd() {
+  local cmd="$*"
+  log "RUN: $cmd"
+  if [ "$DRY_RUN" -eq 1 ]; then
+    log "DRY-RUN: $cmd"
+    return 0
+  fi
+  bash -c "$cmd"
+}
+
+safe_run() {
+  local cmd="$*"
+  log "RUN (safe): $cmd"
+  if [ "$DRY_RUN" -eq 1 ]; then
+    log "DRY-RUN: $cmd"
+    return 0
+  fi
+  bash -c "$cmd" >>"$LOGFILE" 2>&1 || return 1
+}
+
+detect_pm() {
+  if command -v apt >/dev/null 2>&1; then echo apt; return 0; fi
+  if command -v dnf >/dev/null 2>&1; then echo dnf; return 0; fi
+  if command -v pacman >/dev/null 2>&1; then echo pacman; return 0; fi
+  if command -v zypper >/dev/null 2>&1; then echo zypper; return 0; fi
+  echo unknown
+}
+
+set_pm_install_cmd() {
+  case "$1" in
+    apt) PM_INSTALL_CMD="sudo apt install -y" ;;
+    dnf) PM_INSTALL_CMD="sudo dnf install -y" ;;
+    pacman) PM_INSTALL_CMD="sudo pacman -Syu --noconfirm" ;;
+    zypper) PM_INSTALL_CMD="sudo zypper install -y" ;;
+    *) PM_INSTALL_CMD="sudo apt install -y" ;;
+  esac
+}
+
+describe_module_scope() {
+  local modules=(browsers fastfetch git neovim setup system theming modularshell vim-config)
+  local available=()
+  for module in "${modules[@]}"; do
+    if [ -d "$module" ]; then
+      available+=("$module")
+    fi
+  done
+  if [ ${#available[@]} -eq 0 ]; then
+    available=(packages)
+  fi
+  echo "Installer modules: ${available[*]}"
+  log "Installer modules: ${available[*]}"
+}
+
+if [ -n "$OVERRIDE_PM" ]; then
+  PM="$OVERRIDE_PM"
+  log "Overriding package manager: $PM"
+else
+  PM=$(detect_pm)
+  if [ "$PM" = "unknown" ]; then
+    log "Detected package manager: unknown"
+    PM_INSTALL_CMD=""
+  else
+    log "Detected package manager: $PM"
+  fi
+fi
++ '[' -n apt ']'
++ PM=apt
++ log 'Overriding package manager: apt'
++ local 'msg=Overriding package manager: apt'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:40Z 'Overriding package manager: apt'
+2025-12-21T03:03:40Z Overriding package manager: apt
+
+if [ -n "$PM" ]; then
+  set_pm_install_cmd "$PM"
+fi
++ '[' -n apt ']'
++ set_pm_install_cmd apt
++ case "$1" in
++ PM_INSTALL_CMD='sudo apt install -y'
+
+if [ ! -f "$CONSOLIDATED_FILE" ]; then
+  echo "Package list file not found: $CONSOLIDATED_FILE" >&2
+  exit 3
+fi
++ '[' '!' -f packages/consolidated.txt ']'
+
+declare -a GROUP_ORDER
++ declare -a GROUP_ORDER
+declare -a GROUP_VALUES
++ declare -a GROUP_VALUES
+GROUP_ORDER=()
++ GROUP_ORDER=()
+GROUP_VALUES=()
++ GROUP_VALUES=()
+current_group_index=-1
++ current_group_index=-1
+while IFS= read -r line || [ -n "$line" ]; do
+  line_trim=$(echo "$line" | sed -E 's/^\s+|\s+$//g')
+  if [ -z "$line_trim" ]; then
+    continue
+  fi
+  if [[ "$line_trim" =~ ^# ]]; then
+    header=$(echo "$line_trim" | sed -E 's/^#\s*//')
+    if [ -n "$header" ]; then
+      current_group_index=${#GROUP_ORDER[@]}
+      GROUP_ORDER+=("$header")
+      GROUP_VALUES+=("")
+    fi
+    continue
+  fi
+  if [ "$current_group_index" -lt 0 ]; then
+    continue
+  fi
+  if [ -z "${GROUP_VALUES[$current_group_index]}" ]; then
+    GROUP_VALUES[$current_group_index]="$line_trim"
+  else
+    GROUP_VALUES[$current_group_index]+=$'\n'$line_trim
+  fi
+done < "$CONSOLIDATED_FILE"
++ IFS=
++ read -r line
+++ echo '# Browsers'
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim='# Browsers'
++ '[' -z '# Browsers' ']'
++ [[ # Browsers =~ ^# ]]
+++ echo '# Browsers'
+++ sed -E 's/^#\s*//'
++ header=Browsers
++ '[' -n Browsers ']'
++ current_group_index=0
++ GROUP_ORDER+=("$header")
++ GROUP_VALUES+=("")
++ continue
++ IFS=
++ read -r line
+++ echo brave-browser
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=brave-browser
++ '[' -z brave-browser ']'
++ [[ brave-browser =~ ^# ]]
++ '[' 0 -lt 0 ']'
++ '[' -z '' ']'
++ GROUP_VALUES[$current_group_index]=brave-browser
++ IFS=
++ read -r line
+++ echo chromium
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=chromium
++ '[' -z chromium ']'
++ [[ chromium =~ ^# ]]
++ '[' 0 -lt 0 ']'
++ '[' -z brave-browser ']'
++ GROUP_VALUES[$current_group_index]+=$'\nchromium'
++ IFS=
++ read -r line
+++ echo firefox
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=firefox
++ '[' -z firefox ']'
++ [[ firefox =~ ^# ]]
++ '[' 0 -lt 0 ']'
++ '[' -z $'brave-browser\nchromium' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nfirefox'
++ IFS=
++ read -r line
+++ echo opera
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=opera
++ '[' -z opera ']'
++ [[ opera =~ ^# ]]
++ '[' 0 -lt 0 ']'
++ '[' -z $'brave-browser\nchromium\nfirefox' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nopera'
++ IFS=
++ read -r line
+++ echo tor-browser
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=tor-browser
++ '[' -z tor-browser ']'
++ [[ tor-browser =~ ^# ]]
++ '[' 0 -lt 0 ']'
++ '[' -z $'brave-browser\nchromium\nfirefox\nopera' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ntor-browser'
++ IFS=
++ read -r line
+++ echo vivaldi
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=vivaldi
++ '[' -z vivaldi ']'
++ [[ vivaldi =~ ^# ]]
++ '[' 0 -lt 0 ']'
++ '[' -z $'brave-browser\nchromium\nfirefox\nopera\ntor-browser' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nvivaldi'
++ IFS=
++ read -r line
+++ echo ''
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=
++ '[' -z '' ']'
++ continue
++ IFS=
++ read -r line
+++ echo '# Build Dependencies'
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim='# Build Dependencies'
++ '[' -z '# Build Dependencies' ']'
++ [[ # Build Dependencies =~ ^# ]]
+++ echo '# Build Dependencies'
+++ sed -E 's/^#\s*//'
++ header='Build Dependencies'
++ '[' -n 'Build Dependencies' ']'
++ current_group_index=1
++ GROUP_ORDER+=("$header")
++ GROUP_VALUES+=("")
++ continue
++ IFS=
++ read -r line
+++ echo atk
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=atk
++ '[' -z atk ']'
++ [[ atk =~ ^# ]]
++ '[' 1 -lt 0 ']'
++ '[' -z '' ']'
++ GROUP_VALUES[$current_group_index]=atk
++ IFS=
++ read -r line
+++ echo cairo
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=cairo
++ '[' -z cairo ']'
++ [[ cairo =~ ^# ]]
++ '[' 1 -lt 0 ']'
++ '[' -z atk ']'
++ GROUP_VALUES[$current_group_index]+=$'\ncairo'
++ IFS=
++ read -r line
+++ echo clang
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=clang
++ '[' -z clang ']'
++ [[ clang =~ ^# ]]
++ '[' 1 -lt 0 ']'
++ '[' -z $'atk\ncairo' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nclang'
++ IFS=
++ read -r line
+++ echo gdk-pixbuf
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=gdk-pixbuf
++ '[' -z gdk-pixbuf ']'
++ [[ gdk-pixbuf =~ ^# ]]
++ '[' 1 -lt 0 ']'
++ '[' -z $'atk\ncairo\nclang' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ngdk-pixbuf'
++ IFS=
++ read -r line
+++ echo glib2
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=glib2
++ '[' -z glib2 ']'
++ [[ glib2 =~ ^# ]]
++ '[' 1 -lt 0 ']'
++ '[' -z $'atk\ncairo\nclang\ngdk-pixbuf' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nglib2'
++ IFS=
++ read -r line
+++ echo gtk3
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=gtk3
++ '[' -z gtk3 ']'
++ [[ gtk3 =~ ^# ]]
++ '[' 1 -lt 0 ']'
++ '[' -z $'atk\ncairo\nclang\ngdk-pixbuf\nglib2' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ngtk3'
++ IFS=
++ read -r line
+++ echo llvm
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=llvm
++ '[' -z llvm ']'
++ [[ llvm =~ ^# ]]
++ '[' 1 -lt 0 ']'
++ '[' -z $'atk\ncairo\nclang\ngdk-pixbuf\nglib2\ngtk3' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nllvm'
++ IFS=
++ read -r line
+++ echo mesa
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=mesa
++ '[' -z mesa ']'
++ [[ mesa =~ ^# ]]
++ '[' 1 -lt 0 ']'
++ '[' -z $'atk\ncairo\nclang\ngdk-pixbuf\nglib2\ngtk3\nllvm' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nmesa'
++ IFS=
++ read -r line
+++ echo pango
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=pango
++ '[' -z pango ']'
++ [[ pango =~ ^# ]]
++ '[' 1 -lt 0 ']'
++ '[' -z $'atk\ncairo\nclang\ngdk-pixbuf\nglib2\ngtk3\nllvm\nmesa' ']'
++ GROUP_VALUES[$current_group_index]+=$'\npango'
++ IFS=
++ read -r line
+++ echo ''
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=
++ '[' -z '' ']'
++ continue
++ IFS=
++ read -r line
+++ echo '# Database'
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim='# Database'
++ '[' -z '# Database' ']'
++ [[ # Database =~ ^# ]]
+++ echo '# Database'
+++ sed -E 's/^#\s*//'
++ header=Database
++ '[' -n Database ']'
++ current_group_index=2
++ GROUP_ORDER+=("$header")
++ GROUP_VALUES+=("")
++ continue
++ IFS=
++ read -r line
+++ echo mongodb
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=mongodb
++ '[' -z mongodb ']'
++ [[ mongodb =~ ^# ]]
++ '[' 2 -lt 0 ']'
++ '[' -z '' ']'
++ GROUP_VALUES[$current_group_index]=mongodb
++ IFS=
++ read -r line
+++ echo mysql
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=mysql
++ '[' -z mysql ']'
++ [[ mysql =~ ^# ]]
++ '[' 2 -lt 0 ']'
++ '[' -z mongodb ']'
++ GROUP_VALUES[$current_group_index]+=$'\nmysql'
++ IFS=
++ read -r line
+++ echo postgresql
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=postgresql
++ '[' -z postgresql ']'
++ [[ postgresql =~ ^# ]]
++ '[' 2 -lt 0 ']'
++ '[' -z $'mongodb\nmysql' ']'
++ GROUP_VALUES[$current_group_index]+=$'\npostgresql'
++ IFS=
++ read -r line
+++ echo redis
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=redis
++ '[' -z redis ']'
++ [[ redis =~ ^# ]]
++ '[' 2 -lt 0 ']'
++ '[' -z $'mongodb\nmysql\npostgresql' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nredis'
++ IFS=
++ read -r line
+++ echo sqlite3
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=sqlite3
++ '[' -z sqlite3 ']'
++ [[ sqlite3 =~ ^# ]]
++ '[' 2 -lt 0 ']'
++ '[' -z $'mongodb\nmysql\npostgresql\nredis' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nsqlite3'
++ IFS=
++ read -r line
+++ echo ''
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=
++ '[' -z '' ']'
++ continue
++ IFS=
++ read -r line
+++ echo '# Development Tools'
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim='# Development Tools'
++ '[' -z '# Development Tools' ']'
++ [[ # Development Tools =~ ^# ]]
+++ echo '# Development Tools'
+++ sed -E 's/^#\s*//'
++ header='Development Tools'
++ '[' -n 'Development Tools' ']'
++ current_group_index=3
++ GROUP_ORDER+=("$header")
++ GROUP_VALUES+=("")
++ continue
++ IFS=
++ read -r line
+++ echo autoconf
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=autoconf
++ '[' -z autoconf ']'
++ [[ autoconf =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z '' ']'
++ GROUP_VALUES[$current_group_index]=autoconf
++ IFS=
++ read -r line
+++ echo automake
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=automake
++ '[' -z automake ']'
++ [[ automake =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z autoconf ']'
++ GROUP_VALUES[$current_group_index]+=$'\nautomake'
++ IFS=
++ read -r line
+++ echo bison
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=bison
++ '[' -z bison ']'
++ [[ bison =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nbison'
++ IFS=
++ read -r line
+++ echo cargo
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=cargo
++ '[' -z cargo ']'
++ [[ cargo =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ncargo'
++ IFS=
++ read -r line
+++ echo check
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=check
++ '[' -z check ']'
++ [[ check =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison\ncargo' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ncheck'
++ IFS=
++ read -r line
+++ echo cmake
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=cmake
++ '[' -z cmake ']'
++ [[ cmake =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison\ncargo\ncheck' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ncmake'
++ IFS=
++ read -r line
+++ echo cppcheck
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=cppcheck
++ '[' -z cppcheck ']'
++ [[ cppcheck =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison\ncargo\ncheck\ncmake' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ncppcheck'
++ IFS=
++ read -r line
+++ echo flex
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=flex
++ '[' -z flex ']'
++ [[ flex =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison\ncargo\ncheck\ncmake\ncppcheck' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nflex'
++ IFS=
++ read -r line
+++ echo g++
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=g++
++ '[' -z g++ ']'
++ [[ g++ =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison\ncargo\ncheck\ncmake\ncppcheck\nflex' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ng++'
++ IFS=
++ read -r line
+++ echo gcc
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=gcc
++ '[' -z gcc ']'
++ [[ gcc =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison\ncargo\ncheck\ncmake\ncppcheck\nflex\ng++' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ngcc'
++ IFS=
++ read -r line
+++ echo gettext
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=gettext
++ '[' -z gettext ']'
++ [[ gettext =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison\ncargo\ncheck\ncmake\ncppcheck\nflex\ng++\ngcc' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ngettext'
++ IFS=
++ read -r line
+++ echo intltool
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=intltool
++ '[' -z intltool ']'
++ [[ intltool =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison\ncargo\ncheck\ncmake\ncppcheck\nflex\ng++\ngcc\ngettext' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nintltool'
++ IFS=
++ read -r line
+++ echo libtool
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=libtool
++ '[' -z libtool ']'
++ [[ libtool =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison\ncargo\ncheck\ncmake\ncppcheck\nflex\ng++\ngcc\ngettext\nintltool' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nlibtool'
++ IFS=
++ read -r line
+++ echo make
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=make
++ '[' -z make ']'
++ [[ make =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison\ncargo\ncheck\ncmake\ncppcheck\nflex\ng++\ngcc\ngettext\nintltool\nlibtool' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nmake'
++ IFS=
++ read -r line
+++ echo ninja
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=ninja
++ '[' -z ninja ']'
++ [[ ninja =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison\ncargo\ncheck\ncmake\ncppcheck\nflex\ng++\ngcc\ngettext\nintltool\nlibtool\nmake' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nninja'
++ IFS=
++ read -r line
+++ echo nodejs
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=nodejs
++ '[' -z nodejs ']'
++ [[ nodejs =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison\ncargo\ncheck\ncmake\ncppcheck\nflex\ng++\ngcc\ngettext\nintltool\nlibtool\nmake\nninja' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nnodejs'
++ IFS=
++ read -r line
+++ echo npm
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=npm
++ '[' -z npm ']'
++ [[ npm =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison\ncargo\ncheck\ncmake\ncppcheck\nflex\ng++\ngcc\ngettext\nintltool\nlibtool\nmake\nninja\nnodejs' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nnpm'
++ IFS=
++ read -r line
+++ echo pkg-config
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=pkg-config
++ '[' -z pkg-config ']'
++ [[ pkg-config =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison\ncargo\ncheck\ncmake\ncppcheck\nflex\ng++\ngcc\ngettext\nintltool\nlibtool\nmake\nninja\nnodejs\nnpm' ']'
++ GROUP_VALUES[$current_group_index]+=$'\npkg-config'
++ IFS=
++ read -r line
+++ echo python3
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=python3
++ '[' -z python3 ']'
++ [[ python3 =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison\ncargo\ncheck\ncmake\ncppcheck\nflex\ng++\ngcc\ngettext\nintltool\nlibtool\nmake\nninja\nnodejs\nnpm\npkg-config' ']'
++ GROUP_VALUES[$current_group_index]+=$'\npython3'
++ IFS=
++ read -r line
+++ echo python3-pip
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=python3-pip
++ '[' -z python3-pip ']'
++ [[ python3-pip =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison\ncargo\ncheck\ncmake\ncppcheck\nflex\ng++\ngcc\ngettext\nintltool\nlibtool\nmake\nninja\nnodejs\nnpm\npkg-config\npython3' ']'
++ GROUP_VALUES[$current_group_index]+=$'\npython3-pip'
++ IFS=
++ read -r line
+++ echo rust
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=rust
++ '[' -z rust ']'
++ [[ rust =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison\ncargo\ncheck\ncmake\ncppcheck\nflex\ng++\ngcc\ngettext\nintltool\nlibtool\nmake\nninja\nnodejs\nnpm\npkg-config\npython3\npython3-pip' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nrust'
++ IFS=
++ read -r line
+++ echo valac
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=valac
++ '[' -z valac ']'
++ [[ valac =~ ^# ]]
++ '[' 3 -lt 0 ']'
++ '[' -z $'autoconf\nautomake\nbison\ncargo\ncheck\ncmake\ncppcheck\nflex\ng++\ngcc\ngettext\nintltool\nlibtool\nmake\nninja\nnodejs\nnpm\npkg-config\npython3\npython3-pip\nrust' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nvalac'
++ IFS=
++ read -r line
+++ echo ''
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=
++ '[' -z '' ']'
++ continue
++ IFS=
++ read -r line
+++ echo '# Fonts & Themes'
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim='# Fonts & Themes'
++ '[' -z '# Fonts & Themes' ']'
++ [[ # Fonts & Themes =~ ^# ]]
+++ echo '# Fonts & Themes'
+++ sed -E 's/^#\s*//'
++ header='Fonts & Themes'
++ '[' -n 'Fonts & Themes' ']'
++ current_group_index=4
++ GROUP_ORDER+=("$header")
++ GROUP_VALUES+=("")
++ continue
++ IFS=
++ read -r line
+++ echo adapta-gtk-theme
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=adapta-gtk-theme
++ '[' -z adapta-gtk-theme ']'
++ [[ adapta-gtk-theme =~ ^# ]]
++ '[' 4 -lt 0 ']'
++ '[' -z '' ']'
++ GROUP_VALUES[$current_group_index]=adapta-gtk-theme
++ IFS=
++ read -r line
+++ echo arc-theme
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=arc-theme
++ '[' -z arc-theme ']'
++ [[ arc-theme =~ ^# ]]
++ '[' 4 -lt 0 ']'
++ '[' -z adapta-gtk-theme ']'
++ GROUP_VALUES[$current_group_index]+=$'\narc-theme'
++ IFS=
++ read -r line
+++ echo nerd-fonts
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=nerd-fonts
++ '[' -z nerd-fonts ']'
++ [[ nerd-fonts =~ ^# ]]
++ '[' 4 -lt 0 ']'
++ '[' -z $'adapta-gtk-theme\narc-theme' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nnerd-fonts'
++ IFS=
++ read -r line
+++ echo papirus-icon-theme
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=papirus-icon-theme
++ '[' -z papirus-icon-theme ']'
++ [[ papirus-icon-theme =~ ^# ]]
++ '[' 4 -lt 0 ']'
++ '[' -z $'adapta-gtk-theme\narc-theme\nnerd-fonts' ']'
++ GROUP_VALUES[$current_group_index]+=$'\npapirus-icon-theme'
++ IFS=
++ read -r line
+++ echo ''
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=
++ '[' -z '' ']'
++ continue
++ IFS=
++ read -r line
+++ echo '# Network Tools'
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim='# Network Tools'
++ '[' -z '# Network Tools' ']'
++ [[ # Network Tools =~ ^# ]]
+++ echo '# Network Tools'
+++ sed -E 's/^#\s*//'
++ header='Network Tools'
++ '[' -n 'Network Tools' ']'
++ current_group_index=5
++ GROUP_ORDER+=("$header")
++ GROUP_VALUES+=("")
++ continue
++ IFS=
++ read -r line
+++ echo aria2
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=aria2
++ '[' -z aria2 ']'
++ [[ aria2 =~ ^# ]]
++ '[' 5 -lt 0 ']'
++ '[' -z '' ']'
++ GROUP_VALUES[$current_group_index]=aria2
++ IFS=
++ read -r line
+++ echo netcat
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=netcat
++ '[' -z netcat ']'
++ [[ netcat =~ ^# ]]
++ '[' 5 -lt 0 ']'
++ '[' -z aria2 ']'
++ GROUP_VALUES[$current_group_index]+=$'\nnetcat'
++ IFS=
++ read -r line
+++ echo nmap
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=nmap
++ '[' -z nmap ']'
++ [[ nmap =~ ^# ]]
++ '[' 5 -lt 0 ']'
++ '[' -z $'aria2\nnetcat' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nnmap'
++ IFS=
++ read -r line
+++ echo rclone
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=rclone
++ '[' -z rclone ']'
++ [[ rclone =~ ^# ]]
++ '[' 5 -lt 0 ']'
++ '[' -z $'aria2\nnetcat\nnmap' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nrclone'
++ IFS=
++ read -r line
+++ echo socat
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=socat
++ '[' -z socat ']'
++ [[ socat =~ ^# ]]
++ '[' 5 -lt 0 ']'
++ '[' -z $'aria2\nnetcat\nnmap\nrclone' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nsocat'
++ IFS=
++ read -r line
+++ echo tcpdump
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=tcpdump
++ '[' -z tcpdump ']'
++ [[ tcpdump =~ ^# ]]
++ '[' 5 -lt 0 ']'
++ '[' -z $'aria2\nnetcat\nnmap\nrclone\nsocat' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ntcpdump'
++ IFS=
++ read -r line
+++ echo wireshark
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=wireshark
++ '[' -z wireshark ']'
++ [[ wireshark =~ ^# ]]
++ '[' 5 -lt 0 ']'
++ '[' -z $'aria2\nnetcat\nnmap\nrclone\nsocat\ntcpdump' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nwireshark'
++ IFS=
++ read -r line
+++ echo ''
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=
++ '[' -z '' ']'
++ continue
++ IFS=
++ read -r line
+++ echo '# Office & Productivity'
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim='# Office & Productivity'
++ '[' -z '# Office & Productivity' ']'
++ [[ # Office & Productivity =~ ^# ]]
+++ echo '# Office & Productivity'
+++ sed -E 's/^#\s*//'
++ header='Office & Productivity'
++ '[' -n 'Office & Productivity' ']'
++ current_group_index=6
++ GROUP_ORDER+=("$header")
++ GROUP_VALUES+=("")
++ continue
++ IFS=
++ read -r line
+++ echo dropbox
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=dropbox
++ '[' -z dropbox ']'
++ [[ dropbox =~ ^# ]]
++ '[' 6 -lt 0 ']'
++ '[' -z '' ']'
++ GROUP_VALUES[$current_group_index]=dropbox
++ IFS=
++ read -r line
+++ echo evolution
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=evolution
++ '[' -z evolution ']'
++ [[ evolution =~ ^# ]]
++ '[' 6 -lt 0 ']'
++ '[' -z dropbox ']'
++ GROUP_VALUES[$current_group_index]+=$'\nevolution'
++ IFS=
++ read -r line
+++ echo geary
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=geary
++ '[' -z geary ']'
++ [[ geary =~ ^# ]]
++ '[' 6 -lt 0 ']'
++ '[' -z $'dropbox\nevolution' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ngeary'
++ IFS=
++ read -r line
+++ echo libreoffice
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=libreoffice
++ '[' -z libreoffice ']'
++ [[ libreoffice =~ ^# ]]
++ '[' 6 -lt 0 ']'
++ '[' -z $'dropbox\nevolution\ngeary' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nlibreoffice'
++ IFS=
++ read -r line
+++ echo megasync
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=megasync
++ '[' -z megasync ']'
++ [[ megasync =~ ^# ]]
++ '[' 6 -lt 0 ']'
++ '[' -z $'dropbox\nevolution\ngeary\nlibreoffice' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nmegasync'
++ IFS=
++ read -r line
+++ echo nextcloud-client
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=nextcloud-client
++ '[' -z nextcloud-client ']'
++ [[ nextcloud-client =~ ^# ]]
++ '[' 6 -lt 0 ']'
++ '[' -z $'dropbox\nevolution\ngeary\nlibreoffice\nmegasync' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nnextcloud-client'
++ IFS=
++ read -r line
+++ echo thunderbird
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=thunderbird
++ '[' -z thunderbird ']'
++ [[ thunderbird =~ ^# ]]
++ '[' 6 -lt 0 ']'
++ '[' -z $'dropbox\nevolution\ngeary\nlibreoffice\nmegasync\nnextcloud-client' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nthunderbird'
++ IFS=
++ read -r line
+++ echo ''
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=
++ '[' -z '' ']'
++ continue
++ IFS=
++ read -r line
+++ echo '# Security Tools'
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim='# Security Tools'
++ '[' -z '# Security Tools' ']'
++ [[ # Security Tools =~ ^# ]]
+++ echo '# Security Tools'
+++ sed -E 's/^#\s*//'
++ header='Security Tools'
++ '[' -n 'Security Tools' ']'
++ current_group_index=7
++ GROUP_ORDER+=("$header")
++ GROUP_VALUES+=("")
++ continue
++ IFS=
++ read -r line
+++ echo chkrootkit
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=chkrootkit
++ '[' -z chkrootkit ']'
++ [[ chkrootkit =~ ^# ]]
++ '[' 7 -lt 0 ']'
++ '[' -z '' ']'
++ GROUP_VALUES[$current_group_index]=chkrootkit
++ IFS=
++ read -r line
+++ echo clamav
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=clamav
++ '[' -z clamav ']'
++ [[ clamav =~ ^# ]]
++ '[' 7 -lt 0 ']'
++ '[' -z chkrootkit ']'
++ GROUP_VALUES[$current_group_index]+=$'\nclamav'
++ IFS=
++ read -r line
+++ echo fail2ban
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=fail2ban
++ '[' -z fail2ban ']'
++ [[ fail2ban =~ ^# ]]
++ '[' 7 -lt 0 ']'
++ '[' -z $'chkrootkit\nclamav' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nfail2ban'
++ IFS=
++ read -r line
+++ echo gnutls
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=gnutls
++ '[' -z gnutls ']'
++ [[ gnutls =~ ^# ]]
++ '[' 7 -lt 0 ']'
++ '[' -z $'chkrootkit\nclamav\nfail2ban' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ngnutls'
++ IFS=
++ read -r line
+++ echo gpg
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=gpg
++ '[' -z gpg ']'
++ [[ gpg =~ ^# ]]
++ '[' 7 -lt 0 ']'
++ '[' -z $'chkrootkit\nclamav\nfail2ban\ngnutls' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ngpg'
++ IFS=
++ read -r line
+++ echo openssl
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=openssl
++ '[' -z openssl ']'
++ [[ openssl =~ ^# ]]
++ '[' 7 -lt 0 ']'
++ '[' -z $'chkrootkit\nclamav\nfail2ban\ngnutls\ngpg' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nopenssl'
++ IFS=
++ read -r line
+++ echo rkhunter
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=rkhunter
++ '[' -z rkhunter ']'
++ [[ rkhunter =~ ^# ]]
++ '[' 7 -lt 0 ']'
++ '[' -z $'chkrootkit\nclamav\nfail2ban\ngnutls\ngpg\nopenssl' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nrkhunter'
++ IFS=
++ read -r line
+++ echo ''
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=
++ '[' -z '' ']'
++ continue
++ IFS=
++ read -r line
+++ echo '# Shell Tools'
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim='# Shell Tools'
++ '[' -z '# Shell Tools' ']'
++ [[ # Shell Tools =~ ^# ]]
+++ echo '# Shell Tools'
+++ sed -E 's/^#\s*//'
++ header='Shell Tools'
++ '[' -n 'Shell Tools' ']'
++ current_group_index=8
++ GROUP_ORDER+=("$header")
++ GROUP_VALUES+=("")
++ continue
++ IFS=
++ read -r line
+++ echo bash-completion
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=bash-completion
++ '[' -z bash-completion ']'
++ [[ bash-completion =~ ^# ]]
++ '[' 8 -lt 0 ']'
++ '[' -z '' ']'
++ GROUP_VALUES[$current_group_index]=bash-completion
++ IFS=
++ read -r line
+++ echo bat
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=bat
++ '[' -z bat ']'
++ [[ bat =~ ^# ]]
++ '[' 8 -lt 0 ']'
++ '[' -z bash-completion ']'
++ GROUP_VALUES[$current_group_index]+=$'\nbat'
++ IFS=
++ read -r line
+++ echo cheat
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=cheat
++ '[' -z cheat ']'
++ [[ cheat =~ ^# ]]
++ '[' 8 -lt 0 ']'
++ '[' -z $'bash-completion\nbat' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ncheat'
++ IFS=
++ read -r line
+++ echo fd
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=fd
++ '[' -z fd ']'
++ [[ fd =~ ^# ]]
++ '[' 8 -lt 0 ']'
++ '[' -z $'bash-completion\nbat\ncheat' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nfd'
++ IFS=
++ read -r line
+++ echo fzf
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=fzf
++ '[' -z fzf ']'
++ [[ fzf =~ ^# ]]
++ '[' 8 -lt 0 ']'
++ '[' -z $'bash-completion\nbat\ncheat\nfd' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nfzf'
++ IFS=
++ read -r line
+++ echo thefuck
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=thefuck
++ '[' -z thefuck ']'
++ [[ thefuck =~ ^# ]]
++ '[' 8 -lt 0 ']'
++ '[' -z $'bash-completion\nbat\ncheat\nfd\nfzf' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nthefuck'
++ IFS=
++ read -r line
+++ echo tmux
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=tmux
++ '[' -z tmux ']'
++ [[ tmux =~ ^# ]]
++ '[' 8 -lt 0 ']'
++ '[' -z $'bash-completion\nbat\ncheat\nfd\nfzf\nthefuck' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ntmux'
++ IFS=
++ read -r line
+++ echo tldr
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=tldr
++ '[' -z tldr ']'
++ [[ tldr =~ ^# ]]
++ '[' 8 -lt 0 ']'
++ '[' -z $'bash-completion\nbat\ncheat\nfd\nfzf\nthefuck\ntmux' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ntldr'
++ IFS=
++ read -r line
+++ echo zsh
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=zsh
++ '[' -z zsh ']'
++ [[ zsh =~ ^# ]]
++ '[' 8 -lt 0 ']'
++ '[' -z $'bash-completion\nbat\ncheat\nfd\nfzf\nthefuck\ntmux\ntldr' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nzsh'
++ IFS=
++ read -r line
+++ echo ''
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=
++ '[' -z '' ']'
++ continue
++ IFS=
++ read -r line
+++ echo '# System Monitoring'
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim='# System Monitoring'
++ '[' -z '# System Monitoring' ']'
++ [[ # System Monitoring =~ ^# ]]
+++ echo '# System Monitoring'
+++ sed -E 's/^#\s*//'
++ header='System Monitoring'
++ '[' -n 'System Monitoring' ']'
++ current_group_index=9
++ GROUP_ORDER+=("$header")
++ GROUP_VALUES+=("")
++ continue
++ IFS=
++ read -r line
+++ echo btop
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=btop
++ '[' -z btop ']'
++ [[ btop =~ ^# ]]
++ '[' 9 -lt 0 ']'
++ '[' -z '' ']'
++ GROUP_VALUES[$current_group_index]=btop
++ IFS=
++ read -r line
+++ echo htop
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=htop
++ '[' -z htop ']'
++ [[ htop =~ ^# ]]
++ '[' 9 -lt 0 ']'
++ '[' -z btop ']'
++ GROUP_VALUES[$current_group_index]+=$'\nhtop'
++ IFS=
++ read -r line
+++ echo nvtop
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=nvtop
++ '[' -z nvtop ']'
++ [[ nvtop =~ ^# ]]
++ '[' 9 -lt 0 ']'
++ '[' -z $'btop\nhtop' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nnvtop'
++ IFS=
++ read -r line
+++ echo neotop
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=neotop
++ '[' -z neotop ']'
++ [[ neotop =~ ^# ]]
++ '[' 9 -lt 0 ']'
++ '[' -z $'btop\nhtop\nnvtop' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nneotop'
++ IFS=
++ read -r line
+++ echo ''
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=
++ '[' -z '' ']'
++ continue
++ IFS=
++ read -r line
+++ echo '# System Services'
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim='# System Services'
++ '[' -z '# System Services' ']'
++ [[ # System Services =~ ^# ]]
+++ echo '# System Services'
+++ sed -E 's/^#\s*//'
++ header='System Services'
++ '[' -n 'System Services' ']'
++ current_group_index=10
++ GROUP_ORDER+=("$header")
++ GROUP_VALUES+=("")
++ continue
++ IFS=
++ read -r line
+++ echo apparmor
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=apparmor
++ '[' -z apparmor ']'
++ [[ apparmor =~ ^# ]]
++ '[' 10 -lt 0 ']'
++ '[' -z '' ']'
++ GROUP_VALUES[$current_group_index]=apparmor
++ IFS=
++ read -r line
+++ echo bluetooth
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=bluetooth
++ '[' -z bluetooth ']'
++ [[ bluetooth =~ ^# ]]
++ '[' 10 -lt 0 ']'
++ '[' -z apparmor ']'
++ GROUP_VALUES[$current_group_index]+=$'\nbluetooth'
++ IFS=
++ read -r line
+++ echo bluez
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=bluez
++ '[' -z bluez ']'
++ [[ bluez =~ ^# ]]
++ '[' 10 -lt 0 ']'
++ '[' -z $'apparmor\nbluetooth' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nbluez'
++ IFS=
++ read -r line
+++ echo cups
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=cups
++ '[' -z cups ']'
++ [[ cups =~ ^# ]]
++ '[' 10 -lt 0 ']'
++ '[' -z $'apparmor\nbluetooth\nbluez' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ncups'
++ IFS=
++ read -r line
+++ echo firewalld
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=firewalld
++ '[' -z firewalld ']'
++ [[ firewalld =~ ^# ]]
++ '[' 10 -lt 0 ']'
++ '[' -z $'apparmor\nbluetooth\nbluez\ncups' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nfirewalld'
++ IFS=
++ read -r line
+++ echo networkmanager
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=networkmanager
++ '[' -z networkmanager ']'
++ [[ networkmanager =~ ^# ]]
++ '[' 10 -lt 0 ']'
++ '[' -z $'apparmor\nbluetooth\nbluez\ncups\nfirewalld' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nnetworkmanager'
++ IFS=
++ read -r line
+++ echo pipewire
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=pipewire
++ '[' -z pipewire ']'
++ [[ pipewire =~ ^# ]]
++ '[' 10 -lt 0 ']'
++ '[' -z $'apparmor\nbluetooth\nbluez\ncups\nfirewalld\nnetworkmanager' ']'
++ GROUP_VALUES[$current_group_index]+=$'\npipewire'
++ IFS=
++ read -r line
+++ echo pulseaudio
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=pulseaudio
++ '[' -z pulseaudio ']'
++ [[ pulseaudio =~ ^# ]]
++ '[' 10 -lt 0 ']'
++ '[' -z $'apparmor\nbluetooth\nbluez\ncups\nfirewalld\nnetworkmanager\npipewire' ']'
++ GROUP_VALUES[$current_group_index]+=$'\npulseaudio'
++ IFS=
++ read -r line
+++ echo sane
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=sane
++ '[' -z sane ']'
++ [[ sane =~ ^# ]]
++ '[' 10 -lt 0 ']'
++ '[' -z $'apparmor\nbluetooth\nbluez\ncups\nfirewalld\nnetworkmanager\npipewire\npulseaudio' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nsane'
++ IFS=
++ read -r line
+++ echo selinux
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=selinux
++ '[' -z selinux ']'
++ [[ selinux =~ ^# ]]
++ '[' 10 -lt 0 ']'
++ '[' -z $'apparmor\nbluetooth\nbluez\ncups\nfirewalld\nnetworkmanager\npipewire\npulseaudio\nsane' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nselinux'
++ IFS=
++ read -r line
+++ echo ufw
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=ufw
++ '[' -z ufw ']'
++ [[ ufw =~ ^# ]]
++ '[' 10 -lt 0 ']'
++ '[' -z $'apparmor\nbluetooth\nbluez\ncups\nfirewalld\nnetworkmanager\npipewire\npulseaudio\nsane\nselinux' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nufw'
++ IFS=
++ read -r line
+++ echo ''
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=
++ '[' -z '' ']'
++ continue
++ IFS=
++ read -r line
+++ echo '# System Tools'
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim='# System Tools'
++ '[' -z '# System Tools' ']'
++ [[ # System Tools =~ ^# ]]
+++ echo '# System Tools'
+++ sed -E 's/^#\s*//'
++ header='System Tools'
++ '[' -n 'System Tools' ']'
++ current_group_index=11
++ GROUP_ORDER+=("$header")
++ GROUP_VALUES+=("")
++ continue
++ IFS=
++ read -r line
+++ echo ca-certificates
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=ca-certificates
++ '[' -z ca-certificates ']'
++ [[ ca-certificates =~ ^# ]]
++ '[' 11 -lt 0 ']'
++ '[' -z '' ']'
++ GROUP_VALUES[$current_group_index]=ca-certificates
++ IFS=
++ read -r line
+++ echo curl
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=curl
++ '[' -z curl ']'
++ [[ curl =~ ^# ]]
++ '[' 11 -lt 0 ']'
++ '[' -z ca-certificates ']'
++ GROUP_VALUES[$current_group_index]+=$'\ncurl'
++ IFS=
++ read -r line
+++ echo git
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=git
++ '[' -z git ']'
++ [[ git =~ ^# ]]
++ '[' 11 -lt 0 ']'
++ '[' -z $'ca-certificates\ncurl' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ngit'
++ IFS=
++ read -r line
+++ echo gnupg
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=gnupg
++ '[' -z gnupg ']'
++ [[ gnupg =~ ^# ]]
++ '[' 11 -lt 0 ']'
++ '[' -z $'ca-certificates\ncurl\ngit' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ngnupg'
++ IFS=
++ read -r line
+++ echo neofetch
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=neofetch
++ '[' -z neofetch ']'
++ [[ neofetch =~ ^# ]]
++ '[' 11 -lt 0 ']'
++ '[' -z $'ca-certificates\ncurl\ngit\ngnupg' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nneofetch'
++ IFS=
++ read -r line
+++ echo openssh
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=openssh
++ '[' -z openssh ']'
++ [[ openssh =~ ^# ]]
++ '[' 11 -lt 0 ']'
++ '[' -z $'ca-certificates\ncurl\ngit\ngnupg\nneofetch' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nopenssh'
++ IFS=
++ read -r line
+++ echo ripgrep
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=ripgrep
++ '[' -z ripgrep ']'
++ [[ ripgrep =~ ^# ]]
++ '[' 11 -lt 0 ']'
++ '[' -z $'ca-certificates\ncurl\ngit\ngnupg\nneofetch\nopenssh' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nripgrep'
++ IFS=
++ read -r line
+++ echo rsync
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=rsync
++ '[' -z rsync ']'
++ [[ rsync =~ ^# ]]
++ '[' 11 -lt 0 ']'
++ '[' -z $'ca-certificates\ncurl\ngit\ngnupg\nneofetch\nopenssh\nripgrep' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nrsync'
++ IFS=
++ read -r line
+++ echo software-properties-common
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=software-properties-common
++ '[' -z software-properties-common ']'
++ [[ software-properties-common =~ ^# ]]
++ '[' 11 -lt 0 ']'
++ '[' -z $'ca-certificates\ncurl\ngit\ngnupg\nneofetch\nopenssh\nripgrep\nrsync' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nsoftware-properties-common'
++ IFS=
++ read -r line
+++ echo tar
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=tar
++ '[' -z tar ']'
++ [[ tar =~ ^# ]]
++ '[' 11 -lt 0 ']'
++ '[' -z $'ca-certificates\ncurl\ngit\ngnupg\nneofetch\nopenssh\nripgrep\nrsync\nsoftware-properties-common' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ntar'
++ IFS=
++ read -r line
+++ echo tree
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=tree
++ '[' -z tree ']'
++ [[ tree =~ ^# ]]
++ '[' 11 -lt 0 ']'
++ '[' -z $'ca-certificates\ncurl\ngit\ngnupg\nneofetch\nopenssh\nripgrep\nrsync\nsoftware-properties-common\ntar' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ntree'
++ IFS=
++ read -r line
+++ echo unzip
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=unzip
++ '[' -z unzip ']'
++ [[ unzip =~ ^# ]]
++ '[' 11 -lt 0 ']'
++ '[' -z $'ca-certificates\ncurl\ngit\ngnupg\nneofetch\nopenssh\nripgrep\nrsync\nsoftware-properties-common\ntar\ntree' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nunzip'
++ IFS=
++ read -r line
+++ echo wget
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=wget
++ '[' -z wget ']'
++ [[ wget =~ ^# ]]
++ '[' 11 -lt 0 ']'
++ '[' -z $'ca-certificates\ncurl\ngit\ngnupg\nneofetch\nopenssh\nripgrep\nrsync\nsoftware-properties-common\ntar\ntree\nunzip' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nwget'
++ IFS=
++ read -r line
+++ echo zip
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=zip
++ '[' -z zip ']'
++ [[ zip =~ ^# ]]
++ '[' 11 -lt 0 ']'
++ '[' -z $'ca-certificates\ncurl\ngit\ngnupg\nneofetch\nopenssh\nripgrep\nrsync\nsoftware-properties-common\ntar\ntree\nunzip\nwget' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nzip'
++ IFS=
++ read -r line
+++ echo ''
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=
++ '[' -z '' ']'
++ continue
++ IFS=
++ read -r line
+++ echo '# Terminal Emulators'
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim='# Terminal Emulators'
++ '[' -z '# Terminal Emulators' ']'
++ [[ # Terminal Emulators =~ ^# ]]
+++ echo '# Terminal Emulators'
+++ sed -E 's/^#\s*//'
++ header='Terminal Emulators'
++ '[' -n 'Terminal Emulators' ']'
++ current_group_index=12
++ GROUP_ORDER+=("$header")
++ GROUP_VALUES+=("")
++ continue
++ IFS=
++ read -r line
+++ echo alacritty
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=alacritty
++ '[' -z alacritty ']'
++ [[ alacritty =~ ^# ]]
++ '[' 12 -lt 0 ']'
++ '[' -z '' ']'
++ GROUP_VALUES[$current_group_index]=alacritty
++ IFS=
++ read -r line
+++ echo konsole
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=konsole
++ '[' -z konsole ']'
++ [[ konsole =~ ^# ]]
++ '[' 12 -lt 0 ']'
++ '[' -z alacritty ']'
++ GROUP_VALUES[$current_group_index]+=$'\nkonsole'
++ IFS=
++ read -r line
+++ echo ptyxis
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=ptyxis
++ '[' -z ptyxis ']'
++ [[ ptyxis =~ ^# ]]
++ '[' 12 -lt 0 ']'
++ '[' -z $'alacritty\nkonsole' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nptyxis'
++ IFS=
++ read -r line
+++ echo ''
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=
++ '[' -z '' ']'
++ continue
++ IFS=
++ read -r line
+++ echo '# Text Editors'
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim='# Text Editors'
++ '[' -z '# Text Editors' ']'
++ [[ # Text Editors =~ ^# ]]
+++ echo '# Text Editors'
+++ sed -E 's/^#\s*//'
++ header='Text Editors'
++ '[' -n 'Text Editors' ']'
++ current_group_index=13
++ GROUP_ORDER+=("$header")
++ GROUP_VALUES+=("")
++ continue
++ IFS=
++ read -r line
+++ echo ktexteditor
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=ktexteditor
++ '[' -z ktexteditor ']'
++ [[ ktexteditor =~ ^# ]]
++ '[' 13 -lt 0 ']'
++ '[' -z '' ']'
++ GROUP_VALUES[$current_group_index]=ktexteditor
++ IFS=
++ read -r line
+++ echo gedit
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=gedit
++ '[' -z gedit ']'
++ [[ gedit =~ ^# ]]
++ '[' 13 -lt 0 ']'
++ '[' -z ktexteditor ']'
++ GROUP_VALUES[$current_group_index]+=$'\ngedit'
++ IFS=
++ read -r line
+++ echo neovim
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=neovim
++ '[' -z neovim ']'
++ [[ neovim =~ ^# ]]
++ '[' 13 -lt 0 ']'
++ '[' -z $'ktexteditor\ngedit' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nneovim'
++ IFS=
++ read -r line
+++ echo vscode
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=vscode
++ '[' -z vscode ']'
++ [[ vscode =~ ^# ]]
++ '[' 13 -lt 0 ']'
++ '[' -z $'ktexteditor\ngedit\nneovim' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nvscode'
++ IFS=
++ read -r line
+++ echo ''
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=
++ '[' -z '' ']'
++ continue
++ IFS=
++ read -r line
+++ echo '# Virtualization'
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim='# Virtualization'
++ '[' -z '# Virtualization' ']'
++ [[ # Virtualization =~ ^# ]]
+++ echo '# Virtualization'
+++ sed -E 's/^#\s*//'
++ header=Virtualization
++ '[' -n Virtualization ']'
++ current_group_index=14
++ GROUP_ORDER+=("$header")
++ GROUP_VALUES+=("")
++ continue
++ IFS=
++ read -r line
+++ echo virt-bridge-setup
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=virt-bridge-setup
++ '[' -z virt-bridge-setup ']'
++ [[ virt-bridge-setup =~ ^# ]]
++ '[' 14 -lt 0 ']'
++ '[' -z '' ']'
++ GROUP_VALUES[$current_group_index]=virt-bridge-setup
++ IFS=
++ read -r line
+++ echo virt-firmware
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=virt-firmware
++ '[' -z virt-firmware ']'
++ [[ virt-firmware =~ ^# ]]
++ '[' 14 -lt 0 ']'
++ '[' -z virt-bridge-setup ']'
++ GROUP_VALUES[$current_group_index]+=$'\nvirt-firmware'
++ IFS=
++ read -r line
+++ echo virt-install
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=virt-install
++ '[' -z virt-install ']'
++ [[ virt-install =~ ^# ]]
++ '[' 14 -lt 0 ']'
++ '[' -z $'virt-bridge-setup\nvirt-firmware' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nvirt-install'
++ IFS=
++ read -r line
+++ echo virt-manager
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=virt-manager
++ '[' -z virt-manager ']'
++ [[ virt-manager =~ ^# ]]
++ '[' 14 -lt 0 ']'
++ '[' -z $'virt-bridge-setup\nvirt-firmware\nvirt-install' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nvirt-manager'
++ IFS=
++ read -r line
+++ echo virt-p2v
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=virt-p2v
++ '[' -z virt-p2v ']'
++ [[ virt-p2v =~ ^# ]]
++ '[' 14 -lt 0 ']'
++ '[' -z $'virt-bridge-setup\nvirt-firmware\nvirt-install\nvirt-manager' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nvirt-p2v'
++ IFS=
++ read -r line
+++ echo virt-v2v-bash-completion
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=virt-v2v-bash-completion
++ '[' -z virt-v2v-bash-completion ']'
++ [[ virt-v2v-bash-completion =~ ^# ]]
++ '[' 14 -lt 0 ']'
++ '[' -z $'virt-bridge-setup\nvirt-firmware\nvirt-install\nvirt-manager\nvirt-p2v' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nvirt-v2v-bash-completion'
++ IFS=
++ read -r line
+++ echo virt-v2v
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=virt-v2v
++ '[' -z virt-v2v ']'
++ [[ virt-v2v =~ ^# ]]
++ '[' 14 -lt 0 ']'
++ '[' -z $'virt-bridge-setup\nvirt-firmware\nvirt-install\nvirt-manager\nvirt-p2v\nvirt-v2v-bash-completion' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nvirt-v2v'
++ IFS=
++ read -r line
+++ echo virt-viewer
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=virt-viewer
++ '[' -z virt-viewer ']'
++ [[ virt-viewer =~ ^# ]]
++ '[' 14 -lt 0 ']'
++ '[' -z $'virt-bridge-setup\nvirt-firmware\nvirt-install\nvirt-manager\nvirt-p2v\nvirt-v2v-bash-completion\nvirt-v2v' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nvirt-viewer'
++ IFS=
++ read -r line
+++ echo virt-win-reg
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=virt-win-reg
++ '[' -z virt-win-reg ']'
++ [[ virt-win-reg =~ ^# ]]
++ '[' 14 -lt 0 ']'
++ '[' -z $'virt-bridge-setup\nvirt-firmware\nvirt-install\nvirt-manager\nvirt-p2v\nvirt-v2v-bash-completion\nvirt-v2v\nvirt-viewer' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nvirt-win-reg'
++ IFS=
++ read -r line
+++ echo ''
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=
++ '[' -z '' ']'
++ continue
++ IFS=
++ read -r line
+++ echo '# Web Servers & Tools'
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim='# Web Servers & Tools'
++ '[' -z '# Web Servers & Tools' ']'
++ [[ # Web Servers & Tools =~ ^# ]]
+++ echo '# Web Servers & Tools'
+++ sed -E 's/^#\s*//'
++ header='Web Servers & Tools'
++ '[' -n 'Web Servers & Tools' ']'
++ current_group_index=15
++ GROUP_ORDER+=("$header")
++ GROUP_VALUES+=("")
++ continue
++ IFS=
++ read -r line
+++ echo apache2
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=apache2
++ '[' -z apache2 ']'
++ [[ apache2 =~ ^# ]]
++ '[' 15 -lt 0 ']'
++ '[' -z '' ']'
++ GROUP_VALUES[$current_group_index]=apache2
++ IFS=
++ read -r line
+++ echo certbot
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=certbot
++ '[' -z certbot ']'
++ [[ certbot =~ ^# ]]
++ '[' 15 -lt 0 ']'
++ '[' -z apache2 ']'
++ GROUP_VALUES[$current_group_index]+=$'\ncertbot'
++ IFS=
++ read -r line
+++ echo composer
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=composer
++ '[' -z composer ']'
++ [[ composer =~ ^# ]]
++ '[' 15 -lt 0 ']'
++ '[' -z $'apache2\ncertbot' ']'
++ GROUP_VALUES[$current_group_index]+=$'\ncomposer'
++ IFS=
++ read -r line
+++ echo nginx
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=nginx
++ '[' -z nginx ']'
++ [[ nginx =~ ^# ]]
++ '[' 15 -lt 0 ']'
++ '[' -z $'apache2\ncertbot\ncomposer' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nnginx'
++ IFS=
++ read -r line
+++ echo php
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=php
++ '[' -z php ']'
++ [[ php =~ ^# ]]
++ '[' 15 -lt 0 ']'
++ '[' -z $'apache2\ncertbot\ncomposer\nnginx' ']'
++ GROUP_VALUES[$current_group_index]+=$'\nphp'
++ IFS=
++ read -r line
+++ echo ''
+++ sed -E 's/^\s+|\s+$//g'
++ line_trim=
++ '[' -z '' ']'
++ continue
++ IFS=
++ read -r line
++ '[' -n '' ']'
+
+map_name() {
+  local name="$1"
+  case "$PM" in
+    apt)
+      if [ "$name" = "fd" ]; then
+        echo "fd-find"
+        return
+      fi
+      if [ "$name" = "bat" ]; then
+        echo "batcat"
+        return
+      fi
+      ;;
+    pacman|dnf|zypper)
+      if [ "$name" = "fd-find" ]; then
+        echo "fd"
+        return
+      fi
+      ;;
+  esac
+  echo "$name"
+}
+
+is_installed() {
+  local pkg="$1"
+  case "$PM" in
+    apt) dpkg -s "$pkg" >/dev/null 2>&1 && return 0 || true ;;
+    pacman) pacman -Qi "$pkg" >/dev/null 2>&1 && return 0 || true ;;
+    dnf|zypper) rpm -q "$pkg" >/dev/null 2>&1 && return 0 || true ;;
+  esac
+  if command -v "$pkg" >/dev/null 2>&1; then
+    return 0
+  fi
+  return 1
+}
+
+declare -a SUBMENU_SELECTIONS=()
++ SUBMENU_SELECTIONS=()
++ declare -a SUBMENU_SELECTIONS
+ORDERED_GROUP_INDICES=()
++ ORDERED_GROUP_INDICES=()
+for i in "${!GROUP_ORDER[@]}"; do
+  ORDERED_GROUP_INDICES+=("$i")
+done
++ for i in "${!GROUP_ORDER[@]}"
++ ORDERED_GROUP_INDICES+=("$i")
++ for i in "${!GROUP_ORDER[@]}"
++ ORDERED_GROUP_INDICES+=("$i")
++ for i in "${!GROUP_ORDER[@]}"
++ ORDERED_GROUP_INDICES+=("$i")
++ for i in "${!GROUP_ORDER[@]}"
++ ORDERED_GROUP_INDICES+=("$i")
++ for i in "${!GROUP_ORDER[@]}"
++ ORDERED_GROUP_INDICES+=("$i")
++ for i in "${!GROUP_ORDER[@]}"
++ ORDERED_GROUP_INDICES+=("$i")
++ for i in "${!GROUP_ORDER[@]}"
++ ORDERED_GROUP_INDICES+=("$i")
++ for i in "${!GROUP_ORDER[@]}"
++ ORDERED_GROUP_INDICES+=("$i")
++ for i in "${!GROUP_ORDER[@]}"
++ ORDERED_GROUP_INDICES+=("$i")
++ for i in "${!GROUP_ORDER[@]}"
++ ORDERED_GROUP_INDICES+=("$i")
++ for i in "${!GROUP_ORDER[@]}"
++ ORDERED_GROUP_INDICES+=("$i")
++ for i in "${!GROUP_ORDER[@]}"
++ ORDERED_GROUP_INDICES+=("$i")
++ for i in "${!GROUP_ORDER[@]}"
++ ORDERED_GROUP_INDICES+=("$i")
++ for i in "${!GROUP_ORDER[@]}"
++ ORDERED_GROUP_INDICES+=("$i")
++ for i in "${!GROUP_ORDER[@]}"
++ ORDERED_GROUP_INDICES+=("$i")
++ for i in "${!GROUP_ORDER[@]}"
++ ORDERED_GROUP_INDICES+=("$i")
+
+
+get_group_packages() {
+  local group_idx="$1"
+  local pkg
+  local packages=()
+  while IFS= read -r pkg; do
+    pkg=$(echo "$pkg" | sed -E 's/^\s+|\s+$//g')
+    [ -z "$pkg" ] && continue
+    packages+=("$pkg")
+  done <<< "${GROUP_VALUES[$group_idx]}"
+  printf '%s\n' "${packages[@]}"
+}
+
+APT_UPDATED=0
++ APT_UPDATED=0
+install_package_batch() {
+  local packages=("$@")
+  local mapped=()
+  local pkg
+  for pkg in "${packages[@]}"; do
+    [ -z "$pkg" ] && continue
+    mapped+=("$(map_name "$pkg")")
+  done
+  local to_install=()
+  for pkg in "${mapped[@]}"; do
+    if is_installed "$pkg"; then
+      log "Skipping installed package: $pkg"
+    else
+      to_install+=("$pkg")
+    fi
+  done
+  if [ ${#to_install[@]} -eq 0 ]; then
+    log "All selected packages appear to be installed. Nothing to do."
+    return 0
+  fi
+  if [ "$PM" = "apt" ] && [ "$APT_UPDATED" -eq 0 ]; then
+    run_cmd "sudo apt update"
+    APT_UPDATED=1
+  fi
+  if [ -z "$PM_INSTALL_CMD" ]; then
+    echo "No installation command configured for $PM" >&2
+    exit 4
+  fi
+  log "Installing ${#to_install[@]} packages for $PM"
+  local pkg_list
+  pkg_list=$(printf '%s ' "${to_install[@]}")
+  run_cmd "$PM_INSTALL_CMD $pkg_list"
+}
+
+show_package_submenu() {
+  local group_idx="$1"
+  local group_name="${GROUP_ORDER[$group_idx]}"
+  local group_data="${GROUP_VALUES[$group_idx]}"
+
+  echo
+  echo "=== $group_name ==="
+  echo "Select individual packages to install:"
+  echo
+
+  local pkg_options=()
+  local pkg_status=()
+  local pkg_names=()
+  local pkg
+  while IFS= read -r pkg; do
+    pkg=$(echo "$pkg" | sed -E 's/^\s+|\s+$//g')
+    [ -z "$pkg" ] && continue
+    pkg_names+=("$pkg")
+    local mapped
+    mapped=$(map_name "$pkg")
+    if is_installed "$mapped"; then
+      pkg_options+=("$pkg [INSTALLED]")
+      pkg_status+=("installed")
+    else
+      pkg_options+=("$pkg [TO INSTALL]")
+      pkg_status+=("to_install")
+    fi
+  done <<< "$group_data"
+
+  if [ "${#pkg_names[@]}" -eq 0 ]; then
+    echo "No packages defined for this group."
+    return 0
+  fi
+
+  local install_all_choice=$(( ${#pkg_options[@]} + 1 ))
+
+  for i in "${!pkg_options[@]}"; do
+    echo "$((i+1))) ${pkg_options[$i]}"
+  done
+  printf " %2d) Install ALL packages in this group\n" "$install_all_choice"
+  echo "  0) Back to main menu"
+  echo
+
+  local selected_packages=()
+  local choice
+  local invalid=0
+  while true; do
+    echo -n "Enter choice(s) (0-${install_all_choice}), separated by commas, or press Enter to install all pending packages: "
+    if ! read -r choice; then
+      echo
+      echo "Input stream ended while selecting packages. Returning to main menu..."
+      return 0
+    fi
+    if [[ -z "$choice" ]]; then
+      for idx in "${!pkg_status[@]}"; do
+        if [ "${pkg_status[$idx]}" = "to_install" ]; then
+          selected_packages+=("${pkg_names[$idx]}")
+        fi
+      done
+      if [ ${#selected_packages[@]} -gt 0 ]; then
+        echo "Selected all packages that need installation (${#selected_packages[@]} packages)"
+      else
+        echo "No pending packages in this group."
+      fi
+      break
+    fi
+
+    IFS=',' read -r -a picks <<< "$choice"
+    invalid=0
+    for pick in "${picks[@]}"; do
+      pick=$(echo "$pick" | sed -E 's/^\s+|\s+$//g')
+      if [[ ! "$pick" =~ ^[0-9]+$ ]]; then
+        invalid=1
+        break
+      fi
+      if [ "$pick" -eq 0 ]; then
+        echo "Returning to main menu..."
+        return 0
+      fi
+      if [ "$pick" -gt "$install_all_choice" ]; then
+        invalid=1
+        break
+      fi
+      if [ "$pick" -eq "$install_all_choice" ]; then
+        selected_packages=()
+        for pending in "${!pkg_status[@]}"; do
+          if [ "${pkg_status[$pending]}" = "to_install" ]; then
+            selected_packages+=("${pkg_names[$pending]}")
+          fi
+        done
+        echo "Selected all packages that need installation (${#selected_packages[@]} packages)"
+        break 2
+      fi
+      idx=$((pick - 1))
+      if [ "$idx" -lt 0 ] || [ "$idx" -ge "${#pkg_options[@]}" ]; then
+        invalid=1
+        break
+      fi
+      if [ "${pkg_status[$idx]}" = "installed" ]; then
+        echo "Package '${pkg_names[$idx]}' is already installed. Skipping."
+      else
+        selected_packages+=("${pkg_names[$idx]}")
+        echo "Selected: ${pkg_names[$idx]}"
+      fi
+    done
+    if [ "$invalid" -eq 1 ]; then
+      echo "Invalid choice: $choice"
+      continue
+    fi
+    if [ "${#selected_packages[@]}" -gt 0 ]; then
+      echo "Selected ${#selected_packages[@]} package(s) from ${group_name}"
+    fi
+    break
+  done
+
+  SUBMENU_SELECTIONS=("${selected_packages[@]}")
+}
+
+process_group_selection() {
+  local group_idx="$1"
+  show_package_submenu "$group_idx"
+  if [ ${#SUBMENU_SELECTIONS[@]} -eq 0 ]; then
+    return 0
+  fi
+  install_package_batch "${SUBMENU_SELECTIONS[@]}"
+  SUBMENU_SELECTIONS=()
+}
+
+echo "Package manager: $PM"
++ echo 'Package manager: apt'
+Package manager: apt
+describe_module_scope
++ describe_module_scope
++ modules=('browsers' 'fastfetch' 'git' 'neovim' 'setup' 'system' 'theming' 'modularshell' 'vim-config')
++ local modules
++ available=()
++ local available
++ for module in "${modules[@]}"
++ '[' -d browsers ']'
++ available+=("$module")
++ for module in "${modules[@]}"
++ '[' -d fastfetch ']'
++ available+=("$module")
++ for module in "${modules[@]}"
++ '[' -d git ']'
++ available+=("$module")
++ for module in "${modules[@]}"
++ '[' -d neovim ']'
++ for module in "${modules[@]}"
++ '[' -d setup ']'
++ available+=("$module")
++ for module in "${modules[@]}"
++ '[' -d system ']'
++ available+=("$module")
++ for module in "${modules[@]}"
++ '[' -d theming ']'
++ available+=("$module")
++ for module in "${modules[@]}"
++ '[' -d modularshell ']'
++ available+=("$module")
++ for module in "${modules[@]}"
++ '[' -d vim-config ']'
++ available+=("$module")
++ '[' 8 -eq 0 ']'
++ echo $'Installer modules: browsers\nfastfetch\ngit\nsetup\nsystem\ntheming\nmodularshell\nvim-config'
+Installer modules: browsers
+fastfetch
+git
+setup
+system
+theming
+modularshell
+vim-config
++ log $'Installer modules: browsers\nfastfetch\ngit\nsetup\nsystem\ntheming\nmodularshell\nvim-config'
++ local $'msg=Installer modules: browsers\nfastfetch\ngit\nsetup\nsystem\ntheming\nmodularshell\nvim-config'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z $'Installer modules: browsers\nfastfetch\ngit\nsetup\nsystem\ntheming\nmodularshell\nvim-config'
+2025-12-21T03:03:41Z Installer modules: browsers
+fastfetch
+git
+setup
+system
+theming
+modularshell
+vim-config
+
+if [ "$ASSUME_YES" -eq 1 ]; then
+  for i in "${!GROUP_ORDER[@]}"; do
+    mapfile -t group_pkgs < <(get_group_packages "$i")
+    install_package_batch "${group_pkgs[@]}"
+  done
+elif [ -n "$SELECT_GROUPS" ]; then
+  declare -a SELECTED_GROUP_INDICES=()
+  IFS=',' read -r -a requested <<< "$SELECT_GROUPS"
+  for requested_name in "${requested[@]}"; do
+    name_trim=$(echo "$requested_name" | sed -E 's/^\s+|\s+$//g')
+    for i in "${!GROUP_ORDER[@]}"; do
+      if [ "${GROUP_ORDER[$i]}" = "$name_trim" ]; then
+        SELECTED_GROUP_INDICES+=("$i")
+        break
+      fi
+    done
+  done
+  if [ ${#SELECTED_GROUP_INDICES[@]} -eq 0 ]; then
+    echo "No matching groups for --groups: $SELECT_GROUPS" >&2
+    exit 1
+  fi
+  for idx in "${SELECTED_GROUP_INDICES[@]}"; do
+    mapfile -t group_pkgs < <(get_group_packages "$idx")
+    install_package_batch "${group_pkgs[@]}"
+  done
+else
+  while true; do
+    echo
+    echo "+-------------------------------------------------------------+"
+    echo "|                   Package group overview                    |"
+    echo "+----+-------------------------------+-----------+------------+"
+    printf "| %2s | %-29s | %9s | %10s |\n" "ID" "Group" "Installed" "Available"
+    echo "+----+-------------------------------+-----------+------------+"
+
+    actions=()
+    for idx in "${ORDERED_GROUP_INDICES[@]}"; do
+      g="${GROUP_ORDER[$idx]}"
+      total_count=0
+      installed_count=0
+      if [ -n "${GROUP_VALUES[$idx]}" ]; then
+        while IFS= read -r pkg; do
+          pkg=$(echo "$pkg" | sed -E 's/^\s+|\s+$//g')
+          [ -z "$pkg" ] && continue
+          total_count=$((total_count + 1))
+          mapped_pkg=$(map_name "$pkg")
+          if is_installed "$mapped_pkg"; then
+            installed_count=$((installed_count + 1))
+          fi
+        done <<< "${GROUP_VALUES[$idx]}"
+      fi
+      to_install=$((total_count - installed_count))
+      actions+=("group:$idx")
+      printf "| %2d | %-29s | %9d | %10d |\n" "$(( ${#actions[@]} ))" "$g" "$installed_count" "$to_install"
+    done
+    echo "+----+-------------------------------+-----------+------------+"
+
+    all_idx=$(( ${#actions[@]} + 1 ))
+    actions+=("all")
+
+    printf "  %2d) %-56s\n" 0 "Exit installer"
+    printf " %2d) %-56s\n" "$all_idx" "Install every group sequentially"
+    echo
+    echo "Select a number to open that group's submenu; runs install immediately and returns here."
+    echo -n "Enter your choice (0-${all_idx}): "
+    if ! read -r main_choice; then
+      echo
+      log "Input stream ended; exiting menu."
+      break
+    fi
+    if [[ -z "$main_choice" ]]; then
+      echo "Please select an option."
+      continue
+    fi
+    if [[ ! "$main_choice" =~ ^[0-9]+$ ]]; then
+      echo "Invalid input: $main_choice"
+      continue
+    fi
+    if [ "$main_choice" -eq 0 ]; then
+      echo "Exiting installer..."
+      break
+    fi
+    sel_index=$((main_choice - 1))
+    if [ "$sel_index" -lt 0 ] || [ "$sel_index" -ge "${#actions[@]}" ]; then
+      echo "Choice out of range: $main_choice"
+      continue
+    fi
+    action="${actions[$sel_index]}"
+    case "$action" in
+      group:*)
+        process_group_selection "${action#group:}"
+        ;;
+      all)
+        for j in "${!GROUP_ORDER[@]}"; do
+          process_group_selection "$j"
+        done
+        ;;
+    esac
+  done
+fi
++ '[' 1 -eq 1 ']'
++ for i in "${!GROUP_ORDER[@]}"
++ mapfile -t group_pkgs
+++ get_group_packages 0
+++ local group_idx=0
+++ local pkg
+++ packages=()
+++ local packages
+++ IFS=
+++ read -r pkg
++++ echo brave-browser
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=brave-browser
+++ '[' -z brave-browser ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo chromium
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=chromium
+++ '[' -z chromium ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo firefox
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=firefox
+++ '[' -z firefox ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo opera
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=opera
+++ '[' -z opera ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo tor-browser
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=tor-browser
+++ '[' -z tor-browser ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo vivaldi
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=vivaldi
+++ '[' -z vivaldi ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
+++ printf '%s\n' brave-browser chromium firefox opera tor-browser vivaldi
++ install_package_batch brave-browser chromium firefox opera tor-browser vivaldi
++ packages=('brave-browser' 'chromium' 'firefox' 'opera' 'tor-browser' 'vivaldi')
++ local packages
++ mapped=()
++ local mapped
++ local pkg
++ for pkg in "${packages[@]}"
++ '[' -z brave-browser ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name brave-browser
+++ local name=brave-browser
+++ case "$PM" in
+++ '[' brave-browser = fd ']'
+++ '[' brave-browser = bat ']'
+++ echo brave-browser
++ for pkg in "${packages[@]}"
++ '[' -z chromium ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name chromium
+++ local name=chromium
+++ case "$PM" in
+++ '[' chromium = fd ']'
+++ '[' chromium = bat ']'
+++ echo chromium
++ for pkg in "${packages[@]}"
++ '[' -z firefox ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name firefox
+++ local name=firefox
+++ case "$PM" in
+++ '[' firefox = fd ']'
+++ '[' firefox = bat ']'
+++ echo firefox
++ for pkg in "${packages[@]}"
++ '[' -z opera ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name opera
+++ local name=opera
+++ case "$PM" in
+++ '[' opera = fd ']'
+++ '[' opera = bat ']'
+++ echo opera
++ for pkg in "${packages[@]}"
++ '[' -z tor-browser ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name tor-browser
+++ local name=tor-browser
+++ case "$PM" in
+++ '[' tor-browser = fd ']'
+++ '[' tor-browser = bat ']'
+++ echo tor-browser
++ for pkg in "${packages[@]}"
++ '[' -z vivaldi ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name vivaldi
+++ local name=vivaldi
+++ case "$PM" in
+++ '[' vivaldi = fd ']'
+++ '[' vivaldi = bat ']'
+++ echo vivaldi
++ to_install=()
++ local to_install
++ for pkg in "${mapped[@]}"
++ is_installed brave-browser
++ local pkg=brave-browser
++ case "$PM" in
++ dpkg -s brave-browser
++ true
++ command -v brave-browser
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed chromium
++ local pkg=chromium
++ case "$PM" in
++ dpkg -s chromium
++ true
++ command -v chromium
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed firefox
++ local pkg=firefox
++ case "$PM" in
++ dpkg -s firefox
++ true
++ command -v firefox
++ return 0
++ log 'Skipping installed package: firefox'
++ local 'msg=Skipping installed package: firefox'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: firefox'
+2025-12-21T03:03:41Z Skipping installed package: firefox
++ for pkg in "${mapped[@]}"
++ is_installed opera
++ local pkg=opera
++ case "$PM" in
++ dpkg -s opera
++ true
++ command -v opera
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed tor-browser
++ local pkg=tor-browser
++ case "$PM" in
++ dpkg -s tor-browser
++ true
++ command -v tor-browser
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed vivaldi
++ local pkg=vivaldi
++ case "$PM" in
++ dpkg -s vivaldi
++ true
++ command -v vivaldi
++ return 1
++ to_install+=("$pkg")
++ '[' 5 -eq 0 ']'
++ '[' apt = apt ']'
++ '[' 0 -eq 0 ']'
++ run_cmd 'sudo apt update'
++ local 'cmd=sudo apt update'
++ log 'RUN: sudo apt update'
++ local 'msg=RUN: sudo apt update'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'RUN: sudo apt update'
+2025-12-21T03:03:41Z RUN: sudo apt update
++ '[' 1 -eq 1 ']'
++ log 'DRY-RUN: sudo apt update'
++ local 'msg=DRY-RUN: sudo apt update'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'DRY-RUN: sudo apt update'
+2025-12-21T03:03:41Z DRY-RUN: sudo apt update
++ return 0
++ APT_UPDATED=1
++ '[' -z 'sudo apt install -y' ']'
++ log 'Installing 5 packages for apt'
++ local 'msg=Installing 5 packages for apt'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Installing 5 packages for apt'
+2025-12-21T03:03:41Z Installing 5 packages for apt
++ local pkg_list
+++ printf '%s ' brave-browser chromium opera tor-browser vivaldi
++ pkg_list='brave-browser chromium opera tor-browser vivaldi '
++ run_cmd 'sudo apt install -y brave-browser chromium opera tor-browser vivaldi '
++ local 'cmd=sudo apt install -y brave-browser chromium opera tor-browser vivaldi '
++ log 'RUN: sudo apt install -y brave-browser chromium opera tor-browser vivaldi '
++ local 'msg=RUN: sudo apt install -y brave-browser chromium opera tor-browser vivaldi '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'RUN: sudo apt install -y brave-browser chromium opera tor-browser vivaldi '
+2025-12-21T03:03:41Z RUN: sudo apt install -y brave-browser chromium opera tor-browser vivaldi 
++ '[' 1 -eq 1 ']'
++ log 'DRY-RUN: sudo apt install -y brave-browser chromium opera tor-browser vivaldi '
++ local 'msg=DRY-RUN: sudo apt install -y brave-browser chromium opera tor-browser vivaldi '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'DRY-RUN: sudo apt install -y brave-browser chromium opera tor-browser vivaldi '
+2025-12-21T03:03:41Z DRY-RUN: sudo apt install -y brave-browser chromium opera tor-browser vivaldi 
++ return 0
++ for i in "${!GROUP_ORDER[@]}"
++ mapfile -t group_pkgs
+++ get_group_packages 1
+++ local group_idx=1
+++ local pkg
+++ packages=()
+++ local packages
+++ IFS=
+++ read -r pkg
++++ echo atk
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=atk
+++ '[' -z atk ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo cairo
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=cairo
+++ '[' -z cairo ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo clang
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=clang
+++ '[' -z clang ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo gdk-pixbuf
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=gdk-pixbuf
+++ '[' -z gdk-pixbuf ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo glib2
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=glib2
+++ '[' -z glib2 ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo gtk3
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=gtk3
+++ '[' -z gtk3 ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo llvm
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=llvm
+++ '[' -z llvm ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo mesa
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=mesa
+++ '[' -z mesa ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo pango
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=pango
+++ '[' -z pango ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
+++ printf '%s\n' atk cairo clang gdk-pixbuf glib2 gtk3 llvm mesa pango
++ install_package_batch atk cairo clang gdk-pixbuf glib2 gtk3 llvm mesa pango
++ packages=('atk' 'cairo' 'clang' 'gdk-pixbuf' 'glib2' 'gtk3' 'llvm' 'mesa' 'pango')
++ local packages
++ mapped=()
++ local mapped
++ local pkg
++ for pkg in "${packages[@]}"
++ '[' -z atk ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name atk
+++ local name=atk
+++ case "$PM" in
+++ '[' atk = fd ']'
+++ '[' atk = bat ']'
+++ echo atk
++ for pkg in "${packages[@]}"
++ '[' -z cairo ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name cairo
+++ local name=cairo
+++ case "$PM" in
+++ '[' cairo = fd ']'
+++ '[' cairo = bat ']'
+++ echo cairo
++ for pkg in "${packages[@]}"
++ '[' -z clang ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name clang
+++ local name=clang
+++ case "$PM" in
+++ '[' clang = fd ']'
+++ '[' clang = bat ']'
+++ echo clang
++ for pkg in "${packages[@]}"
++ '[' -z gdk-pixbuf ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name gdk-pixbuf
+++ local name=gdk-pixbuf
+++ case "$PM" in
+++ '[' gdk-pixbuf = fd ']'
+++ '[' gdk-pixbuf = bat ']'
+++ echo gdk-pixbuf
++ for pkg in "${packages[@]}"
++ '[' -z glib2 ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name glib2
+++ local name=glib2
+++ case "$PM" in
+++ '[' glib2 = fd ']'
+++ '[' glib2 = bat ']'
+++ echo glib2
++ for pkg in "${packages[@]}"
++ '[' -z gtk3 ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name gtk3
+++ local name=gtk3
+++ case "$PM" in
+++ '[' gtk3 = fd ']'
+++ '[' gtk3 = bat ']'
+++ echo gtk3
++ for pkg in "${packages[@]}"
++ '[' -z llvm ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name llvm
+++ local name=llvm
+++ case "$PM" in
+++ '[' llvm = fd ']'
+++ '[' llvm = bat ']'
+++ echo llvm
++ for pkg in "${packages[@]}"
++ '[' -z mesa ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name mesa
+++ local name=mesa
+++ case "$PM" in
+++ '[' mesa = fd ']'
+++ '[' mesa = bat ']'
+++ echo mesa
++ for pkg in "${packages[@]}"
++ '[' -z pango ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name pango
+++ local name=pango
+++ case "$PM" in
+++ '[' pango = fd ']'
+++ '[' pango = bat ']'
+++ echo pango
++ to_install=()
++ local to_install
++ for pkg in "${mapped[@]}"
++ is_installed atk
++ local pkg=atk
++ case "$PM" in
++ dpkg -s atk
++ true
++ command -v atk
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed cairo
++ local pkg=cairo
++ case "$PM" in
++ dpkg -s cairo
++ true
++ command -v cairo
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed clang
++ local pkg=clang
++ case "$PM" in
++ dpkg -s clang
++ true
++ command -v clang
++ return 0
++ log 'Skipping installed package: clang'
++ local 'msg=Skipping installed package: clang'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: clang'
+2025-12-21T03:03:41Z Skipping installed package: clang
++ for pkg in "${mapped[@]}"
++ is_installed gdk-pixbuf
++ local pkg=gdk-pixbuf
++ case "$PM" in
++ dpkg -s gdk-pixbuf
++ true
++ command -v gdk-pixbuf
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed glib2
++ local pkg=glib2
++ case "$PM" in
++ dpkg -s glib2
++ true
++ command -v glib2
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed gtk3
++ local pkg=gtk3
++ case "$PM" in
++ dpkg -s gtk3
++ true
++ command -v gtk3
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed llvm
++ local pkg=llvm
++ case "$PM" in
++ dpkg -s llvm
++ true
++ command -v llvm
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed mesa
++ local pkg=mesa
++ case "$PM" in
++ dpkg -s mesa
++ true
++ command -v mesa
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed pango
++ local pkg=pango
++ case "$PM" in
++ dpkg -s pango
++ true
++ command -v pango
++ return 1
++ to_install+=("$pkg")
++ '[' 8 -eq 0 ']'
++ '[' apt = apt ']'
++ '[' 1 -eq 0 ']'
++ '[' -z 'sudo apt install -y' ']'
++ log 'Installing 8 packages for apt'
++ local 'msg=Installing 8 packages for apt'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Installing 8 packages for apt'
+2025-12-21T03:03:41Z Installing 8 packages for apt
++ local pkg_list
+++ printf '%s ' atk cairo gdk-pixbuf glib2 gtk3 llvm mesa pango
++ pkg_list='atk cairo gdk-pixbuf glib2 gtk3 llvm mesa pango '
++ run_cmd 'sudo apt install -y atk cairo gdk-pixbuf glib2 gtk3 llvm mesa pango '
++ local 'cmd=sudo apt install -y atk cairo gdk-pixbuf glib2 gtk3 llvm mesa pango '
++ log 'RUN: sudo apt install -y atk cairo gdk-pixbuf glib2 gtk3 llvm mesa pango '
++ local 'msg=RUN: sudo apt install -y atk cairo gdk-pixbuf glib2 gtk3 llvm mesa pango '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'RUN: sudo apt install -y atk cairo gdk-pixbuf glib2 gtk3 llvm mesa pango '
+2025-12-21T03:03:41Z RUN: sudo apt install -y atk cairo gdk-pixbuf glib2 gtk3 llvm mesa pango 
++ '[' 1 -eq 1 ']'
++ log 'DRY-RUN: sudo apt install -y atk cairo gdk-pixbuf glib2 gtk3 llvm mesa pango '
++ local 'msg=DRY-RUN: sudo apt install -y atk cairo gdk-pixbuf glib2 gtk3 llvm mesa pango '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'DRY-RUN: sudo apt install -y atk cairo gdk-pixbuf glib2 gtk3 llvm mesa pango '
+2025-12-21T03:03:41Z DRY-RUN: sudo apt install -y atk cairo gdk-pixbuf glib2 gtk3 llvm mesa pango 
++ return 0
++ for i in "${!GROUP_ORDER[@]}"
++ mapfile -t group_pkgs
+++ get_group_packages 2
+++ local group_idx=2
+++ local pkg
+++ packages=()
+++ local packages
+++ IFS=
+++ read -r pkg
++++ echo mongodb
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=mongodb
+++ '[' -z mongodb ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo mysql
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=mysql
+++ '[' -z mysql ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo postgresql
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=postgresql
+++ '[' -z postgresql ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo redis
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=redis
+++ '[' -z redis ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo sqlite3
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=sqlite3
+++ '[' -z sqlite3 ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
+++ printf '%s\n' mongodb mysql postgresql redis sqlite3
++ install_package_batch mongodb mysql postgresql redis sqlite3
++ packages=('mongodb' 'mysql' 'postgresql' 'redis' 'sqlite3')
++ local packages
++ mapped=()
++ local mapped
++ local pkg
++ for pkg in "${packages[@]}"
++ '[' -z mongodb ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name mongodb
+++ local name=mongodb
+++ case "$PM" in
+++ '[' mongodb = fd ']'
+++ '[' mongodb = bat ']'
+++ echo mongodb
++ for pkg in "${packages[@]}"
++ '[' -z mysql ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name mysql
+++ local name=mysql
+++ case "$PM" in
+++ '[' mysql = fd ']'
+++ '[' mysql = bat ']'
+++ echo mysql
++ for pkg in "${packages[@]}"
++ '[' -z postgresql ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name postgresql
+++ local name=postgresql
+++ case "$PM" in
+++ '[' postgresql = fd ']'
+++ '[' postgresql = bat ']'
+++ echo postgresql
++ for pkg in "${packages[@]}"
++ '[' -z redis ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name redis
+++ local name=redis
+++ case "$PM" in
+++ '[' redis = fd ']'
+++ '[' redis = bat ']'
+++ echo redis
++ for pkg in "${packages[@]}"
++ '[' -z sqlite3 ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name sqlite3
+++ local name=sqlite3
+++ case "$PM" in
+++ '[' sqlite3 = fd ']'
+++ '[' sqlite3 = bat ']'
+++ echo sqlite3
++ to_install=()
++ local to_install
++ for pkg in "${mapped[@]}"
++ is_installed mongodb
++ local pkg=mongodb
++ case "$PM" in
++ dpkg -s mongodb
++ true
++ command -v mongodb
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed mysql
++ local pkg=mysql
++ case "$PM" in
++ dpkg -s mysql
++ true
++ command -v mysql
++ return 0
++ log 'Skipping installed package: mysql'
++ local 'msg=Skipping installed package: mysql'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: mysql'
+2025-12-21T03:03:41Z Skipping installed package: mysql
++ for pkg in "${mapped[@]}"
++ is_installed postgresql
++ local pkg=postgresql
++ case "$PM" in
++ dpkg -s postgresql
++ true
++ command -v postgresql
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed redis
++ local pkg=redis
++ case "$PM" in
++ dpkg -s redis
++ true
++ command -v redis
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed sqlite3
++ local pkg=sqlite3
++ case "$PM" in
++ dpkg -s sqlite3
++ true
++ command -v sqlite3
++ return 0
++ log 'Skipping installed package: sqlite3'
++ local 'msg=Skipping installed package: sqlite3'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: sqlite3'
+2025-12-21T03:03:41Z Skipping installed package: sqlite3
++ '[' 3 -eq 0 ']'
++ '[' apt = apt ']'
++ '[' 1 -eq 0 ']'
++ '[' -z 'sudo apt install -y' ']'
++ log 'Installing 3 packages for apt'
++ local 'msg=Installing 3 packages for apt'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Installing 3 packages for apt'
+2025-12-21T03:03:41Z Installing 3 packages for apt
++ local pkg_list
+++ printf '%s ' mongodb postgresql redis
++ pkg_list='mongodb postgresql redis '
++ run_cmd 'sudo apt install -y mongodb postgresql redis '
++ local 'cmd=sudo apt install -y mongodb postgresql redis '
++ log 'RUN: sudo apt install -y mongodb postgresql redis '
++ local 'msg=RUN: sudo apt install -y mongodb postgresql redis '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'RUN: sudo apt install -y mongodb postgresql redis '
+2025-12-21T03:03:41Z RUN: sudo apt install -y mongodb postgresql redis 
++ '[' 1 -eq 1 ']'
++ log 'DRY-RUN: sudo apt install -y mongodb postgresql redis '
++ local 'msg=DRY-RUN: sudo apt install -y mongodb postgresql redis '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'DRY-RUN: sudo apt install -y mongodb postgresql redis '
+2025-12-21T03:03:41Z DRY-RUN: sudo apt install -y mongodb postgresql redis 
++ return 0
++ for i in "${!GROUP_ORDER[@]}"
++ mapfile -t group_pkgs
+++ get_group_packages 3
+++ local group_idx=3
+++ local pkg
+++ packages=()
+++ local packages
+++ IFS=
+++ read -r pkg
++++ echo autoconf
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=autoconf
+++ '[' -z autoconf ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo automake
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=automake
+++ '[' -z automake ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo bison
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=bison
+++ '[' -z bison ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo cargo
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=cargo
+++ '[' -z cargo ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo check
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=check
+++ '[' -z check ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo cmake
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=cmake
+++ '[' -z cmake ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo cppcheck
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=cppcheck
+++ '[' -z cppcheck ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo flex
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=flex
+++ '[' -z flex ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo g++
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=g++
+++ '[' -z g++ ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo gcc
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=gcc
+++ '[' -z gcc ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo gettext
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=gettext
+++ '[' -z gettext ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo intltool
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=intltool
+++ '[' -z intltool ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo libtool
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=libtool
+++ '[' -z libtool ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo make
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=make
+++ '[' -z make ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo ninja
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=ninja
+++ '[' -z ninja ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo nodejs
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=nodejs
+++ '[' -z nodejs ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo npm
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=npm
+++ '[' -z npm ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo pkg-config
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=pkg-config
+++ '[' -z pkg-config ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo python3
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=python3
+++ '[' -z python3 ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo python3-pip
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=python3-pip
+++ '[' -z python3-pip ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo rust
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=rust
+++ '[' -z rust ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo valac
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=valac
+++ '[' -z valac ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
+++ printf '%s\n' autoconf automake bison cargo check cmake cppcheck flex g++ gcc gettext intltool libtool make ninja nodejs npm pkg-config python3 python3-pip rust valac
++ install_package_batch autoconf automake bison cargo check cmake cppcheck flex g++ gcc gettext intltool libtool make ninja nodejs npm pkg-config python3 python3-pip rust valac
++ packages=('autoconf' 'automake' 'bison' 'cargo' 'check' 'cmake' 'cppcheck' 'flex' 'g++' 'gcc' 'gettext' 'intltool' 'libtool' 'make' 'ninja' 'nodejs' 'npm' 'pkg-config' 'python3' 'python3-pip' 'rust' 'valac')
++ local packages
++ mapped=()
++ local mapped
++ local pkg
++ for pkg in "${packages[@]}"
++ '[' -z autoconf ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name autoconf
+++ local name=autoconf
+++ case "$PM" in
+++ '[' autoconf = fd ']'
+++ '[' autoconf = bat ']'
+++ echo autoconf
++ for pkg in "${packages[@]}"
++ '[' -z automake ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name automake
+++ local name=automake
+++ case "$PM" in
+++ '[' automake = fd ']'
+++ '[' automake = bat ']'
+++ echo automake
++ for pkg in "${packages[@]}"
++ '[' -z bison ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name bison
+++ local name=bison
+++ case "$PM" in
+++ '[' bison = fd ']'
+++ '[' bison = bat ']'
+++ echo bison
++ for pkg in "${packages[@]}"
++ '[' -z cargo ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name cargo
+++ local name=cargo
+++ case "$PM" in
+++ '[' cargo = fd ']'
+++ '[' cargo = bat ']'
+++ echo cargo
++ for pkg in "${packages[@]}"
++ '[' -z check ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name check
+++ local name=check
+++ case "$PM" in
+++ '[' check = fd ']'
+++ '[' check = bat ']'
+++ echo check
++ for pkg in "${packages[@]}"
++ '[' -z cmake ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name cmake
+++ local name=cmake
+++ case "$PM" in
+++ '[' cmake = fd ']'
+++ '[' cmake = bat ']'
+++ echo cmake
++ for pkg in "${packages[@]}"
++ '[' -z cppcheck ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name cppcheck
+++ local name=cppcheck
+++ case "$PM" in
+++ '[' cppcheck = fd ']'
+++ '[' cppcheck = bat ']'
+++ echo cppcheck
++ for pkg in "${packages[@]}"
++ '[' -z flex ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name flex
+++ local name=flex
+++ case "$PM" in
+++ '[' flex = fd ']'
+++ '[' flex = bat ']'
+++ echo flex
++ for pkg in "${packages[@]}"
++ '[' -z g++ ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name g++
+++ local name=g++
+++ case "$PM" in
+++ '[' g++ = fd ']'
+++ '[' g++ = bat ']'
+++ echo g++
++ for pkg in "${packages[@]}"
++ '[' -z gcc ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name gcc
+++ local name=gcc
+++ case "$PM" in
+++ '[' gcc = fd ']'
+++ '[' gcc = bat ']'
+++ echo gcc
++ for pkg in "${packages[@]}"
++ '[' -z gettext ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name gettext
+++ local name=gettext
+++ case "$PM" in
+++ '[' gettext = fd ']'
+++ '[' gettext = bat ']'
+++ echo gettext
++ for pkg in "${packages[@]}"
++ '[' -z intltool ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name intltool
+++ local name=intltool
+++ case "$PM" in
+++ '[' intltool = fd ']'
+++ '[' intltool = bat ']'
+++ echo intltool
++ for pkg in "${packages[@]}"
++ '[' -z libtool ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name libtool
+++ local name=libtool
+++ case "$PM" in
+++ '[' libtool = fd ']'
+++ '[' libtool = bat ']'
+++ echo libtool
++ for pkg in "${packages[@]}"
++ '[' -z make ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name make
+++ local name=make
+++ case "$PM" in
+++ '[' make = fd ']'
+++ '[' make = bat ']'
+++ echo make
++ for pkg in "${packages[@]}"
++ '[' -z ninja ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name ninja
+++ local name=ninja
+++ case "$PM" in
+++ '[' ninja = fd ']'
+++ '[' ninja = bat ']'
+++ echo ninja
++ for pkg in "${packages[@]}"
++ '[' -z nodejs ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name nodejs
+++ local name=nodejs
+++ case "$PM" in
+++ '[' nodejs = fd ']'
+++ '[' nodejs = bat ']'
+++ echo nodejs
++ for pkg in "${packages[@]}"
++ '[' -z npm ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name npm
+++ local name=npm
+++ case "$PM" in
+++ '[' npm = fd ']'
+++ '[' npm = bat ']'
+++ echo npm
++ for pkg in "${packages[@]}"
++ '[' -z pkg-config ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name pkg-config
+++ local name=pkg-config
+++ case "$PM" in
+++ '[' pkg-config = fd ']'
+++ '[' pkg-config = bat ']'
+++ echo pkg-config
++ for pkg in "${packages[@]}"
++ '[' -z python3 ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name python3
+++ local name=python3
+++ case "$PM" in
+++ '[' python3 = fd ']'
+++ '[' python3 = bat ']'
+++ echo python3
++ for pkg in "${packages[@]}"
++ '[' -z python3-pip ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name python3-pip
+++ local name=python3-pip
+++ case "$PM" in
+++ '[' python3-pip = fd ']'
+++ '[' python3-pip = bat ']'
+++ echo python3-pip
++ for pkg in "${packages[@]}"
++ '[' -z rust ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name rust
+++ local name=rust
+++ case "$PM" in
+++ '[' rust = fd ']'
+++ '[' rust = bat ']'
+++ echo rust
++ for pkg in "${packages[@]}"
++ '[' -z valac ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name valac
+++ local name=valac
+++ case "$PM" in
+++ '[' valac = fd ']'
+++ '[' valac = bat ']'
+++ echo valac
++ to_install=()
++ local to_install
++ for pkg in "${mapped[@]}"
++ is_installed autoconf
++ local pkg=autoconf
++ case "$PM" in
++ dpkg -s autoconf
++ true
++ command -v autoconf
++ return 0
++ log 'Skipping installed package: autoconf'
++ local 'msg=Skipping installed package: autoconf'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: autoconf'
+2025-12-21T03:03:41Z Skipping installed package: autoconf
++ for pkg in "${mapped[@]}"
++ is_installed automake
++ local pkg=automake
++ case "$PM" in
++ dpkg -s automake
++ true
++ command -v automake
++ return 0
++ log 'Skipping installed package: automake'
++ local 'msg=Skipping installed package: automake'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: automake'
+2025-12-21T03:03:41Z Skipping installed package: automake
++ for pkg in "${mapped[@]}"
++ is_installed bison
++ local pkg=bison
++ case "$PM" in
++ dpkg -s bison
++ true
++ command -v bison
++ return 0
++ log 'Skipping installed package: bison'
++ local 'msg=Skipping installed package: bison'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: bison'
+2025-12-21T03:03:41Z Skipping installed package: bison
++ for pkg in "${mapped[@]}"
++ is_installed cargo
++ local pkg=cargo
++ case "$PM" in
++ dpkg -s cargo
++ true
++ command -v cargo
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed check
++ local pkg=check
++ case "$PM" in
++ dpkg -s check
++ true
++ command -v check
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed cmake
++ local pkg=cmake
++ case "$PM" in
++ dpkg -s cmake
++ true
++ command -v cmake
++ return 0
++ log 'Skipping installed package: cmake'
++ local 'msg=Skipping installed package: cmake'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: cmake'
+2025-12-21T03:03:41Z Skipping installed package: cmake
++ for pkg in "${mapped[@]}"
++ is_installed cppcheck
++ local pkg=cppcheck
++ case "$PM" in
++ dpkg -s cppcheck
++ true
++ command -v cppcheck
++ return 0
++ log 'Skipping installed package: cppcheck'
++ local 'msg=Skipping installed package: cppcheck'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: cppcheck'
+2025-12-21T03:03:41Z Skipping installed package: cppcheck
++ for pkg in "${mapped[@]}"
++ is_installed flex
++ local pkg=flex
++ case "$PM" in
++ dpkg -s flex
++ true
++ command -v flex
++ return 0
++ log 'Skipping installed package: flex'
++ local 'msg=Skipping installed package: flex'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: flex'
+2025-12-21T03:03:41Z Skipping installed package: flex
++ for pkg in "${mapped[@]}"
++ is_installed g++
++ local pkg=g++
++ case "$PM" in
++ dpkg -s g++
++ true
++ command -v g++
++ return 0
++ log 'Skipping installed package: g++'
++ local 'msg=Skipping installed package: g++'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: g++'
+2025-12-21T03:03:41Z Skipping installed package: g++
++ for pkg in "${mapped[@]}"
++ is_installed gcc
++ local pkg=gcc
++ case "$PM" in
++ dpkg -s gcc
++ true
++ command -v gcc
++ return 0
++ log 'Skipping installed package: gcc'
++ local 'msg=Skipping installed package: gcc'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: gcc'
+2025-12-21T03:03:41Z Skipping installed package: gcc
++ for pkg in "${mapped[@]}"
++ is_installed gettext
++ local pkg=gettext
++ case "$PM" in
++ dpkg -s gettext
++ true
++ command -v gettext
++ return 0
++ log 'Skipping installed package: gettext'
++ local 'msg=Skipping installed package: gettext'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: gettext'
+2025-12-21T03:03:41Z Skipping installed package: gettext
++ for pkg in "${mapped[@]}"
++ is_installed intltool
++ local pkg=intltool
++ case "$PM" in
++ dpkg -s intltool
++ true
++ command -v intltool
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed libtool
++ local pkg=libtool
++ case "$PM" in
++ dpkg -s libtool
++ true
++ command -v libtool
++ return 0
++ log 'Skipping installed package: libtool'
++ local 'msg=Skipping installed package: libtool'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: libtool'
+2025-12-21T03:03:41Z Skipping installed package: libtool
++ for pkg in "${mapped[@]}"
++ is_installed make
++ local pkg=make
++ case "$PM" in
++ dpkg -s make
++ true
++ command -v make
++ return 0
++ log 'Skipping installed package: make'
++ local 'msg=Skipping installed package: make'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: make'
+2025-12-21T03:03:41Z Skipping installed package: make
++ for pkg in "${mapped[@]}"
++ is_installed ninja
++ local pkg=ninja
++ case "$PM" in
++ dpkg -s ninja
++ true
++ command -v ninja
++ return 0
++ log 'Skipping installed package: ninja'
++ local 'msg=Skipping installed package: ninja'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: ninja'
+2025-12-21T03:03:41Z Skipping installed package: ninja
++ for pkg in "${mapped[@]}"
++ is_installed nodejs
++ local pkg=nodejs
++ case "$PM" in
++ dpkg -s nodejs
++ true
++ command -v nodejs
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed npm
++ local pkg=npm
++ case "$PM" in
++ dpkg -s npm
++ true
++ command -v npm
++ return 0
++ log 'Skipping installed package: npm'
++ local 'msg=Skipping installed package: npm'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: npm'
+2025-12-21T03:03:41Z Skipping installed package: npm
++ for pkg in "${mapped[@]}"
++ is_installed pkg-config
++ local pkg=pkg-config
++ case "$PM" in
++ dpkg -s pkg-config
++ true
++ command -v pkg-config
++ return 0
++ log 'Skipping installed package: pkg-config'
++ local 'msg=Skipping installed package: pkg-config'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: pkg-config'
+2025-12-21T03:03:41Z Skipping installed package: pkg-config
++ for pkg in "${mapped[@]}"
++ is_installed python3
++ local pkg=python3
++ case "$PM" in
++ dpkg -s python3
++ true
++ command -v python3
++ return 0
++ log 'Skipping installed package: python3'
++ local 'msg=Skipping installed package: python3'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: python3'
+2025-12-21T03:03:41Z Skipping installed package: python3
++ for pkg in "${mapped[@]}"
++ is_installed python3-pip
++ local pkg=python3-pip
++ case "$PM" in
++ dpkg -s python3-pip
++ true
++ command -v python3-pip
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed rust
++ local pkg=rust
++ case "$PM" in
++ dpkg -s rust
++ true
++ command -v rust
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed valac
++ local pkg=valac
++ case "$PM" in
++ dpkg -s valac
++ true
++ command -v valac
++ return 1
++ to_install+=("$pkg")
++ '[' 7 -eq 0 ']'
++ '[' apt = apt ']'
++ '[' 1 -eq 0 ']'
++ '[' -z 'sudo apt install -y' ']'
++ log 'Installing 7 packages for apt'
++ local 'msg=Installing 7 packages for apt'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Installing 7 packages for apt'
+2025-12-21T03:03:41Z Installing 7 packages for apt
++ local pkg_list
+++ printf '%s ' cargo check intltool nodejs python3-pip rust valac
++ pkg_list='cargo check intltool nodejs python3-pip rust valac '
++ run_cmd 'sudo apt install -y cargo check intltool nodejs python3-pip rust valac '
++ local 'cmd=sudo apt install -y cargo check intltool nodejs python3-pip rust valac '
++ log 'RUN: sudo apt install -y cargo check intltool nodejs python3-pip rust valac '
++ local 'msg=RUN: sudo apt install -y cargo check intltool nodejs python3-pip rust valac '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'RUN: sudo apt install -y cargo check intltool nodejs python3-pip rust valac '
+2025-12-21T03:03:41Z RUN: sudo apt install -y cargo check intltool nodejs python3-pip rust valac 
++ '[' 1 -eq 1 ']'
++ log 'DRY-RUN: sudo apt install -y cargo check intltool nodejs python3-pip rust valac '
++ local 'msg=DRY-RUN: sudo apt install -y cargo check intltool nodejs python3-pip rust valac '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'DRY-RUN: sudo apt install -y cargo check intltool nodejs python3-pip rust valac '
+2025-12-21T03:03:41Z DRY-RUN: sudo apt install -y cargo check intltool nodejs python3-pip rust valac 
++ return 0
++ for i in "${!GROUP_ORDER[@]}"
++ mapfile -t group_pkgs
+++ get_group_packages 4
+++ local group_idx=4
+++ local pkg
+++ packages=()
+++ local packages
+++ IFS=
+++ read -r pkg
++++ echo adapta-gtk-theme
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=adapta-gtk-theme
+++ '[' -z adapta-gtk-theme ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo arc-theme
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=arc-theme
+++ '[' -z arc-theme ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo nerd-fonts
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=nerd-fonts
+++ '[' -z nerd-fonts ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo papirus-icon-theme
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=papirus-icon-theme
+++ '[' -z papirus-icon-theme ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
+++ printf '%s\n' adapta-gtk-theme arc-theme nerd-fonts papirus-icon-theme
++ install_package_batch adapta-gtk-theme arc-theme nerd-fonts papirus-icon-theme
++ packages=('adapta-gtk-theme' 'arc-theme' 'nerd-fonts' 'papirus-icon-theme')
++ local packages
++ mapped=()
++ local mapped
++ local pkg
++ for pkg in "${packages[@]}"
++ '[' -z adapta-gtk-theme ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name adapta-gtk-theme
+++ local name=adapta-gtk-theme
+++ case "$PM" in
+++ '[' adapta-gtk-theme = fd ']'
+++ '[' adapta-gtk-theme = bat ']'
+++ echo adapta-gtk-theme
++ for pkg in "${packages[@]}"
++ '[' -z arc-theme ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name arc-theme
+++ local name=arc-theme
+++ case "$PM" in
+++ '[' arc-theme = fd ']'
+++ '[' arc-theme = bat ']'
+++ echo arc-theme
++ for pkg in "${packages[@]}"
++ '[' -z nerd-fonts ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name nerd-fonts
+++ local name=nerd-fonts
+++ case "$PM" in
+++ '[' nerd-fonts = fd ']'
+++ '[' nerd-fonts = bat ']'
+++ echo nerd-fonts
++ for pkg in "${packages[@]}"
++ '[' -z papirus-icon-theme ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name papirus-icon-theme
+++ local name=papirus-icon-theme
+++ case "$PM" in
+++ '[' papirus-icon-theme = fd ']'
+++ '[' papirus-icon-theme = bat ']'
+++ echo papirus-icon-theme
++ to_install=()
++ local to_install
++ for pkg in "${mapped[@]}"
++ is_installed adapta-gtk-theme
++ local pkg=adapta-gtk-theme
++ case "$PM" in
++ dpkg -s adapta-gtk-theme
++ true
++ command -v adapta-gtk-theme
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed arc-theme
++ local pkg=arc-theme
++ case "$PM" in
++ dpkg -s arc-theme
++ true
++ command -v arc-theme
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed nerd-fonts
++ local pkg=nerd-fonts
++ case "$PM" in
++ dpkg -s nerd-fonts
++ true
++ command -v nerd-fonts
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed papirus-icon-theme
++ local pkg=papirus-icon-theme
++ case "$PM" in
++ dpkg -s papirus-icon-theme
++ true
++ command -v papirus-icon-theme
++ return 1
++ to_install+=("$pkg")
++ '[' 4 -eq 0 ']'
++ '[' apt = apt ']'
++ '[' 1 -eq 0 ']'
++ '[' -z 'sudo apt install -y' ']'
++ log 'Installing 4 packages for apt'
++ local 'msg=Installing 4 packages for apt'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Installing 4 packages for apt'
+2025-12-21T03:03:41Z Installing 4 packages for apt
++ local pkg_list
+++ printf '%s ' adapta-gtk-theme arc-theme nerd-fonts papirus-icon-theme
++ pkg_list='adapta-gtk-theme arc-theme nerd-fonts papirus-icon-theme '
++ run_cmd 'sudo apt install -y adapta-gtk-theme arc-theme nerd-fonts papirus-icon-theme '
++ local 'cmd=sudo apt install -y adapta-gtk-theme arc-theme nerd-fonts papirus-icon-theme '
++ log 'RUN: sudo apt install -y adapta-gtk-theme arc-theme nerd-fonts papirus-icon-theme '
++ local 'msg=RUN: sudo apt install -y adapta-gtk-theme arc-theme nerd-fonts papirus-icon-theme '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'RUN: sudo apt install -y adapta-gtk-theme arc-theme nerd-fonts papirus-icon-theme '
+2025-12-21T03:03:41Z RUN: sudo apt install -y adapta-gtk-theme arc-theme nerd-fonts papirus-icon-theme 
++ '[' 1 -eq 1 ']'
++ log 'DRY-RUN: sudo apt install -y adapta-gtk-theme arc-theme nerd-fonts papirus-icon-theme '
++ local 'msg=DRY-RUN: sudo apt install -y adapta-gtk-theme arc-theme nerd-fonts papirus-icon-theme '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'DRY-RUN: sudo apt install -y adapta-gtk-theme arc-theme nerd-fonts papirus-icon-theme '
+2025-12-21T03:03:41Z DRY-RUN: sudo apt install -y adapta-gtk-theme arc-theme nerd-fonts papirus-icon-theme 
++ return 0
++ for i in "${!GROUP_ORDER[@]}"
++ mapfile -t group_pkgs
+++ get_group_packages 5
+++ local group_idx=5
+++ local pkg
+++ packages=()
+++ local packages
+++ IFS=
+++ read -r pkg
++++ echo aria2
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=aria2
+++ '[' -z aria2 ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo netcat
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=netcat
+++ '[' -z netcat ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo nmap
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=nmap
+++ '[' -z nmap ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo rclone
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=rclone
+++ '[' -z rclone ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo socat
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=socat
+++ '[' -z socat ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo tcpdump
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=tcpdump
+++ '[' -z tcpdump ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo wireshark
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=wireshark
+++ '[' -z wireshark ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
+++ printf '%s\n' aria2 netcat nmap rclone socat tcpdump wireshark
++ install_package_batch aria2 netcat nmap rclone socat tcpdump wireshark
++ packages=('aria2' 'netcat' 'nmap' 'rclone' 'socat' 'tcpdump' 'wireshark')
++ local packages
++ mapped=()
++ local mapped
++ local pkg
++ for pkg in "${packages[@]}"
++ '[' -z aria2 ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name aria2
+++ local name=aria2
+++ case "$PM" in
+++ '[' aria2 = fd ']'
+++ '[' aria2 = bat ']'
+++ echo aria2
++ for pkg in "${packages[@]}"
++ '[' -z netcat ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name netcat
+++ local name=netcat
+++ case "$PM" in
+++ '[' netcat = fd ']'
+++ '[' netcat = bat ']'
+++ echo netcat
++ for pkg in "${packages[@]}"
++ '[' -z nmap ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name nmap
+++ local name=nmap
+++ case "$PM" in
+++ '[' nmap = fd ']'
+++ '[' nmap = bat ']'
+++ echo nmap
++ for pkg in "${packages[@]}"
++ '[' -z rclone ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name rclone
+++ local name=rclone
+++ case "$PM" in
+++ '[' rclone = fd ']'
+++ '[' rclone = bat ']'
+++ echo rclone
++ for pkg in "${packages[@]}"
++ '[' -z socat ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name socat
+++ local name=socat
+++ case "$PM" in
+++ '[' socat = fd ']'
+++ '[' socat = bat ']'
+++ echo socat
++ for pkg in "${packages[@]}"
++ '[' -z tcpdump ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name tcpdump
+++ local name=tcpdump
+++ case "$PM" in
+++ '[' tcpdump = fd ']'
+++ '[' tcpdump = bat ']'
+++ echo tcpdump
++ for pkg in "${packages[@]}"
++ '[' -z wireshark ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name wireshark
+++ local name=wireshark
+++ case "$PM" in
+++ '[' wireshark = fd ']'
+++ '[' wireshark = bat ']'
+++ echo wireshark
++ to_install=()
++ local to_install
++ for pkg in "${mapped[@]}"
++ is_installed aria2
++ local pkg=aria2
++ case "$PM" in
++ dpkg -s aria2
++ true
++ command -v aria2
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed netcat
++ local pkg=netcat
++ case "$PM" in
++ dpkg -s netcat
++ true
++ command -v netcat
++ return 0
++ log 'Skipping installed package: netcat'
++ local 'msg=Skipping installed package: netcat'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: netcat'
+2025-12-21T03:03:41Z Skipping installed package: netcat
++ for pkg in "${mapped[@]}"
++ is_installed nmap
++ local pkg=nmap
++ case "$PM" in
++ dpkg -s nmap
++ true
++ command -v nmap
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed rclone
++ local pkg=rclone
++ case "$PM" in
++ dpkg -s rclone
++ true
++ command -v rclone
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed socat
++ local pkg=socat
++ case "$PM" in
++ dpkg -s socat
++ true
++ command -v socat
++ return 0
++ log 'Skipping installed package: socat'
++ local 'msg=Skipping installed package: socat'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: socat'
+2025-12-21T03:03:41Z Skipping installed package: socat
++ for pkg in "${mapped[@]}"
++ is_installed tcpdump
++ local pkg=tcpdump
++ case "$PM" in
++ dpkg -s tcpdump
++ true
++ command -v tcpdump
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed wireshark
++ local pkg=wireshark
++ case "$PM" in
++ dpkg -s wireshark
++ true
++ command -v wireshark
++ return 1
++ to_install+=("$pkg")
++ '[' 5 -eq 0 ']'
++ '[' apt = apt ']'
++ '[' 1 -eq 0 ']'
++ '[' -z 'sudo apt install -y' ']'
++ log 'Installing 5 packages for apt'
++ local 'msg=Installing 5 packages for apt'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Installing 5 packages for apt'
+2025-12-21T03:03:41Z Installing 5 packages for apt
++ local pkg_list
+++ printf '%s ' aria2 nmap rclone tcpdump wireshark
++ pkg_list='aria2 nmap rclone tcpdump wireshark '
++ run_cmd 'sudo apt install -y aria2 nmap rclone tcpdump wireshark '
++ local 'cmd=sudo apt install -y aria2 nmap rclone tcpdump wireshark '
++ log 'RUN: sudo apt install -y aria2 nmap rclone tcpdump wireshark '
++ local 'msg=RUN: sudo apt install -y aria2 nmap rclone tcpdump wireshark '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'RUN: sudo apt install -y aria2 nmap rclone tcpdump wireshark '
+2025-12-21T03:03:41Z RUN: sudo apt install -y aria2 nmap rclone tcpdump wireshark 
++ '[' 1 -eq 1 ']'
++ log 'DRY-RUN: sudo apt install -y aria2 nmap rclone tcpdump wireshark '
++ local 'msg=DRY-RUN: sudo apt install -y aria2 nmap rclone tcpdump wireshark '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'DRY-RUN: sudo apt install -y aria2 nmap rclone tcpdump wireshark '
+2025-12-21T03:03:41Z DRY-RUN: sudo apt install -y aria2 nmap rclone tcpdump wireshark 
++ return 0
++ for i in "${!GROUP_ORDER[@]}"
++ mapfile -t group_pkgs
+++ get_group_packages 6
+++ local group_idx=6
+++ local pkg
+++ packages=()
+++ local packages
+++ IFS=
+++ read -r pkg
++++ echo dropbox
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=dropbox
+++ '[' -z dropbox ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo evolution
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=evolution
+++ '[' -z evolution ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo geary
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=geary
+++ '[' -z geary ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo libreoffice
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=libreoffice
+++ '[' -z libreoffice ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo megasync
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=megasync
+++ '[' -z megasync ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo nextcloud-client
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=nextcloud-client
+++ '[' -z nextcloud-client ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo thunderbird
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=thunderbird
+++ '[' -z thunderbird ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
+++ printf '%s\n' dropbox evolution geary libreoffice megasync nextcloud-client thunderbird
++ install_package_batch dropbox evolution geary libreoffice megasync nextcloud-client thunderbird
++ packages=('dropbox' 'evolution' 'geary' 'libreoffice' 'megasync' 'nextcloud-client' 'thunderbird')
++ local packages
++ mapped=()
++ local mapped
++ local pkg
++ for pkg in "${packages[@]}"
++ '[' -z dropbox ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name dropbox
+++ local name=dropbox
+++ case "$PM" in
+++ '[' dropbox = fd ']'
+++ '[' dropbox = bat ']'
+++ echo dropbox
++ for pkg in "${packages[@]}"
++ '[' -z evolution ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name evolution
+++ local name=evolution
+++ case "$PM" in
+++ '[' evolution = fd ']'
+++ '[' evolution = bat ']'
+++ echo evolution
++ for pkg in "${packages[@]}"
++ '[' -z geary ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name geary
+++ local name=geary
+++ case "$PM" in
+++ '[' geary = fd ']'
+++ '[' geary = bat ']'
+++ echo geary
++ for pkg in "${packages[@]}"
++ '[' -z libreoffice ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name libreoffice
+++ local name=libreoffice
+++ case "$PM" in
+++ '[' libreoffice = fd ']'
+++ '[' libreoffice = bat ']'
+++ echo libreoffice
++ for pkg in "${packages[@]}"
++ '[' -z megasync ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name megasync
+++ local name=megasync
+++ case "$PM" in
+++ '[' megasync = fd ']'
+++ '[' megasync = bat ']'
+++ echo megasync
++ for pkg in "${packages[@]}"
++ '[' -z nextcloud-client ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name nextcloud-client
+++ local name=nextcloud-client
+++ case "$PM" in
+++ '[' nextcloud-client = fd ']'
+++ '[' nextcloud-client = bat ']'
+++ echo nextcloud-client
++ for pkg in "${packages[@]}"
++ '[' -z thunderbird ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name thunderbird
+++ local name=thunderbird
+++ case "$PM" in
+++ '[' thunderbird = fd ']'
+++ '[' thunderbird = bat ']'
+++ echo thunderbird
++ to_install=()
++ local to_install
++ for pkg in "${mapped[@]}"
++ is_installed dropbox
++ local pkg=dropbox
++ case "$PM" in
++ dpkg -s dropbox
++ true
++ command -v dropbox
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed evolution
++ local pkg=evolution
++ case "$PM" in
++ dpkg -s evolution
++ true
++ command -v evolution
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed geary
++ local pkg=geary
++ case "$PM" in
++ dpkg -s geary
++ true
++ command -v geary
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed libreoffice
++ local pkg=libreoffice
++ case "$PM" in
++ dpkg -s libreoffice
++ true
++ command -v libreoffice
++ return 0
++ log 'Skipping installed package: libreoffice'
++ local 'msg=Skipping installed package: libreoffice'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: libreoffice'
+2025-12-21T03:03:41Z Skipping installed package: libreoffice
++ for pkg in "${mapped[@]}"
++ is_installed megasync
++ local pkg=megasync
++ case "$PM" in
++ dpkg -s megasync
++ true
++ command -v megasync
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed nextcloud-client
++ local pkg=nextcloud-client
++ case "$PM" in
++ dpkg -s nextcloud-client
++ true
++ command -v nextcloud-client
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed thunderbird
++ local pkg=thunderbird
++ case "$PM" in
++ dpkg -s thunderbird
++ true
++ command -v thunderbird
++ return 0
++ log 'Skipping installed package: thunderbird'
++ local 'msg=Skipping installed package: thunderbird'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: thunderbird'
+2025-12-21T03:03:41Z Skipping installed package: thunderbird
++ '[' 5 -eq 0 ']'
++ '[' apt = apt ']'
++ '[' 1 -eq 0 ']'
++ '[' -z 'sudo apt install -y' ']'
++ log 'Installing 5 packages for apt'
++ local 'msg=Installing 5 packages for apt'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Installing 5 packages for apt'
+2025-12-21T03:03:41Z Installing 5 packages for apt
++ local pkg_list
+++ printf '%s ' dropbox evolution geary megasync nextcloud-client
++ pkg_list='dropbox evolution geary megasync nextcloud-client '
++ run_cmd 'sudo apt install -y dropbox evolution geary megasync nextcloud-client '
++ local 'cmd=sudo apt install -y dropbox evolution geary megasync nextcloud-client '
++ log 'RUN: sudo apt install -y dropbox evolution geary megasync nextcloud-client '
++ local 'msg=RUN: sudo apt install -y dropbox evolution geary megasync nextcloud-client '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'RUN: sudo apt install -y dropbox evolution geary megasync nextcloud-client '
+2025-12-21T03:03:41Z RUN: sudo apt install -y dropbox evolution geary megasync nextcloud-client 
++ '[' 1 -eq 1 ']'
++ log 'DRY-RUN: sudo apt install -y dropbox evolution geary megasync nextcloud-client '
++ local 'msg=DRY-RUN: sudo apt install -y dropbox evolution geary megasync nextcloud-client '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'DRY-RUN: sudo apt install -y dropbox evolution geary megasync nextcloud-client '
+2025-12-21T03:03:41Z DRY-RUN: sudo apt install -y dropbox evolution geary megasync nextcloud-client 
++ return 0
++ for i in "${!GROUP_ORDER[@]}"
++ mapfile -t group_pkgs
+++ get_group_packages 7
+++ local group_idx=7
+++ local pkg
+++ packages=()
+++ local packages
+++ IFS=
+++ read -r pkg
++++ echo chkrootkit
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=chkrootkit
+++ '[' -z chkrootkit ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo clamav
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=clamav
+++ '[' -z clamav ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo fail2ban
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=fail2ban
+++ '[' -z fail2ban ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo gnutls
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=gnutls
+++ '[' -z gnutls ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo gpg
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=gpg
+++ '[' -z gpg ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo openssl
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=openssl
+++ '[' -z openssl ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo rkhunter
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=rkhunter
+++ '[' -z rkhunter ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
+++ printf '%s\n' chkrootkit clamav fail2ban gnutls gpg openssl rkhunter
++ install_package_batch chkrootkit clamav fail2ban gnutls gpg openssl rkhunter
++ packages=('chkrootkit' 'clamav' 'fail2ban' 'gnutls' 'gpg' 'openssl' 'rkhunter')
++ local packages
++ mapped=()
++ local mapped
++ local pkg
++ for pkg in "${packages[@]}"
++ '[' -z chkrootkit ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name chkrootkit
+++ local name=chkrootkit
+++ case "$PM" in
+++ '[' chkrootkit = fd ']'
+++ '[' chkrootkit = bat ']'
+++ echo chkrootkit
++ for pkg in "${packages[@]}"
++ '[' -z clamav ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name clamav
+++ local name=clamav
+++ case "$PM" in
+++ '[' clamav = fd ']'
+++ '[' clamav = bat ']'
+++ echo clamav
++ for pkg in "${packages[@]}"
++ '[' -z fail2ban ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name fail2ban
+++ local name=fail2ban
+++ case "$PM" in
+++ '[' fail2ban = fd ']'
+++ '[' fail2ban = bat ']'
+++ echo fail2ban
++ for pkg in "${packages[@]}"
++ '[' -z gnutls ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name gnutls
+++ local name=gnutls
+++ case "$PM" in
+++ '[' gnutls = fd ']'
+++ '[' gnutls = bat ']'
+++ echo gnutls
++ for pkg in "${packages[@]}"
++ '[' -z gpg ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name gpg
+++ local name=gpg
+++ case "$PM" in
+++ '[' gpg = fd ']'
+++ '[' gpg = bat ']'
+++ echo gpg
++ for pkg in "${packages[@]}"
++ '[' -z openssl ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name openssl
+++ local name=openssl
+++ case "$PM" in
+++ '[' openssl = fd ']'
+++ '[' openssl = bat ']'
+++ echo openssl
++ for pkg in "${packages[@]}"
++ '[' -z rkhunter ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name rkhunter
+++ local name=rkhunter
+++ case "$PM" in
+++ '[' rkhunter = fd ']'
+++ '[' rkhunter = bat ']'
+++ echo rkhunter
++ to_install=()
++ local to_install
++ for pkg in "${mapped[@]}"
++ is_installed chkrootkit
++ local pkg=chkrootkit
++ case "$PM" in
++ dpkg -s chkrootkit
++ true
++ command -v chkrootkit
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed clamav
++ local pkg=clamav
++ case "$PM" in
++ dpkg -s clamav
++ true
++ command -v clamav
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed fail2ban
++ local pkg=fail2ban
++ case "$PM" in
++ dpkg -s fail2ban
++ true
++ command -v fail2ban
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed gnutls
++ local pkg=gnutls
++ case "$PM" in
++ dpkg -s gnutls
++ true
++ command -v gnutls
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed gpg
++ local pkg=gpg
++ case "$PM" in
++ dpkg -s gpg
++ true
++ command -v gpg
++ return 0
++ log 'Skipping installed package: gpg'
++ local 'msg=Skipping installed package: gpg'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: gpg'
+2025-12-21T03:03:41Z Skipping installed package: gpg
++ for pkg in "${mapped[@]}"
++ is_installed openssl
++ local pkg=openssl
++ case "$PM" in
++ dpkg -s openssl
++ true
++ command -v openssl
++ return 0
++ log 'Skipping installed package: openssl'
++ local 'msg=Skipping installed package: openssl'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: openssl'
+2025-12-21T03:03:41Z Skipping installed package: openssl
++ for pkg in "${mapped[@]}"
++ is_installed rkhunter
++ local pkg=rkhunter
++ case "$PM" in
++ dpkg -s rkhunter
++ true
++ command -v rkhunter
++ return 1
++ to_install+=("$pkg")
++ '[' 5 -eq 0 ']'
++ '[' apt = apt ']'
++ '[' 1 -eq 0 ']'
++ '[' -z 'sudo apt install -y' ']'
++ log 'Installing 5 packages for apt'
++ local 'msg=Installing 5 packages for apt'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Installing 5 packages for apt'
+2025-12-21T03:03:41Z Installing 5 packages for apt
++ local pkg_list
+++ printf '%s ' chkrootkit clamav fail2ban gnutls rkhunter
++ pkg_list='chkrootkit clamav fail2ban gnutls rkhunter '
++ run_cmd 'sudo apt install -y chkrootkit clamav fail2ban gnutls rkhunter '
++ local 'cmd=sudo apt install -y chkrootkit clamav fail2ban gnutls rkhunter '
++ log 'RUN: sudo apt install -y chkrootkit clamav fail2ban gnutls rkhunter '
++ local 'msg=RUN: sudo apt install -y chkrootkit clamav fail2ban gnutls rkhunter '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'RUN: sudo apt install -y chkrootkit clamav fail2ban gnutls rkhunter '
+2025-12-21T03:03:41Z RUN: sudo apt install -y chkrootkit clamav fail2ban gnutls rkhunter 
++ '[' 1 -eq 1 ']'
++ log 'DRY-RUN: sudo apt install -y chkrootkit clamav fail2ban gnutls rkhunter '
++ local 'msg=DRY-RUN: sudo apt install -y chkrootkit clamav fail2ban gnutls rkhunter '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'DRY-RUN: sudo apt install -y chkrootkit clamav fail2ban gnutls rkhunter '
+2025-12-21T03:03:41Z DRY-RUN: sudo apt install -y chkrootkit clamav fail2ban gnutls rkhunter 
++ return 0
++ for i in "${!GROUP_ORDER[@]}"
++ mapfile -t group_pkgs
+++ get_group_packages 8
+++ local group_idx=8
+++ local pkg
+++ packages=()
+++ local packages
+++ IFS=
+++ read -r pkg
++++ echo bash-completion
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=bash-completion
+++ '[' -z bash-completion ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo bat
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=bat
+++ '[' -z bat ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo cheat
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=cheat
+++ '[' -z cheat ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo fd
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=fd
+++ '[' -z fd ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo fzf
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=fzf
+++ '[' -z fzf ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo thefuck
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=thefuck
+++ '[' -z thefuck ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo tmux
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=tmux
+++ '[' -z tmux ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo tldr
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=tldr
+++ '[' -z tldr ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo zsh
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=zsh
+++ '[' -z zsh ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
+++ printf '%s\n' bash-completion bat cheat fd fzf thefuck tmux tldr zsh
++ install_package_batch bash-completion bat cheat fd fzf thefuck tmux tldr zsh
++ packages=('bash-completion' 'bat' 'cheat' 'fd' 'fzf' 'thefuck' 'tmux' 'tldr' 'zsh')
++ local packages
++ mapped=()
++ local mapped
++ local pkg
++ for pkg in "${packages[@]}"
++ '[' -z bash-completion ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name bash-completion
+++ local name=bash-completion
+++ case "$PM" in
+++ '[' bash-completion = fd ']'
+++ '[' bash-completion = bat ']'
+++ echo bash-completion
++ for pkg in "${packages[@]}"
++ '[' -z bat ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name bat
+++ local name=bat
+++ case "$PM" in
+++ '[' bat = fd ']'
+++ '[' bat = bat ']'
+++ echo batcat
+++ return
++ for pkg in "${packages[@]}"
++ '[' -z cheat ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name cheat
+++ local name=cheat
+++ case "$PM" in
+++ '[' cheat = fd ']'
+++ '[' cheat = bat ']'
+++ echo cheat
++ for pkg in "${packages[@]}"
++ '[' -z fd ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name fd
+++ local name=fd
+++ case "$PM" in
+++ '[' fd = fd ']'
+++ echo fd-find
+++ return
++ for pkg in "${packages[@]}"
++ '[' -z fzf ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name fzf
+++ local name=fzf
+++ case "$PM" in
+++ '[' fzf = fd ']'
+++ '[' fzf = bat ']'
+++ echo fzf
++ for pkg in "${packages[@]}"
++ '[' -z thefuck ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name thefuck
+++ local name=thefuck
+++ case "$PM" in
+++ '[' thefuck = fd ']'
+++ '[' thefuck = bat ']'
+++ echo thefuck
++ for pkg in "${packages[@]}"
++ '[' -z tmux ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name tmux
+++ local name=tmux
+++ case "$PM" in
+++ '[' tmux = fd ']'
+++ '[' tmux = bat ']'
+++ echo tmux
++ for pkg in "${packages[@]}"
++ '[' -z tldr ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name tldr
+++ local name=tldr
+++ case "$PM" in
+++ '[' tldr = fd ']'
+++ '[' tldr = bat ']'
+++ echo tldr
++ for pkg in "${packages[@]}"
++ '[' -z zsh ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name zsh
+++ local name=zsh
+++ case "$PM" in
+++ '[' zsh = fd ']'
+++ '[' zsh = bat ']'
+++ echo zsh
++ to_install=()
++ local to_install
++ for pkg in "${mapped[@]}"
++ is_installed bash-completion
++ local pkg=bash-completion
++ case "$PM" in
++ dpkg -s bash-completion
++ true
++ command -v bash-completion
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed batcat
++ local pkg=batcat
++ case "$PM" in
++ dpkg -s batcat
++ true
++ command -v batcat
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed cheat
++ local pkg=cheat
++ case "$PM" in
++ dpkg -s cheat
++ true
++ command -v cheat
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed fd-find
++ local pkg=fd-find
++ case "$PM" in
++ dpkg -s fd-find
++ true
++ command -v fd-find
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed fzf
++ local pkg=fzf
++ case "$PM" in
++ dpkg -s fzf
++ true
++ command -v fzf
++ return 0
++ log 'Skipping installed package: fzf'
++ local 'msg=Skipping installed package: fzf'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: fzf'
+2025-12-21T03:03:41Z Skipping installed package: fzf
++ for pkg in "${mapped[@]}"
++ is_installed thefuck
++ local pkg=thefuck
++ case "$PM" in
++ dpkg -s thefuck
++ true
++ command -v thefuck
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed tmux
++ local pkg=tmux
++ case "$PM" in
++ dpkg -s tmux
++ true
++ command -v tmux
++ return 0
++ log 'Skipping installed package: tmux'
++ local 'msg=Skipping installed package: tmux'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: tmux'
+2025-12-21T03:03:41Z Skipping installed package: tmux
++ for pkg in "${mapped[@]}"
++ is_installed tldr
++ local pkg=tldr
++ case "$PM" in
++ dpkg -s tldr
++ true
++ command -v tldr
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed zsh
++ local pkg=zsh
++ case "$PM" in
++ dpkg -s zsh
++ true
++ command -v zsh
++ return 0
++ log 'Skipping installed package: zsh'
++ local 'msg=Skipping installed package: zsh'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: zsh'
+2025-12-21T03:03:41Z Skipping installed package: zsh
++ '[' 6 -eq 0 ']'
++ '[' apt = apt ']'
++ '[' 1 -eq 0 ']'
++ '[' -z 'sudo apt install -y' ']'
++ log 'Installing 6 packages for apt'
++ local 'msg=Installing 6 packages for apt'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Installing 6 packages for apt'
+2025-12-21T03:03:41Z Installing 6 packages for apt
++ local pkg_list
+++ printf '%s ' bash-completion batcat cheat fd-find thefuck tldr
++ pkg_list='bash-completion batcat cheat fd-find thefuck tldr '
++ run_cmd 'sudo apt install -y bash-completion batcat cheat fd-find thefuck tldr '
++ local 'cmd=sudo apt install -y bash-completion batcat cheat fd-find thefuck tldr '
++ log 'RUN: sudo apt install -y bash-completion batcat cheat fd-find thefuck tldr '
++ local 'msg=RUN: sudo apt install -y bash-completion batcat cheat fd-find thefuck tldr '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'RUN: sudo apt install -y bash-completion batcat cheat fd-find thefuck tldr '
+2025-12-21T03:03:41Z RUN: sudo apt install -y bash-completion batcat cheat fd-find thefuck tldr 
++ '[' 1 -eq 1 ']'
++ log 'DRY-RUN: sudo apt install -y bash-completion batcat cheat fd-find thefuck tldr '
++ local 'msg=DRY-RUN: sudo apt install -y bash-completion batcat cheat fd-find thefuck tldr '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'DRY-RUN: sudo apt install -y bash-completion batcat cheat fd-find thefuck tldr '
+2025-12-21T03:03:41Z DRY-RUN: sudo apt install -y bash-completion batcat cheat fd-find thefuck tldr 
++ return 0
++ for i in "${!GROUP_ORDER[@]}"
++ mapfile -t group_pkgs
+++ get_group_packages 9
+++ local group_idx=9
+++ local pkg
+++ packages=()
+++ local packages
+++ IFS=
+++ read -r pkg
++++ echo btop
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=btop
+++ '[' -z btop ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo htop
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=htop
+++ '[' -z htop ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo nvtop
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=nvtop
+++ '[' -z nvtop ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo neotop
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=neotop
+++ '[' -z neotop ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
+++ printf '%s\n' btop htop nvtop neotop
++ install_package_batch btop htop nvtop neotop
++ packages=('btop' 'htop' 'nvtop' 'neotop')
++ local packages
++ mapped=()
++ local mapped
++ local pkg
++ for pkg in "${packages[@]}"
++ '[' -z btop ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name btop
+++ local name=btop
+++ case "$PM" in
+++ '[' btop = fd ']'
+++ '[' btop = bat ']'
+++ echo btop
++ for pkg in "${packages[@]}"
++ '[' -z htop ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name htop
+++ local name=htop
+++ case "$PM" in
+++ '[' htop = fd ']'
+++ '[' htop = bat ']'
+++ echo htop
++ for pkg in "${packages[@]}"
++ '[' -z nvtop ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name nvtop
+++ local name=nvtop
+++ case "$PM" in
+++ '[' nvtop = fd ']'
+++ '[' nvtop = bat ']'
+++ echo nvtop
++ for pkg in "${packages[@]}"
++ '[' -z neotop ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name neotop
+++ local name=neotop
+++ case "$PM" in
+++ '[' neotop = fd ']'
+++ '[' neotop = bat ']'
+++ echo neotop
++ to_install=()
++ local to_install
++ for pkg in "${mapped[@]}"
++ is_installed btop
++ local pkg=btop
++ case "$PM" in
++ dpkg -s btop
++ true
++ command -v btop
++ return 0
++ log 'Skipping installed package: btop'
++ local 'msg=Skipping installed package: btop'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: btop'
+2025-12-21T03:03:41Z Skipping installed package: btop
++ for pkg in "${mapped[@]}"
++ is_installed htop
++ local pkg=htop
++ case "$PM" in
++ dpkg -s htop
++ true
++ command -v htop
++ return 0
++ log 'Skipping installed package: htop'
++ local 'msg=Skipping installed package: htop'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: htop'
+2025-12-21T03:03:41Z Skipping installed package: htop
++ for pkg in "${mapped[@]}"
++ is_installed nvtop
++ local pkg=nvtop
++ case "$PM" in
++ dpkg -s nvtop
++ true
++ command -v nvtop
++ return 0
++ log 'Skipping installed package: nvtop'
++ local 'msg=Skipping installed package: nvtop'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: nvtop'
+2025-12-21T03:03:41Z Skipping installed package: nvtop
++ for pkg in "${mapped[@]}"
++ is_installed neotop
++ local pkg=neotop
++ case "$PM" in
++ dpkg -s neotop
++ true
++ command -v neotop
++ return 1
++ to_install+=("$pkg")
++ '[' 1 -eq 0 ']'
++ '[' apt = apt ']'
++ '[' 1 -eq 0 ']'
++ '[' -z 'sudo apt install -y' ']'
++ log 'Installing 1 packages for apt'
++ local 'msg=Installing 1 packages for apt'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Installing 1 packages for apt'
+2025-12-21T03:03:41Z Installing 1 packages for apt
++ local pkg_list
+++ printf '%s ' neotop
++ pkg_list='neotop '
++ run_cmd 'sudo apt install -y neotop '
++ local 'cmd=sudo apt install -y neotop '
++ log 'RUN: sudo apt install -y neotop '
++ local 'msg=RUN: sudo apt install -y neotop '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'RUN: sudo apt install -y neotop '
+2025-12-21T03:03:41Z RUN: sudo apt install -y neotop 
++ '[' 1 -eq 1 ']'
++ log 'DRY-RUN: sudo apt install -y neotop '
++ local 'msg=DRY-RUN: sudo apt install -y neotop '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'DRY-RUN: sudo apt install -y neotop '
+2025-12-21T03:03:41Z DRY-RUN: sudo apt install -y neotop 
++ return 0
++ for i in "${!GROUP_ORDER[@]}"
++ mapfile -t group_pkgs
+++ get_group_packages 10
+++ local group_idx=10
+++ local pkg
+++ packages=()
+++ local packages
+++ IFS=
+++ read -r pkg
++++ echo apparmor
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=apparmor
+++ '[' -z apparmor ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo bluetooth
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=bluetooth
+++ '[' -z bluetooth ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo bluez
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=bluez
+++ '[' -z bluez ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo cups
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=cups
+++ '[' -z cups ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo firewalld
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=firewalld
+++ '[' -z firewalld ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo networkmanager
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=networkmanager
+++ '[' -z networkmanager ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo pipewire
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=pipewire
+++ '[' -z pipewire ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo pulseaudio
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=pulseaudio
+++ '[' -z pulseaudio ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo sane
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=sane
+++ '[' -z sane ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo selinux
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=selinux
+++ '[' -z selinux ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo ufw
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=ufw
+++ '[' -z ufw ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
+++ printf '%s\n' apparmor bluetooth bluez cups firewalld networkmanager pipewire pulseaudio sane selinux ufw
++ install_package_batch apparmor bluetooth bluez cups firewalld networkmanager pipewire pulseaudio sane selinux ufw
++ packages=('apparmor' 'bluetooth' 'bluez' 'cups' 'firewalld' 'networkmanager' 'pipewire' 'pulseaudio' 'sane' 'selinux' 'ufw')
++ local packages
++ mapped=()
++ local mapped
++ local pkg
++ for pkg in "${packages[@]}"
++ '[' -z apparmor ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name apparmor
+++ local name=apparmor
+++ case "$PM" in
+++ '[' apparmor = fd ']'
+++ '[' apparmor = bat ']'
+++ echo apparmor
++ for pkg in "${packages[@]}"
++ '[' -z bluetooth ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name bluetooth
+++ local name=bluetooth
+++ case "$PM" in
+++ '[' bluetooth = fd ']'
+++ '[' bluetooth = bat ']'
+++ echo bluetooth
++ for pkg in "${packages[@]}"
++ '[' -z bluez ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name bluez
+++ local name=bluez
+++ case "$PM" in
+++ '[' bluez = fd ']'
+++ '[' bluez = bat ']'
+++ echo bluez
++ for pkg in "${packages[@]}"
++ '[' -z cups ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name cups
+++ local name=cups
+++ case "$PM" in
+++ '[' cups = fd ']'
+++ '[' cups = bat ']'
+++ echo cups
++ for pkg in "${packages[@]}"
++ '[' -z firewalld ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name firewalld
+++ local name=firewalld
+++ case "$PM" in
+++ '[' firewalld = fd ']'
+++ '[' firewalld = bat ']'
+++ echo firewalld
++ for pkg in "${packages[@]}"
++ '[' -z networkmanager ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name networkmanager
+++ local name=networkmanager
+++ case "$PM" in
+++ '[' networkmanager = fd ']'
+++ '[' networkmanager = bat ']'
+++ echo networkmanager
++ for pkg in "${packages[@]}"
++ '[' -z pipewire ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name pipewire
+++ local name=pipewire
+++ case "$PM" in
+++ '[' pipewire = fd ']'
+++ '[' pipewire = bat ']'
+++ echo pipewire
++ for pkg in "${packages[@]}"
++ '[' -z pulseaudio ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name pulseaudio
+++ local name=pulseaudio
+++ case "$PM" in
+++ '[' pulseaudio = fd ']'
+++ '[' pulseaudio = bat ']'
+++ echo pulseaudio
++ for pkg in "${packages[@]}"
++ '[' -z sane ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name sane
+++ local name=sane
+++ case "$PM" in
+++ '[' sane = fd ']'
+++ '[' sane = bat ']'
+++ echo sane
++ for pkg in "${packages[@]}"
++ '[' -z selinux ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name selinux
+++ local name=selinux
+++ case "$PM" in
+++ '[' selinux = fd ']'
+++ '[' selinux = bat ']'
+++ echo selinux
++ for pkg in "${packages[@]}"
++ '[' -z ufw ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name ufw
+++ local name=ufw
+++ case "$PM" in
+++ '[' ufw = fd ']'
+++ '[' ufw = bat ']'
+++ echo ufw
++ to_install=()
++ local to_install
++ for pkg in "${mapped[@]}"
++ is_installed apparmor
++ local pkg=apparmor
++ case "$PM" in
++ dpkg -s apparmor
++ true
++ command -v apparmor
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed bluetooth
++ local pkg=bluetooth
++ case "$PM" in
++ dpkg -s bluetooth
++ true
++ command -v bluetooth
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed bluez
++ local pkg=bluez
++ case "$PM" in
++ dpkg -s bluez
++ true
++ command -v bluez
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed cups
++ local pkg=cups
++ case "$PM" in
++ dpkg -s cups
++ true
++ command -v cups
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed firewalld
++ local pkg=firewalld
++ case "$PM" in
++ dpkg -s firewalld
++ true
++ command -v firewalld
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed networkmanager
++ local pkg=networkmanager
++ case "$PM" in
++ dpkg -s networkmanager
++ true
++ command -v networkmanager
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed pipewire
++ local pkg=pipewire
++ case "$PM" in
++ dpkg -s pipewire
++ true
++ command -v pipewire
++ return 0
++ log 'Skipping installed package: pipewire'
++ local 'msg=Skipping installed package: pipewire'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Skipping installed package: pipewire'
+2025-12-21T03:03:41Z Skipping installed package: pipewire
++ for pkg in "${mapped[@]}"
++ is_installed pulseaudio
++ local pkg=pulseaudio
++ case "$PM" in
++ dpkg -s pulseaudio
++ true
++ command -v pulseaudio
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed sane
++ local pkg=sane
++ case "$PM" in
++ dpkg -s sane
++ true
++ command -v sane
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed selinux
++ local pkg=selinux
++ case "$PM" in
++ dpkg -s selinux
++ true
++ command -v selinux
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed ufw
++ local pkg=ufw
++ case "$PM" in
++ dpkg -s ufw
++ true
++ command -v ufw
++ return 1
++ to_install+=("$pkg")
++ '[' 10 -eq 0 ']'
++ '[' apt = apt ']'
++ '[' 1 -eq 0 ']'
++ '[' -z 'sudo apt install -y' ']'
++ log 'Installing 10 packages for apt'
++ local 'msg=Installing 10 packages for apt'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'Installing 10 packages for apt'
+2025-12-21T03:03:41Z Installing 10 packages for apt
++ local pkg_list
+++ printf '%s ' apparmor bluetooth bluez cups firewalld networkmanager pulseaudio sane selinux ufw
++ pkg_list='apparmor bluetooth bluez cups firewalld networkmanager pulseaudio sane selinux ufw '
++ run_cmd 'sudo apt install -y apparmor bluetooth bluez cups firewalld networkmanager pulseaudio sane selinux ufw '
++ local 'cmd=sudo apt install -y apparmor bluetooth bluez cups firewalld networkmanager pulseaudio sane selinux ufw '
++ log 'RUN: sudo apt install -y apparmor bluetooth bluez cups firewalld networkmanager pulseaudio sane selinux ufw '
++ local 'msg=RUN: sudo apt install -y apparmor bluetooth bluez cups firewalld networkmanager pulseaudio sane selinux ufw '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'RUN: sudo apt install -y apparmor bluetooth bluez cups firewalld networkmanager pulseaudio sane selinux ufw '
+2025-12-21T03:03:41Z RUN: sudo apt install -y apparmor bluetooth bluez cups firewalld networkmanager pulseaudio sane selinux ufw 
++ '[' 1 -eq 1 ']'
++ log 'DRY-RUN: sudo apt install -y apparmor bluetooth bluez cups firewalld networkmanager pulseaudio sane selinux ufw '
++ local 'msg=DRY-RUN: sudo apt install -y apparmor bluetooth bluez cups firewalld networkmanager pulseaudio sane selinux ufw '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:41Z 'DRY-RUN: sudo apt install -y apparmor bluetooth bluez cups firewalld networkmanager pulseaudio sane selinux ufw '
+2025-12-21T03:03:41Z DRY-RUN: sudo apt install -y apparmor bluetooth bluez cups firewalld networkmanager pulseaudio sane selinux ufw 
++ return 0
++ for i in "${!GROUP_ORDER[@]}"
++ mapfile -t group_pkgs
+++ get_group_packages 11
+++ local group_idx=11
+++ local pkg
+++ packages=()
+++ local packages
+++ IFS=
+++ read -r pkg
++++ echo ca-certificates
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=ca-certificates
+++ '[' -z ca-certificates ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo curl
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=curl
+++ '[' -z curl ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo git
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=git
+++ '[' -z git ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo gnupg
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=gnupg
+++ '[' -z gnupg ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo neofetch
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=neofetch
+++ '[' -z neofetch ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo openssh
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=openssh
+++ '[' -z openssh ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo ripgrep
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=ripgrep
+++ '[' -z ripgrep ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo rsync
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=rsync
+++ '[' -z rsync ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo software-properties-common
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=software-properties-common
+++ '[' -z software-properties-common ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo tar
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=tar
+++ '[' -z tar ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo tree
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=tree
+++ '[' -z tree ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo unzip
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=unzip
+++ '[' -z unzip ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo wget
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=wget
+++ '[' -z wget ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo zip
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=zip
+++ '[' -z zip ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
+++ printf '%s\n' ca-certificates curl git gnupg neofetch openssh ripgrep rsync software-properties-common tar tree unzip wget zip
++ install_package_batch ca-certificates curl git gnupg neofetch openssh ripgrep rsync software-properties-common tar tree unzip wget zip
++ packages=('ca-certificates' 'curl' 'git' 'gnupg' 'neofetch' 'openssh' 'ripgrep' 'rsync' 'software-properties-common' 'tar' 'tree' 'unzip' 'wget' 'zip')
++ local packages
++ mapped=()
++ local mapped
++ local pkg
++ for pkg in "${packages[@]}"
++ '[' -z ca-certificates ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name ca-certificates
+++ local name=ca-certificates
+++ case "$PM" in
+++ '[' ca-certificates = fd ']'
+++ '[' ca-certificates = bat ']'
+++ echo ca-certificates
++ for pkg in "${packages[@]}"
++ '[' -z curl ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name curl
+++ local name=curl
+++ case "$PM" in
+++ '[' curl = fd ']'
+++ '[' curl = bat ']'
+++ echo curl
++ for pkg in "${packages[@]}"
++ '[' -z git ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name git
+++ local name=git
+++ case "$PM" in
+++ '[' git = fd ']'
+++ '[' git = bat ']'
+++ echo git
++ for pkg in "${packages[@]}"
++ '[' -z gnupg ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name gnupg
+++ local name=gnupg
+++ case "$PM" in
+++ '[' gnupg = fd ']'
+++ '[' gnupg = bat ']'
+++ echo gnupg
++ for pkg in "${packages[@]}"
++ '[' -z neofetch ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name neofetch
+++ local name=neofetch
+++ case "$PM" in
+++ '[' neofetch = fd ']'
+++ '[' neofetch = bat ']'
+++ echo neofetch
++ for pkg in "${packages[@]}"
++ '[' -z openssh ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name openssh
+++ local name=openssh
+++ case "$PM" in
+++ '[' openssh = fd ']'
+++ '[' openssh = bat ']'
+++ echo openssh
++ for pkg in "${packages[@]}"
++ '[' -z ripgrep ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name ripgrep
+++ local name=ripgrep
+++ case "$PM" in
+++ '[' ripgrep = fd ']'
+++ '[' ripgrep = bat ']'
+++ echo ripgrep
++ for pkg in "${packages[@]}"
++ '[' -z rsync ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name rsync
+++ local name=rsync
+++ case "$PM" in
+++ '[' rsync = fd ']'
+++ '[' rsync = bat ']'
+++ echo rsync
++ for pkg in "${packages[@]}"
++ '[' -z software-properties-common ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name software-properties-common
+++ local name=software-properties-common
+++ case "$PM" in
+++ '[' software-properties-common = fd ']'
+++ '[' software-properties-common = bat ']'
+++ echo software-properties-common
++ for pkg in "${packages[@]}"
++ '[' -z tar ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name tar
+++ local name=tar
+++ case "$PM" in
+++ '[' tar = fd ']'
+++ '[' tar = bat ']'
+++ echo tar
++ for pkg in "${packages[@]}"
++ '[' -z tree ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name tree
+++ local name=tree
+++ case "$PM" in
+++ '[' tree = fd ']'
+++ '[' tree = bat ']'
+++ echo tree
++ for pkg in "${packages[@]}"
++ '[' -z unzip ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name unzip
+++ local name=unzip
+++ case "$PM" in
+++ '[' unzip = fd ']'
+++ '[' unzip = bat ']'
+++ echo unzip
++ for pkg in "${packages[@]}"
++ '[' -z wget ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name wget
+++ local name=wget
+++ case "$PM" in
+++ '[' wget = fd ']'
+++ '[' wget = bat ']'
+++ echo wget
++ for pkg in "${packages[@]}"
++ '[' -z zip ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name zip
+++ local name=zip
+++ case "$PM" in
+++ '[' zip = fd ']'
+++ '[' zip = bat ']'
+++ echo zip
++ to_install=()
++ local to_install
++ for pkg in "${mapped[@]}"
++ is_installed ca-certificates
++ local pkg=ca-certificates
++ case "$PM" in
++ dpkg -s ca-certificates
++ true
++ command -v ca-certificates
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed curl
++ local pkg=curl
++ case "$PM" in
++ dpkg -s curl
++ true
++ command -v curl
++ return 0
++ log 'Skipping installed package: curl'
++ local 'msg=Skipping installed package: curl'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'Skipping installed package: curl'
+2025-12-21T03:03:42Z Skipping installed package: curl
++ for pkg in "${mapped[@]}"
++ is_installed git
++ local pkg=git
++ case "$PM" in
++ dpkg -s git
++ true
++ command -v git
++ return 0
++ log 'Skipping installed package: git'
++ local 'msg=Skipping installed package: git'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'Skipping installed package: git'
+2025-12-21T03:03:42Z Skipping installed package: git
++ for pkg in "${mapped[@]}"
++ is_installed gnupg
++ local pkg=gnupg
++ case "$PM" in
++ dpkg -s gnupg
++ true
++ command -v gnupg
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed neofetch
++ local pkg=neofetch
++ case "$PM" in
++ dpkg -s neofetch
++ true
++ command -v neofetch
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed openssh
++ local pkg=openssh
++ case "$PM" in
++ dpkg -s openssh
++ true
++ command -v openssh
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed ripgrep
++ local pkg=ripgrep
++ case "$PM" in
++ dpkg -s ripgrep
++ true
++ command -v ripgrep
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed rsync
++ local pkg=rsync
++ case "$PM" in
++ dpkg -s rsync
++ true
++ command -v rsync
++ return 0
++ log 'Skipping installed package: rsync'
++ local 'msg=Skipping installed package: rsync'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'Skipping installed package: rsync'
+2025-12-21T03:03:42Z Skipping installed package: rsync
++ for pkg in "${mapped[@]}"
++ is_installed software-properties-common
++ local pkg=software-properties-common
++ case "$PM" in
++ dpkg -s software-properties-common
++ true
++ command -v software-properties-common
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed tar
++ local pkg=tar
++ case "$PM" in
++ dpkg -s tar
++ true
++ command -v tar
++ return 0
++ log 'Skipping installed package: tar'
++ local 'msg=Skipping installed package: tar'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'Skipping installed package: tar'
+2025-12-21T03:03:42Z Skipping installed package: tar
++ for pkg in "${mapped[@]}"
++ is_installed tree
++ local pkg=tree
++ case "$PM" in
++ dpkg -s tree
++ true
++ command -v tree
++ return 0
++ log 'Skipping installed package: tree'
++ local 'msg=Skipping installed package: tree'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'Skipping installed package: tree'
+2025-12-21T03:03:42Z Skipping installed package: tree
++ for pkg in "${mapped[@]}"
++ is_installed unzip
++ local pkg=unzip
++ case "$PM" in
++ dpkg -s unzip
++ true
++ command -v unzip
++ return 0
++ log 'Skipping installed package: unzip'
++ local 'msg=Skipping installed package: unzip'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'Skipping installed package: unzip'
+2025-12-21T03:03:42Z Skipping installed package: unzip
++ for pkg in "${mapped[@]}"
++ is_installed wget
++ local pkg=wget
++ case "$PM" in
++ dpkg -s wget
++ true
++ command -v wget
++ return 0
++ log 'Skipping installed package: wget'
++ local 'msg=Skipping installed package: wget'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'Skipping installed package: wget'
+2025-12-21T03:03:42Z Skipping installed package: wget
++ for pkg in "${mapped[@]}"
++ is_installed zip
++ local pkg=zip
++ case "$PM" in
++ dpkg -s zip
++ true
++ command -v zip
++ return 0
++ log 'Skipping installed package: zip'
++ local 'msg=Skipping installed package: zip'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'Skipping installed package: zip'
+2025-12-21T03:03:42Z Skipping installed package: zip
++ '[' 6 -eq 0 ']'
++ '[' apt = apt ']'
++ '[' 1 -eq 0 ']'
++ '[' -z 'sudo apt install -y' ']'
++ log 'Installing 6 packages for apt'
++ local 'msg=Installing 6 packages for apt'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'Installing 6 packages for apt'
+2025-12-21T03:03:42Z Installing 6 packages for apt
++ local pkg_list
+++ printf '%s ' ca-certificates gnupg neofetch openssh ripgrep software-properties-common
++ pkg_list='ca-certificates gnupg neofetch openssh ripgrep software-properties-common '
++ run_cmd 'sudo apt install -y ca-certificates gnupg neofetch openssh ripgrep software-properties-common '
++ local 'cmd=sudo apt install -y ca-certificates gnupg neofetch openssh ripgrep software-properties-common '
++ log 'RUN: sudo apt install -y ca-certificates gnupg neofetch openssh ripgrep software-properties-common '
++ local 'msg=RUN: sudo apt install -y ca-certificates gnupg neofetch openssh ripgrep software-properties-common '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'RUN: sudo apt install -y ca-certificates gnupg neofetch openssh ripgrep software-properties-common '
+2025-12-21T03:03:42Z RUN: sudo apt install -y ca-certificates gnupg neofetch openssh ripgrep software-properties-common 
++ '[' 1 -eq 1 ']'
++ log 'DRY-RUN: sudo apt install -y ca-certificates gnupg neofetch openssh ripgrep software-properties-common '
++ local 'msg=DRY-RUN: sudo apt install -y ca-certificates gnupg neofetch openssh ripgrep software-properties-common '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'DRY-RUN: sudo apt install -y ca-certificates gnupg neofetch openssh ripgrep software-properties-common '
+2025-12-21T03:03:42Z DRY-RUN: sudo apt install -y ca-certificates gnupg neofetch openssh ripgrep software-properties-common 
++ return 0
++ for i in "${!GROUP_ORDER[@]}"
++ mapfile -t group_pkgs
+++ get_group_packages 12
+++ local group_idx=12
+++ local pkg
+++ packages=()
+++ local packages
+++ IFS=
+++ read -r pkg
++++ echo alacritty
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=alacritty
+++ '[' -z alacritty ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo konsole
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=konsole
+++ '[' -z konsole ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo ptyxis
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=ptyxis
+++ '[' -z ptyxis ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
+++ printf '%s\n' alacritty konsole ptyxis
++ install_package_batch alacritty konsole ptyxis
++ packages=('alacritty' 'konsole' 'ptyxis')
++ local packages
++ mapped=()
++ local mapped
++ local pkg
++ for pkg in "${packages[@]}"
++ '[' -z alacritty ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name alacritty
+++ local name=alacritty
+++ case "$PM" in
+++ '[' alacritty = fd ']'
+++ '[' alacritty = bat ']'
+++ echo alacritty
++ for pkg in "${packages[@]}"
++ '[' -z konsole ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name konsole
+++ local name=konsole
+++ case "$PM" in
+++ '[' konsole = fd ']'
+++ '[' konsole = bat ']'
+++ echo konsole
++ for pkg in "${packages[@]}"
++ '[' -z ptyxis ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name ptyxis
+++ local name=ptyxis
+++ case "$PM" in
+++ '[' ptyxis = fd ']'
+++ '[' ptyxis = bat ']'
+++ echo ptyxis
++ to_install=()
++ local to_install
++ for pkg in "${mapped[@]}"
++ is_installed alacritty
++ local pkg=alacritty
++ case "$PM" in
++ dpkg -s alacritty
++ true
++ command -v alacritty
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed konsole
++ local pkg=konsole
++ case "$PM" in
++ dpkg -s konsole
++ true
++ command -v konsole
++ return 0
++ log 'Skipping installed package: konsole'
++ local 'msg=Skipping installed package: konsole'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'Skipping installed package: konsole'
+2025-12-21T03:03:42Z Skipping installed package: konsole
++ for pkg in "${mapped[@]}"
++ is_installed ptyxis
++ local pkg=ptyxis
++ case "$PM" in
++ dpkg -s ptyxis
++ true
++ command -v ptyxis
++ return 1
++ to_install+=("$pkg")
++ '[' 2 -eq 0 ']'
++ '[' apt = apt ']'
++ '[' 1 -eq 0 ']'
++ '[' -z 'sudo apt install -y' ']'
++ log 'Installing 2 packages for apt'
++ local 'msg=Installing 2 packages for apt'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'Installing 2 packages for apt'
+2025-12-21T03:03:42Z Installing 2 packages for apt
++ local pkg_list
+++ printf '%s ' alacritty ptyxis
++ pkg_list='alacritty ptyxis '
++ run_cmd 'sudo apt install -y alacritty ptyxis '
++ local 'cmd=sudo apt install -y alacritty ptyxis '
++ log 'RUN: sudo apt install -y alacritty ptyxis '
++ local 'msg=RUN: sudo apt install -y alacritty ptyxis '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'RUN: sudo apt install -y alacritty ptyxis '
+2025-12-21T03:03:42Z RUN: sudo apt install -y alacritty ptyxis 
++ '[' 1 -eq 1 ']'
++ log 'DRY-RUN: sudo apt install -y alacritty ptyxis '
++ local 'msg=DRY-RUN: sudo apt install -y alacritty ptyxis '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'DRY-RUN: sudo apt install -y alacritty ptyxis '
+2025-12-21T03:03:42Z DRY-RUN: sudo apt install -y alacritty ptyxis 
++ return 0
++ for i in "${!GROUP_ORDER[@]}"
++ mapfile -t group_pkgs
+++ get_group_packages 13
+++ local group_idx=13
+++ local pkg
+++ packages=()
+++ local packages
+++ IFS=
+++ read -r pkg
++++ echo ktexteditor
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=ktexteditor
+++ '[' -z ktexteditor ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo gedit
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=gedit
+++ '[' -z gedit ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo neovim
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=neovim
+++ '[' -z neovim ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo vscode
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=vscode
+++ '[' -z vscode ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
+++ printf '%s\n' ktexteditor gedit neovim vscode
++ install_package_batch ktexteditor gedit neovim vscode
++ packages=('ktexteditor' 'gedit' 'neovim' 'vscode')
++ local packages
++ mapped=()
++ local mapped
++ local pkg
++ for pkg in "${packages[@]}"
++ '[' -z ktexteditor ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name ktexteditor
+++ local name=ktexteditor
+++ case "$PM" in
+++ '[' ktexteditor = fd ']'
+++ '[' ktexteditor = bat ']'
+++ echo ktexteditor
++ for pkg in "${packages[@]}"
++ '[' -z gedit ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name gedit
+++ local name=gedit
+++ case "$PM" in
+++ '[' gedit = fd ']'
+++ '[' gedit = bat ']'
+++ echo gedit
++ for pkg in "${packages[@]}"
++ '[' -z neovim ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name neovim
+++ local name=neovim
+++ case "$PM" in
+++ '[' neovim = fd ']'
+++ '[' neovim = bat ']'
+++ echo neovim
++ for pkg in "${packages[@]}"
++ '[' -z vscode ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name vscode
+++ local name=vscode
+++ case "$PM" in
+++ '[' vscode = fd ']'
+++ '[' vscode = bat ']'
+++ echo vscode
++ to_install=()
++ local to_install
++ for pkg in "${mapped[@]}"
++ is_installed ktexteditor
++ local pkg=ktexteditor
++ case "$PM" in
++ dpkg -s ktexteditor
++ true
++ command -v ktexteditor
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed gedit
++ local pkg=gedit
++ case "$PM" in
++ dpkg -s gedit
++ true
++ command -v gedit
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed neovim
++ local pkg=neovim
++ case "$PM" in
++ dpkg -s neovim
++ true
++ command -v neovim
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed vscode
++ local pkg=vscode
++ case "$PM" in
++ dpkg -s vscode
++ true
++ command -v vscode
++ return 1
++ to_install+=("$pkg")
++ '[' 4 -eq 0 ']'
++ '[' apt = apt ']'
++ '[' 1 -eq 0 ']'
++ '[' -z 'sudo apt install -y' ']'
++ log 'Installing 4 packages for apt'
++ local 'msg=Installing 4 packages for apt'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'Installing 4 packages for apt'
+2025-12-21T03:03:42Z Installing 4 packages for apt
++ local pkg_list
+++ printf '%s ' ktexteditor gedit neovim vscode
++ pkg_list='ktexteditor gedit neovim vscode '
++ run_cmd 'sudo apt install -y ktexteditor gedit neovim vscode '
++ local 'cmd=sudo apt install -y ktexteditor gedit neovim vscode '
++ log 'RUN: sudo apt install -y ktexteditor gedit neovim vscode '
++ local 'msg=RUN: sudo apt install -y ktexteditor gedit neovim vscode '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'RUN: sudo apt install -y ktexteditor gedit neovim vscode '
+2025-12-21T03:03:42Z RUN: sudo apt install -y ktexteditor gedit neovim vscode 
++ '[' 1 -eq 1 ']'
++ log 'DRY-RUN: sudo apt install -y ktexteditor gedit neovim vscode '
++ local 'msg=DRY-RUN: sudo apt install -y ktexteditor gedit neovim vscode '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'DRY-RUN: sudo apt install -y ktexteditor gedit neovim vscode '
+2025-12-21T03:03:42Z DRY-RUN: sudo apt install -y ktexteditor gedit neovim vscode 
++ return 0
++ for i in "${!GROUP_ORDER[@]}"
++ mapfile -t group_pkgs
+++ get_group_packages 14
+++ local group_idx=14
+++ local pkg
+++ packages=()
+++ local packages
+++ IFS=
+++ read -r pkg
++++ echo virt-bridge-setup
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=virt-bridge-setup
+++ '[' -z virt-bridge-setup ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo virt-firmware
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=virt-firmware
+++ '[' -z virt-firmware ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo virt-install
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=virt-install
+++ '[' -z virt-install ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo virt-manager
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=virt-manager
+++ '[' -z virt-manager ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo virt-p2v
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=virt-p2v
+++ '[' -z virt-p2v ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo virt-v2v-bash-completion
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=virt-v2v-bash-completion
+++ '[' -z virt-v2v-bash-completion ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo virt-v2v
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=virt-v2v
+++ '[' -z virt-v2v ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo virt-viewer
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=virt-viewer
+++ '[' -z virt-viewer ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo virt-win-reg
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=virt-win-reg
+++ '[' -z virt-win-reg ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
+++ printf '%s\n' virt-bridge-setup virt-firmware virt-install virt-manager virt-p2v virt-v2v-bash-completion virt-v2v virt-viewer virt-win-reg
++ install_package_batch virt-bridge-setup virt-firmware virt-install virt-manager virt-p2v virt-v2v-bash-completion virt-v2v virt-viewer virt-win-reg
++ packages=('virt-bridge-setup' 'virt-firmware' 'virt-install' 'virt-manager' 'virt-p2v' 'virt-v2v-bash-completion' 'virt-v2v' 'virt-viewer' 'virt-win-reg')
++ local packages
++ mapped=()
++ local mapped
++ local pkg
++ for pkg in "${packages[@]}"
++ '[' -z virt-bridge-setup ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name virt-bridge-setup
+++ local name=virt-bridge-setup
+++ case "$PM" in
+++ '[' virt-bridge-setup = fd ']'
+++ '[' virt-bridge-setup = bat ']'
+++ echo virt-bridge-setup
++ for pkg in "${packages[@]}"
++ '[' -z virt-firmware ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name virt-firmware
+++ local name=virt-firmware
+++ case "$PM" in
+++ '[' virt-firmware = fd ']'
+++ '[' virt-firmware = bat ']'
+++ echo virt-firmware
++ for pkg in "${packages[@]}"
++ '[' -z virt-install ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name virt-install
+++ local name=virt-install
+++ case "$PM" in
+++ '[' virt-install = fd ']'
+++ '[' virt-install = bat ']'
+++ echo virt-install
++ for pkg in "${packages[@]}"
++ '[' -z virt-manager ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name virt-manager
+++ local name=virt-manager
+++ case "$PM" in
+++ '[' virt-manager = fd ']'
+++ '[' virt-manager = bat ']'
+++ echo virt-manager
++ for pkg in "${packages[@]}"
++ '[' -z virt-p2v ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name virt-p2v
+++ local name=virt-p2v
+++ case "$PM" in
+++ '[' virt-p2v = fd ']'
+++ '[' virt-p2v = bat ']'
+++ echo virt-p2v
++ for pkg in "${packages[@]}"
++ '[' -z virt-v2v-bash-completion ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name virt-v2v-bash-completion
+++ local name=virt-v2v-bash-completion
+++ case "$PM" in
+++ '[' virt-v2v-bash-completion = fd ']'
+++ '[' virt-v2v-bash-completion = bat ']'
+++ echo virt-v2v-bash-completion
++ for pkg in "${packages[@]}"
++ '[' -z virt-v2v ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name virt-v2v
+++ local name=virt-v2v
+++ case "$PM" in
+++ '[' virt-v2v = fd ']'
+++ '[' virt-v2v = bat ']'
+++ echo virt-v2v
++ for pkg in "${packages[@]}"
++ '[' -z virt-viewer ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name virt-viewer
+++ local name=virt-viewer
+++ case "$PM" in
+++ '[' virt-viewer = fd ']'
+++ '[' virt-viewer = bat ']'
+++ echo virt-viewer
++ for pkg in "${packages[@]}"
++ '[' -z virt-win-reg ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name virt-win-reg
+++ local name=virt-win-reg
+++ case "$PM" in
+++ '[' virt-win-reg = fd ']'
+++ '[' virt-win-reg = bat ']'
+++ echo virt-win-reg
++ to_install=()
++ local to_install
++ for pkg in "${mapped[@]}"
++ is_installed virt-bridge-setup
++ local pkg=virt-bridge-setup
++ case "$PM" in
++ dpkg -s virt-bridge-setup
++ true
++ command -v virt-bridge-setup
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed virt-firmware
++ local pkg=virt-firmware
++ case "$PM" in
++ dpkg -s virt-firmware
++ true
++ command -v virt-firmware
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed virt-install
++ local pkg=virt-install
++ case "$PM" in
++ dpkg -s virt-install
++ true
++ command -v virt-install
++ return 0
++ log 'Skipping installed package: virt-install'
++ local 'msg=Skipping installed package: virt-install'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'Skipping installed package: virt-install'
+2025-12-21T03:03:42Z Skipping installed package: virt-install
++ for pkg in "${mapped[@]}"
++ is_installed virt-manager
++ local pkg=virt-manager
++ case "$PM" in
++ dpkg -s virt-manager
++ true
++ command -v virt-manager
++ return 0
++ log 'Skipping installed package: virt-manager'
++ local 'msg=Skipping installed package: virt-manager'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'Skipping installed package: virt-manager'
+2025-12-21T03:03:42Z Skipping installed package: virt-manager
++ for pkg in "${mapped[@]}"
++ is_installed virt-p2v
++ local pkg=virt-p2v
++ case "$PM" in
++ dpkg -s virt-p2v
++ true
++ command -v virt-p2v
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed virt-v2v-bash-completion
++ local pkg=virt-v2v-bash-completion
++ case "$PM" in
++ dpkg -s virt-v2v-bash-completion
++ true
++ command -v virt-v2v-bash-completion
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed virt-v2v
++ local pkg=virt-v2v
++ case "$PM" in
++ dpkg -s virt-v2v
++ true
++ command -v virt-v2v
++ return 0
++ log 'Skipping installed package: virt-v2v'
++ local 'msg=Skipping installed package: virt-v2v'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'Skipping installed package: virt-v2v'
+2025-12-21T03:03:42Z Skipping installed package: virt-v2v
++ for pkg in "${mapped[@]}"
++ is_installed virt-viewer
++ local pkg=virt-viewer
++ case "$PM" in
++ dpkg -s virt-viewer
++ true
++ command -v virt-viewer
++ return 0
++ log 'Skipping installed package: virt-viewer'
++ local 'msg=Skipping installed package: virt-viewer'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'Skipping installed package: virt-viewer'
+2025-12-21T03:03:42Z Skipping installed package: virt-viewer
++ for pkg in "${mapped[@]}"
++ is_installed virt-win-reg
++ local pkg=virt-win-reg
++ case "$PM" in
++ dpkg -s virt-win-reg
++ true
++ command -v virt-win-reg
++ return 1
++ to_install+=("$pkg")
++ '[' 5 -eq 0 ']'
++ '[' apt = apt ']'
++ '[' 1 -eq 0 ']'
++ '[' -z 'sudo apt install -y' ']'
++ log 'Installing 5 packages for apt'
++ local 'msg=Installing 5 packages for apt'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'Installing 5 packages for apt'
+2025-12-21T03:03:42Z Installing 5 packages for apt
++ local pkg_list
+++ printf '%s ' virt-bridge-setup virt-firmware virt-p2v virt-v2v-bash-completion virt-win-reg
++ pkg_list='virt-bridge-setup virt-firmware virt-p2v virt-v2v-bash-completion virt-win-reg '
++ run_cmd 'sudo apt install -y virt-bridge-setup virt-firmware virt-p2v virt-v2v-bash-completion virt-win-reg '
++ local 'cmd=sudo apt install -y virt-bridge-setup virt-firmware virt-p2v virt-v2v-bash-completion virt-win-reg '
++ log 'RUN: sudo apt install -y virt-bridge-setup virt-firmware virt-p2v virt-v2v-bash-completion virt-win-reg '
++ local 'msg=RUN: sudo apt install -y virt-bridge-setup virt-firmware virt-p2v virt-v2v-bash-completion virt-win-reg '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'RUN: sudo apt install -y virt-bridge-setup virt-firmware virt-p2v virt-v2v-bash-completion virt-win-reg '
+2025-12-21T03:03:42Z RUN: sudo apt install -y virt-bridge-setup virt-firmware virt-p2v virt-v2v-bash-completion virt-win-reg 
++ '[' 1 -eq 1 ']'
++ log 'DRY-RUN: sudo apt install -y virt-bridge-setup virt-firmware virt-p2v virt-v2v-bash-completion virt-win-reg '
++ local 'msg=DRY-RUN: sudo apt install -y virt-bridge-setup virt-firmware virt-p2v virt-v2v-bash-completion virt-win-reg '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'DRY-RUN: sudo apt install -y virt-bridge-setup virt-firmware virt-p2v virt-v2v-bash-completion virt-win-reg '
+2025-12-21T03:03:42Z DRY-RUN: sudo apt install -y virt-bridge-setup virt-firmware virt-p2v virt-v2v-bash-completion virt-win-reg 
++ return 0
++ for i in "${!GROUP_ORDER[@]}"
++ mapfile -t group_pkgs
+++ get_group_packages 15
+++ local group_idx=15
+++ local pkg
+++ packages=()
+++ local packages
+++ IFS=
+++ read -r pkg
++++ echo apache2
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=apache2
+++ '[' -z apache2 ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo certbot
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=certbot
+++ '[' -z certbot ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo composer
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=composer
+++ '[' -z composer ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo nginx
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=nginx
+++ '[' -z nginx ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
++++ echo php
++++ sed -E 's/^\s+|\s+$//g'
+++ pkg=php
+++ '[' -z php ']'
+++ packages+=("$pkg")
+++ IFS=
+++ read -r pkg
+++ printf '%s\n' apache2 certbot composer nginx php
++ install_package_batch apache2 certbot composer nginx php
++ packages=('apache2' 'certbot' 'composer' 'nginx' 'php')
++ local packages
++ mapped=()
++ local mapped
++ local pkg
++ for pkg in "${packages[@]}"
++ '[' -z apache2 ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name apache2
+++ local name=apache2
+++ case "$PM" in
+++ '[' apache2 = fd ']'
+++ '[' apache2 = bat ']'
+++ echo apache2
++ for pkg in "${packages[@]}"
++ '[' -z certbot ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name certbot
+++ local name=certbot
+++ case "$PM" in
+++ '[' certbot = fd ']'
+++ '[' certbot = bat ']'
+++ echo certbot
++ for pkg in "${packages[@]}"
++ '[' -z composer ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name composer
+++ local name=composer
+++ case "$PM" in
+++ '[' composer = fd ']'
+++ '[' composer = bat ']'
+++ echo composer
++ for pkg in "${packages[@]}"
++ '[' -z nginx ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name nginx
+++ local name=nginx
+++ case "$PM" in
+++ '[' nginx = fd ']'
+++ '[' nginx = bat ']'
+++ echo nginx
++ for pkg in "${packages[@]}"
++ '[' -z php ']'
++ mapped+=("$(map_name "$pkg")")
+++ map_name php
+++ local name=php
+++ case "$PM" in
+++ '[' php = fd ']'
+++ '[' php = bat ']'
+++ echo php
++ to_install=()
++ local to_install
++ for pkg in "${mapped[@]}"
++ is_installed apache2
++ local pkg=apache2
++ case "$PM" in
++ dpkg -s apache2
++ true
++ command -v apache2
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed certbot
++ local pkg=certbot
++ case "$PM" in
++ dpkg -s certbot
++ true
++ command -v certbot
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed composer
++ local pkg=composer
++ case "$PM" in
++ dpkg -s composer
++ true
++ command -v composer
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed nginx
++ local pkg=nginx
++ case "$PM" in
++ dpkg -s nginx
++ true
++ command -v nginx
++ return 1
++ to_install+=("$pkg")
++ for pkg in "${mapped[@]}"
++ is_installed php
++ local pkg=php
++ case "$PM" in
++ dpkg -s php
++ true
++ command -v php
++ return 1
++ to_install+=("$pkg")
++ '[' 5 -eq 0 ']'
++ '[' apt = apt ']'
++ '[' 1 -eq 0 ']'
++ '[' -z 'sudo apt install -y' ']'
++ log 'Installing 5 packages for apt'
++ local 'msg=Installing 5 packages for apt'
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'Installing 5 packages for apt'
+2025-12-21T03:03:42Z Installing 5 packages for apt
++ local pkg_list
+++ printf '%s ' apache2 certbot composer nginx php
++ pkg_list='apache2 certbot composer nginx php '
++ run_cmd 'sudo apt install -y apache2 certbot composer nginx php '
++ local 'cmd=sudo apt install -y apache2 certbot composer nginx php '
++ log 'RUN: sudo apt install -y apache2 certbot composer nginx php '
++ local 'msg=RUN: sudo apt install -y apache2 certbot composer nginx php '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'RUN: sudo apt install -y apache2 certbot composer nginx php '
+2025-12-21T03:03:42Z RUN: sudo apt install -y apache2 certbot composer nginx php 
++ '[' 1 -eq 1 ']'
++ log 'DRY-RUN: sudo apt install -y apache2 certbot composer nginx php '
++ local 'msg=DRY-RUN: sudo apt install -y apache2 certbot composer nginx php '
++ tee -a ./modularconfig-install.log
+++ date -u +%Y-%m-%dT%H:%M:%SZ
++ printf '%s %s\n' 2025-12-21T03:03:42Z 'DRY-RUN: sudo apt install -y apache2 certbot composer nginx php '
+2025-12-21T03:03:42Z DRY-RUN: sudo apt install -y apache2 certbot composer nginx php 
++ return 0
+
+do_npm() {
+  npm_file="packages/npm.txt"
+  [ -f "$npm_file" ] || return
+  mapfile -t npm_pkgs < <(grep -E -v '^\s*#' "$npm_file" | sed '/^$/d')
+  [ ${#npm_pkgs[@]} -eq 0 ] && return
+  if [ "$ASSUME_YES" -eq 1 ]; then
+    ans=y
+  else
+    read -r -p "Install npm global packages? (${#npm_pkgs[@]}) [Y/n] " ans || true
+    ans=${ans:-y}
+  fi
+  if [[ "$ans" =~ ^[Yy] ]]; then
+    for p in "${npm_pkgs[@]}"; do
+      run_cmd "npm install -g $p"
+    done
+  fi
+}
+
+do_cargo() {
+  cargo_file="packages/cargo.txt"
+  [ -f "$cargo_file" ] || return
+  mapfile -t cargo_pkgs < <(grep -E -v '^\s*#' "$cargo_file" | sed '/^$/d')
+  [ ${#cargo_pkgs[@]} -eq 0 ] && return
+  if [ "$ASSUME_YES" -eq 1 ]; then
+    ans=y
+  else
+    read -r -p "Install cargo packages? (${#cargo_pkgs[@]}) [Y/n] " ans || true
+    ans=${ans:-y}
+  fi
+  if [[ "$ans" =~ ^[Yy] ]]; then
+    for p in "${cargo_pkgs[@]}"; do
+      run_cmd "cargo install $p || true"
+    done
+  fi
+}
+
+do_npm
++ do_npm
++ npm_file=packages/npm.txt
++ '[' -f packages/npm.txt ']'
++ return

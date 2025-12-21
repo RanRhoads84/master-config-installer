@@ -9,6 +9,8 @@ DRY_RUN=0
 ASSUME_YES=0
 SELECT_GROUPS=""
 PM_INSTALL_CMD=""
+OVERRIDE_PM=""
+IGNORE_PKG_DB="${IGNORE_PKG_DB:-0}"
 CONSOLIDATED_FILE="packages/consolidated.txt"
 declare -a ORDERED_GROUP_INDICES=()
 
@@ -19,6 +21,7 @@ Usage: $0 [--dry-run] [--yes] [--log <file>] [--groups <list>]
 Options:
   --dry-run        Print commands that would be run (no changes)
   --yes, -y        Assume yes to prompts
+  --pm <name>      Override detected package manager (apt|dnf|pacman|zypper)
   --log <file>     Path to log file (default: ./modularconfig-install.log)
   --groups <list>  Comma-separated group names to select non-interactively
   -h, --help       Show this help
@@ -31,6 +34,7 @@ while [ "$#" -gt 0 ]; do
     --yes|-y|--assume-yes) ASSUME_YES=1; shift ;;
     --log) if [ -n "${2:-}" ]; then LOGFILE="$2"; shift 2; else shift; fi ;;
     --groups) if [ -n "${2:-}" ]; then SELECT_GROUPS="$2"; shift 2; else shift; fi ;;
+    --pm) if [ -n "${2:-}" ]; then OVERRIDE_PM="$2"; shift 2; else shift; fi ;;
     -h|--help) usage; exit 0 ;;
     --) shift; break ;;
     *) break ;;
@@ -95,12 +99,20 @@ describe_module_scope() {
   log "Installer modules: ${available[*]}"
 }
 
-PM=$(detect_pm)
-if [ "$PM" = "unknown" ]; then
-  log "Detected package manager: unknown"
-  PM_INSTALL_CMD=""
+if [ -n "$OVERRIDE_PM" ]; then
+  PM="$OVERRIDE_PM"
+  log "Overriding package manager: $PM"
 else
-  log "Detected package manager: $PM"
+  PM=$(detect_pm)
+  if [ "$PM" = "unknown" ]; then
+    log "Detected package manager: unknown"
+    PM_INSTALL_CMD=""
+  else
+    log "Detected package manager: $PM"
+  fi
+fi
+
+if [ -n "$PM" ]; then
   set_pm_install_cmd "$PM"
 fi
 
@@ -163,6 +175,9 @@ map_name() {
 
 is_installed() {
   local pkg="$1"
+  if [ "${IGNORE_PKG_DB:-0}" -eq 1 ]; then
+    return 1
+  fi
   case "$PM" in
     apt) dpkg -s "$pkg" >/dev/null 2>&1 && return 0 || true ;;
     pacman) pacman -Qi "$pkg" >/dev/null 2>&1 && return 0 || true ;;
@@ -223,7 +238,9 @@ install_package_batch() {
     exit 4
   fi
   log "Installing ${#to_install[@]} packages for $PM"
-  run_cmd "$PM_INSTALL_CMD ${to_install[*]}"
+  local pkg_list
+  pkg_list=$(printf '%s ' "${to_install[@]}")
+  run_cmd "$PM_INSTALL_CMD $pkg_list"
 }
 
 show_package_submenu() {
