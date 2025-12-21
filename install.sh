@@ -595,13 +595,13 @@ do_vscode_setup() {
       local sources="/etc/apt/sources.list.d/vscode.sources"
       if [ ! -f "$sources" ]; then
         run_cmd "sudo tee $sources > /dev/null <<'EOF'
-Types: deb
-URIs: https://packages.microsoft.com/repos/code
-Suites: stable
-Components: main
-Architectures: amd64,arm64,armhf
-Signed-By: $keyring
-EOF"
+    Types: deb
+    URIs: https://packages.microsoft.com/repos/code
+    Suites: stable
+    Components: main
+    Architectures: amd64,arm64,armhf
+    Signed-By: $keyring
+    EOF"
       fi
       run_cmd "sudo apt update"
       run_cmd "$PM_INSTALL_CMD code"
@@ -611,15 +611,15 @@ EOF"
       local repo_file="/etc/yum.repos.d/vscode.repo"
       if [ ! -f "$repo_file" ]; then
         run_cmd "sudo tee $repo_file > /dev/null <<'EOF'
-[code]
-name=Visual Studio Code
-baseurl=https://packages.microsoft.com/yumrepos/vscode
-enabled=1
-autorefresh=1
-type=rpm-md
-gpgcheck=1
-gpgkey=https://packages.microsoft.com/keys/microsoft.asc
-EOF"
+    [code]
+    name=Visual Studio Code
+    baseurl=https://packages.microsoft.com/yumrepos/vscode
+    enabled=1
+    autorefresh=1
+    type=rpm-md
+    gpgcheck=1
+    gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+    EOF"
       fi
       run_cmd "sudo dnf check-update"
       run_cmd "sudo dnf install -y code"
@@ -629,15 +629,15 @@ EOF"
       local repo_file="/etc/zypp/repos.d/vscode.repo"
       if [ ! -f "$repo_file" ]; then
         run_cmd "sudo tee $repo_file > /dev/null <<'EOF'
-[code]
-name=Visual Studio Code
-baseurl=https://packages.microsoft.com/yumrepos/vscode
-enabled=1
-autorefresh=1
-type=rpm-md
-gpgcheck=1
-gpgkey=https://packages.microsoft.com/keys/microsoft.asc
-EOF"
+    [code]
+    name=Visual Studio Code
+    baseurl=https://packages.microsoft.com/yumrepos/vscode
+    enabled=1
+    autorefresh=1
+    type=rpm-md
+    gpgcheck=1
+    gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+    EOF"
       fi
       run_cmd "sudo zypper refresh"
       run_cmd "sudo zypper install -y code"
