@@ -1,9 +1,0 @@
-# Base Development Tools
-git
-vim
-ripgrep
-fd
-fzf
-
-# Multimedia Tools
-mkvtoolnix-cli

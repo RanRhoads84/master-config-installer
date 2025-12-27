@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# Simplified installer (neovim and rofi removed)
-set -euo pipefail
+# Simplified installer
+
 IFS=$'\n\t'
 
 LOGFILE="./modularconfig-install.log"
@@ -11,7 +11,7 @@ SELECT_GROUPS=""
 PM_INSTALL_CMD=""
 OVERRIDE_PM=""
 IGNORE_PKG_DB="${IGNORE_PKG_DB:-0}"
-CONSOLIDATED_FILE="packages/consolidated.txt"
+CONSOLIDATED_FILE="packages/pkg-list.txt"
 declare -a ORDERED_GROUP_INDICES=()
 
 usage() {

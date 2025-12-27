@@ -1,11 +1,3 @@
-# Browsers
-brave-browser
-chromium
-firefox
-opera
-tor-browser
-vivaldi
-
 # Build Dependencies
 atk
 cairo
@@ -27,12 +19,9 @@ sqlite3
 # Development Tools
 autoconf
 automake
-bison
-cargo
 check
 cmake
 cppcheck
-flex
 g++
 gcc
 gettext
@@ -40,19 +29,7 @@ intltool
 libtool
 make
 ninja
-nodejs
-npm
 pkg-config
-python3
-python3-pip
-rust
-valac
-
-# Fonts & Themes
-adapta-gtk-theme
-arc-theme
-nerd-fonts
-papirus-icon-theme
 
 # Network Tools
 aria2
@@ -64,16 +41,12 @@ tcpdump
 wireshark
 
 # Office & Productivity
-dropbox
 evolution
-geary
 libreoffice
-megasync
 nextcloud-client
 thunderbird
 
 # Security Tools
-chkrootkit
 clamav
 fail2ban
 gnutls
@@ -90,7 +63,6 @@ fzf
 thefuck
 tmux
 tldr
-zsh
 
 # System Monitoring
 btop
@@ -98,25 +70,12 @@ htop
 nvtop
 neotop
 
-# System Services
-apparmor
-bluetooth
-bluez
-cups
-firewalld
-networkmanager
-pipewire
-pulseaudio
-sane
-selinux
-ufw
-
 # System Tools
 ca-certificates
 curl
 git
 gnupg
-neofetch
+fastfetch
 openssh
 ripgrep
 rsync
@@ -126,17 +85,6 @@ tree
 unzip
 wget
 zip
-
-# Terminal Emulators
-alacritty
-konsole
-ptyxis
-
-# Text Editors
-ktexteditor
-gedit
-neovim
-vscode
 
 # Virtualization
 virt-bridge-setup
@@ -148,11 +96,3 @@ virt-v2v-bash-completion
 virt-v2v
 virt-viewer
 virt-win-reg
-
-# Web Servers & Tools
-apache2
-certbot
-composer
-nginx
-php
-
