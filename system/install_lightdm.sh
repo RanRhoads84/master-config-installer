@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # DESC: Install and configure LightDM display manager with slick-greeter
 
 # ===========================================

@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+
 # DESC: Install CUPS printing and SANE scanning services
 
 echo "Would you like to install printing and scanning services? (y/n)"
