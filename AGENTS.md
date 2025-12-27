@@ -4,7 +4,7 @@
 This repository is a Bash-first installer suite. Key locations:
 - `install.sh` is the unified interactive installer and main entry point.
 - `packages/` holds per-package-manager lists plus `packages/consolidated.txt` for menu groups.
-- Module directories like `browsers/`, `fastfetch/`, `git/`, `modularnotes/`, `modularshell/`, `setup/`, `system/`, `theming/`, and `vim-config/` each include their own README.
+- Module directories like `browsers/`, `modularnotes/`, `modularshell/`, `setup/`, `system/`, `theming/`, and `vim-config/` each include their own README.
 - `tests/scripts/` contains dry-run harnesses; `tests/test_dry_results/` stores logs.
 - `theming/Wallpapers/` is a large asset library.
 

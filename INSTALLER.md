@@ -30,7 +30,6 @@ The installer can also configure the Microsoft VS Code repository and install `c
 ## Package Organization
 
 Packages are organized in a consolidated list (`packages/consolidated.txt`) by the same categories you encounter in the installer menu. Examples include:
-- Browsers
 - Build Dependencies
 - Database
 - Development Tools
@@ -45,10 +44,9 @@ Packages are organized in a consolidated list (`packages/consolidated.txt`) by t
 - Terminal Emulators
 - Text Editors
 - Virtualization
-- Web Servers & Tools
 
 The installer automatically handles package name differences between distributions.
 
 - Use `--log <file>` to change the logfile location (defaults to `./modularconfig-install.log`).
-- The script will attempt to skip already-installed packages and supports common package managers (`apt`, `dnf`, `pacman`, `zypper`, `apk`, `brew`).
+- The script will attempt to skip already-installed packages and supports common package managers (`apt`, `dnf`, `pacman`, `zypper`).
 - Package names may vary by distribution; edit `packages/<pm>.txt` to customize.
