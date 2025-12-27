@@ -1,12 +1,10 @@
+# Deopendency installation script for Vim configuration.
+
 #!/usr/bin/env bash
-set -euo pipefail
 
 # ---------------- colors ----------------
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+. ../libs/text_mods.bash
+# ----------------------------------------  
 
 log()  { printf "${BLUE}[*]${NC} %s\n" "$*"; }
 ok()   { printf "${GREEN}[+]${NC} %s\n" "$*"; }

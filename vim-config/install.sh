@@ -1,14 +1,11 @@
+# Installs Custom Vim configuration files to the user's home directory.
+
 #!/usr/bin/env bash
-set -euo pipefail
 
 VERBOSE=1
 
 # --- colors ---
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # no color
+../libs/text_mods.bash
 
 log() {
   [[ "$VERBOSE" -eq 1 ]] && printf "${BLUE}[*]${NC} %s\n" "$*"
