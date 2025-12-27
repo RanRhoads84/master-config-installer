@@ -4,17 +4,22 @@
 # =========================
 # Color definitions
 # =========================
-RED="\[\e[1;31m\]"            # SSH msg
-GREEN="\[\e[1;32m\]"          # user/host
-YELLOW="\[\e[1;33m\]"         # git branch
-BLUE="\[\e[38;5;24m\]"        # date
-TEAL="\[\e[38;5;30m\]"        # wrappers
-TEAL_DARK="\[\e[38;5;29m\]"   # braces
-ORANGE="\[\e[38;5;208m\]"     # path
-GREEN_PROMPT="\[\e[38;5;34m\]"
-BOLD="\[\e[1m\]"
-UNDERLINE="\[\e[4m\]"
-RESET="\[\e[0m\]"
+source ../libs/text_mods.bash || {
+  echo "ERROR: failed to source text_mods.bash" >&2
+  exit 2
+}
+
+#RED="\[\e[1;31m\]"            # SSH msg
+#GREEN="\[\e[1;32m\]"          # user/host
+#YELLOW="\[\e[1;33m\]"         # git branch
+#BLUE="\[\e[38;5;24m\]"        # date
+#TEAL="\[\e[38;5;30m\]"        # wrappers
+#TEAL_DARK="\[\e[38;5;29m\]"   # braces
+#ORANGE="\[\e[38;5;208m\]"     # path
+#GREEN_PROMPT="\[\e[38;5;34m\]"
+#BOLD="\[\e[1m\]"
+#UNDERLINE="\[\e[4m\]"
+#RESET="\[\e[0m\]"
 
 # =========================
 # Git prompt helper

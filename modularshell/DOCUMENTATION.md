@@ -46,10 +46,10 @@
 ├── aliases.bash          # All command shortcuts
 ├── prompt.bash           # Git-aware prompt configuration  
 ├── keybinds.bash         # Keyboard shortcuts
-├── fzf.bash             # FZF fuzzy finder setup
+├── fzf.bash              # FZF fuzzy finder setup
 └── functions/
-    ├── system.bash      # System utilities
-    └── utils.bash       # General utilities
+    ├── system.bash       # System utilities
+    └── utils.bash        # General utilities
 ```
 
 ## All Available Commands
