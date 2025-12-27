@@ -33,13 +33,21 @@ Unified Linux package installer supporting multiple distributions (apt, dnf, pac
 - **Command Line Options**: --dry-run, --yes, --log, --groups
 - **ModularNotes Rebrand**: Replaced ButterScripts naming with ModularNotes/ModularShell across installers, CLI helpers, and configs (now sourcing ~/.config/modularnotes/modularnotes.conf).
 
+### Documentation & Man Pages
+- **Suite Man Page**: `install.sh` installs the CSI manual page (`man modularconfig-suite`) into `~/.local/share/man/man7`.
+- **ModularShell Man Page**: `modularshell/install.sh` installs the ModularShell manual page (`man modularshell`).
+- **README Refresh**: Updated to match current module layout, package list path, and testing guidance.
+
 ## Current Issues 🚨
 
 No active issues. Submenu package selection now installs the chosen packages as expected.
 
-### Files Modified
-- `install.sh`: Main installer script with submenu logic
-- `packages/consolidated.txt`: Alphabetized package list
+### Files Updated (Recent)
+- `install.sh`: Suite man page install step
+- `man/man7/modularconfig-suite.7`: CSI manual page
+- `modularshell/install.sh`: ModularShell man page install step
+- `modularshell/man/man7/modularshell.7`: ModularShell manual page
+- `README.md`: Aligned overview with current layout and package list path
 
 ## Next Steps 📋
 
@@ -94,3 +102,5 @@ No active issues. Submenu package selection now installs the chosen packages as 
 - **Reusable Menu Helper**: Added/updated `lib/menu.bash` to support caller-populated menus (items/meta arrays) and return selected indices to the calling script.
 - **Packaged Lib Sourcing**: Updated demo script approach to source libraries via `script_dir/lib/...` so scripts work when packaged and run from any working directory.
 - **Theming Assets (Planned)**: Add functionality to install/copy `theming/Wallpapers/` into `~/.local/share/wallpapers/` (implementation pending final placement/wiring).
+- **Manual Pages**: Added CSI and ModularShell man pages and wired installers to install them.
+- **README Alignment**: Refreshed the top-level README to match current modules and installer behavior.
