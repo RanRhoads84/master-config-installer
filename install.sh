@@ -72,6 +72,23 @@ safe_run() {
   bash -c "$cmd" >>"$LOGFILE" 2>&1 || return 1
 }
 
+install_suite_man_page() {
+  local man_source="man/man7/modularconfig-suite.7"
+  local man_dir="$HOME/.local/share/man/man7"
+
+  if [ ! -f "$man_source" ]; then
+    log "Suite manual page not found: $man_source"
+    return
+  fi
+
+  log "Installing suite manual page"
+  run_cmd "mkdir -p \"$man_dir\""
+  run_cmd "cp \"$man_source\" \"$man_dir/\""
+  if command -v mandb >/dev/null 2>&1; then
+    run_cmd "mandb -q \"$HOME/.local/share/man\" >/dev/null 2>&1 || true"
+  fi
+}
+
 detect_pm() {
   if command -v apt >/dev/null 2>&1; then echo apt; return 0; fi
   if command -v dnf >/dev/null 2>&1; then echo dnf; return 0; fi
@@ -127,6 +144,8 @@ if [ ! -f "$CONSOLIDATED_FILE" ]; then
   echo "Package list file not found: $CONSOLIDATED_FILE" >&2
   exit 3
 fi
+
+install_suite_man_page
 
 declare -a GROUP_ORDER
 declare -a GROUP_VALUES

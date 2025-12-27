@@ -1,0 +1,109 @@
+.TH MODULARCONFIG-SUITE 7 "2025-12-27" "ModularConfig Suite" "Miscellaneous"
+.SH NAME
+modularconfig-suite \- modular Linux configuration installer suite
+.SH SYNOPSIS
+.B install.sh
+[\fB--dry-run\fR]
+[\fB--yes\fR]
+[\fB--pm\fR \fIname\fR]
+[\fB--log\fR \fIfile\fR]
+[\fB--groups\fR \fIlist\fR]
+.SH DESCRIPTION
+The ModularConfig Suite (CSI) is a Bash-first installer collection for common
+Linux configuration tasks. The main entry point is
+.I install.sh
+which presents an interactive menu of package groups and optional modules.
+Each module directory includes its own README and, when applicable, an
+independent installer script.
+.SH OPTIONS
+.TP
+.B --dry-run
+Print commands that would run without making changes.
+.TP
+.B --yes\fR, \fB-y\fR, \fB--assume-yes
+Assume yes to prompts for non-interactive runs.
+.TP
+.B --pm \fIname\fR
+Override the detected package manager (apt, dnf, pacman, or zypper).
+.TP
+.B --log \fIfile\fR
+Write logs to the specified path (default:
+.I ./modularconfig-install.log
+).
+.TP
+.B --groups \fIlist\fR
+Comma-separated group names to select non-interactively. Group names match the
+header lines in
+.I packages/pkg-list.txt
+.
+.TP
+.B -h\fR, \fB--help
+Show the built-in help text.
+.SH ENTRY POINTS
+.TP
+.I install.sh
+Unified interactive installer for package groups and module entry points.
+.TP
+.I setup/optional_tools.sh
+Optional helper menu for module installers.
+.TP
+.I modularshell/install.sh
+Standalone installer for the ModularShell module.
+.TP
+.I modularnotes/install.sh
+Standalone installer for the ModularNotes module.
+.SH MODULES
+.TP
+.I browsers/
+Browser helpers and search utilities.
+.TP
+.I modularnotes/
+Note taking and task helpers.
+.TP
+.I modularshell/
+Modular Bash configuration and shell helpers.
+.TP
+.I setup/
+Setup routines and optional tool menus.
+.TP
+.I system/
+System-level installers and configuration helpers.
+.TP
+.I theming/
+Themes, fonts, and wallpaper assets.
+.TP
+.I vim-config/
+Vim configuration installer.
+.SH FILES
+.TP
+.I packages/pkg-list.txt
+Package group definitions used by
+.I install.sh
+menus.
+.TP
+.I tests/scripts/
+Dry-run harnesses for multiple package managers.
+.TP
+.I tests/test_dry_results/
+Log output from dry-run tests.
+.SH ENVIRONMENT
+.TP
+.B IGNORE_PKG_DB
+Set to 1 to skip package database checks when running
+.I install.sh
+.
+.SH EXAMPLES
+.EX
+./install.sh --dry-run
+./install.sh --groups "Fonts & Themes" --yes
+IGNORE_PKG_DB=1 ./install.sh --dry-run --yes --pm dnf
+.EE
+.SH NOTES
+Most scripts invoke
+.BR sudo (8)
+for package installation. Run
+.B --dry-run
+first to preview actions.
+.SH SEE ALSO
+.BR bash (1),
+.BR modularshell (7)
