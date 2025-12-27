@@ -110,6 +110,27 @@ pkg_init() {
     uplist()    { pkg_uplist; }
     info()      { pkg_info "$@"; }
 }
+
+install_tools() {
+    local -a pkgs=()
+
+    command_exists fzf || pkgs+=(fzf)
+    command_exists rg || pkgs+=(ripgrep)
+
+    if ((${#pkgs[@]} == 0)); then
+        echo "install_tools: fzf and ripgrep already installed"
+        return 0
+    fi
+
+    if ! declare -F pkg_install >/dev/null 2>&1; then
+        if ! pkg_init >/dev/null 2>&1; then
+            echo "install_tools: no supported package manager detected"
+            return 1
+        fi
+    fi
+
+    pkg_install "${pkgs[@]}"
+}
 pkg_init
 
 # Process grep with header
@@ -216,6 +237,59 @@ mkcd() {
     mkdir -p "$1" && cd "$1"
 }
 
+# Create a timestamped backup of a file or directory
+backup() {
+    if [ -z "${1:-}" ]; then
+        echo "Usage: backup <file>" >&2
+        return 1
+    fi
+
+    local src="$1"
+    if [ ! -e "$src" ]; then
+        echo "backup: '$src' not found" >&2
+        return 1
+    fi
+
+    local ts dest
+    ts="$(date +%Y%m%d_%H%M%S)"
+    dest="${src}.${ts}.bak"
+    cp -a -- "$src" "$dest"
+    echo "Backup created: $dest"
+}
+
+# Quick calculator (python3 preferred, bc fallback)
+calc() {
+    if [ $# -eq 0 ]; then
+        echo "Usage: calc <expression>" >&2
+        return 1
+    fi
+
+    local expr="$*"
+
+    if command_exists python3; then
+        python3 - "$expr" <<'PY'
+import math
+import sys
+
+expr = sys.argv[1]
+allowed = {k: getattr(math, k) for k in dir(math) if not k.startswith("_")}
+allowed.update({"abs": abs, "round": round})
+allowed["__builtins__"] = {}
+
+try:
+    print(eval(expr, allowed, {}))
+except Exception as exc:
+    print(f"calc error: {exc}", file=sys.stderr)
+    sys.exit(1)
+PY
+    elif command_exists bc; then
+        printf '%s\n' "$expr" | bc -l
+    else
+        echo "calc: requires python3 or bc" >&2
+        return 1
+    fi
+}
+
 # Extract archives
 extract() {
     if [ -f "$1" ]; then
@@ -289,6 +363,9 @@ path() {
 #     - If no supported manager is detected, PKG_MGR="unknown" and the wrappers
 #       are not defined.
 #
+#   install_tools
+#     - Installs fzf and ripgrep with the detected package manager if missing.
+#
 #   psg <process_name>
 #     - Prints ps aux header then filters processes (case-insensitive),
 #       excluding the grep process. Returns non-zero if usage error.
@@ -300,6 +377,12 @@ path() {
 #
 #   mkcd <dir>
 #     - Creates <dir> (mkdir -p) and cds into it on success.
+#
+#   backup <path>
+#     - Creates a timestamped backup copy of a file or directory.
+#
+#   calc <expr>
+#     - Evaluates a math expression using python3 (preferred) or bc.
 #
 #   extract <archive>
 #     - Convenience wrapper to extract many archive formats (tar.*, zip, gz,

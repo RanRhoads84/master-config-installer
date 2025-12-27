@@ -11,8 +11,8 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-MODULARSHELL_DIR="$HOME/.config/modularshell"
-CONFIG_BACKUP_DIR="$HOME/.config/modularshell.backup.$(date +%Y%m%d_%H%M%S)"
+MODULARSHELL_DIR="$HOME/.config/bash"
+CONFIG_BACKUP_DIR="$HOME/.config/bash.backup.$(date +%Y%m%d_%H%M%S)"
 BASHRC_BACKUP="$HOME/.bashrc.backup.$(date +%Y%m%d_%H%M%S)"
 
 # Print colored message

@@ -16,11 +16,10 @@ alias python="python3"
 # Neovim Path
 export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
 
-export PATH=/home/allen/.opencode/bin:$PATH
+export PATH="$HOME/.opencode/bin:$PATH"
 
 # Cargo Just Path
-export PATH=/home/allen/.cargo/bin:$PATH
+export PATH="$HOME/.cargo/bin:$PATH"
 
 . "$HOME/.local/share/../bin/env"
-
 

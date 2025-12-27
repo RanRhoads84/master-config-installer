@@ -1,46 +1,33 @@
-# Agents and Test Scripts
+# Repository Guidelines
 
-This repository includes a small set of helper "agents" (scripts and test harnesses)
-used to run dry-runs, traced runs, and other automation steps for the installer.
+## Project Structure & Module Organization
+This repository is a Bash-first installer suite. Key locations:
+- `install.sh` is the unified interactive installer and main entry point.
+- `packages/` holds per-package-manager lists plus `packages/consolidated.txt` for menu groups.
+- Module directories like `browsers/`, `fastfetch/`, `git/`, `modularnotes/`, `modularshell/`, `setup/`, `system/`, `theming/`, and `vim-config/` each include their own README.
+- `tests/scripts/` contains dry-run harnesses; `tests/test_dry_results/` stores logs.
+- `theming/Wallpapers/` is a large asset library.
 
-Overview
-- `install.sh` - main installer. Supports `--dry-run`, `--yes`/`-y`, `--pm <name>` and reads `IGNORE_PKG_DB`.
-- `tests/scripts/test_dry_all_pm.sh` - runs a dry-run across supported package managers and writes logs to `tests/test_dry_results/`.
-- `tests/scripts/trace_dry_all_pm.sh` - runs `bash -x` traced dry-runs and stores traces in `tests/test_dry_results/`.
-- `push-git.sh` - repository push helper (used by maintainers).
+## Build, Test, and Development Commands
+- `./install.sh --dry-run` preview actions without changes (auto assumes yes).
+- `./install.sh` run the interactive menu.
+- `./install.sh --groups "Fonts & Themes" --yes` run non-interactively by group name.
+- `./install.sh --pm apt --log ./modularconfig-install.log` override PM and log location.
+- `tests/scripts/test_dry_all_pm.sh` run dry-runs for apt, dnf, pacman, zypper.
+- `tests/scripts/trace_dry_all_pm.sh` run `bash -x` traces for troubleshooting.
+- `IGNORE_PKG_DB=1 ./install.sh --dry-run --yes --pm dnf` avoids consulting the host package DB.
 
-Key env vars / flags
-- `DRY_RUN=1` or `--dry-run` : run in dry-run mode (no package manager commands executed).
-- `ASSUME_YES=1` or `--yes`/`-y` : assume yes to all interactive prompts.
-- `IGNORE_PKG_DB=1` : testing mode that ignores the system package DB when checking installed/available packages.
-- `--pm <apt|dnf|pacman|zypper>` : force a specific package manager.
+## Coding Style & Naming Conventions
+- Use Bash (`#!/usr/bin/env bash`) and favor strict mode: `set -euo pipefail` and `IFS=$'\n\t'`.
+- Match the indentation style of the file you are editing (2 or 4 spaces are common).
+- Use lower_snake_case for function names; uppercase for constants and flag-like variables.
+- Installer helpers follow `install_*.sh` naming in `setup/` and `system/`.
 
-Common commands
+## Testing Guidelines
+Dry-run testing is the norm. Use `--dry-run` with `--yes` for non-interactive runs, and store artifacts in `tests/test_dry_results/`. Review `./modularconfig-install.log` for installer details.
 
-Run a simple dry-run (auto assumes yes in dry-run):
-```bash
-./install.sh --dry-run --pm zypper
-```
+## Commit & Pull Request Guidelines
+Recent history favors short, imperative subjects with prefixes such as `docs:`, `fix(installer):`, and `chore(push):`, plus the occasional plain sentence. Prefer `type(scope): summary` when possible. PRs should describe the target distro or package manager, include relevant command output or log snippets for installer changes, and update module READMEs when behavior changes.
 
-Run a traced dry-run and save output:
-```bash
-bash -x ./install.sh --dry-run --pm apt 2>&1 | tee tests/test_dry_results/trace-apt.log
-```
-
-Run the test harness (all package managers):
-```bash
-tests/scripts/test_dry_all_pm.sh
-```
-
-Where logs go
-- Per-run logs and traces: `tests/test_dry_results/` (this directory is gitignored for large artifacts).
-- Installer log: `./modularconfig-install.log`.
-
-Notes for maintainers
-- Dry-run mode is non-interactive (it sets `ASSUME_YES=1`) so it can be used in CI.
-- The installer now skips packages not found in configured repositories and logs them as skipped.
-- If you need deterministic tests that don't consult the host system, use `IGNORE_PKG_DB=1`.
-
-If you want any additional agent scripts or CI snippets added, open an issue or send a PR.
-
--- Maintainers
+## Safety & Configuration Tips
+Most scripts invoke `sudo`. Recommend `--dry-run` first, and keep package group headers in `packages/consolidated.txt` aligned with the installer menu labels.
