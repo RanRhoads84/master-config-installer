@@ -48,6 +48,7 @@ No active issues. Submenu package selection now installs the chosen packages as 
 - `modularshell/install.sh`: ModularShell man page install step
 - `modularshell/man/man7/modularshell.7`: ModularShell manual page
 - `README.md`: Aligned overview with current layout and package list path
+- `AGENTS.md`: Updated AI instructions to match current layout and examples
 
 ## Next Steps 📋
 
@@ -108,3 +109,4 @@ No active issues. Submenu package selection now installs the chosen packages as 
 - **Theming Assets (Planned)**: Add functionality to install/copy `theming/Wallpapers/` into `~/.local/share/wallpapers/` (implementation pending final placement/wiring).
 - **Manual Pages**: Added CSI and ModularShell man pages and wired installers to install them.
 - **README Alignment**: Refreshed the top-level README to match current modules and installer behavior.
+- **Agent Guidance**: Updated `AGENTS.md` to track current paths, examples, and man page locations.
