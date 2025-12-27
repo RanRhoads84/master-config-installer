@@ -3,15 +3,16 @@
 ## Project Structure & Module Organization
 This repository is a Bash-first installer suite. Key locations:
 - `install.sh` is the unified interactive installer and main entry point.
-- `packages/` holds per-package-manager lists plus `packages/consolidated.txt` for menu groups.
-- Module directories like `browsers/`, `modularnotes/`, `modularshell/`, `setup/`, `system/`, `theming/`, and `vim-config/` each include their own README.
+- `packages/` holds the unified group list in `packages/pkg-list.txt` (optional `packages/npm.txt` and `packages/cargo.txt` are honored if present).
+- Shared Bash helpers live in `libs/`; suite and module man pages live in `man/` and module `man/` folders.
+- Module directories like `modularnotes/`, `modularshell/`, `setup/`, `system/`, `theming/`, and `vim-config/` each include their own README (when available).
 - `tests/scripts/` contains dry-run harnesses; `tests/test_dry_results/` stores logs.
 - `theming/Wallpapers/` is a large asset library.
 
 ## Build, Test, and Development Commands
 - `./install.sh --dry-run` preview actions without changes (auto assumes yes).
 - `./install.sh` run the interactive menu.
-- `./install.sh --groups "Fonts & Themes" --yes` run non-interactively by group name.
+- `./install.sh --groups "Shell Tools" --yes` run non-interactively by group name.
 - `./install.sh --pm apt --log ./modularconfig-install.log` override PM and log location.
 - `tests/scripts/test_dry_all_pm.sh` run dry-runs for apt, dnf, pacman, zypper.
 - `tests/scripts/trace_dry_all_pm.sh` run `bash -x` traces for troubleshooting.
@@ -30,4 +31,4 @@ Dry-run testing is the norm. Use `--dry-run` with `--yes` for non-interactive ru
 Recent history favors short, imperative subjects with prefixes such as `docs:`, `fix(installer):`, and `chore(push):`, plus the occasional plain sentence. Prefer `type(scope): summary` when possible. PRs should describe the target distro or package manager, include relevant command output or log snippets for installer changes, and update module READMEs when behavior changes.
 
 ## Safety & Configuration Tips
-Most scripts invoke `sudo`. Recommend `--dry-run` first, and keep package group headers in `packages/consolidated.txt` aligned with the installer menu labels.
+Most scripts invoke `sudo`. Recommend `--dry-run` first, and keep package group headers in `packages/pkg-list.txt` aligned with the installer menu labels.
