@@ -13,8 +13,8 @@ Unified Linux package installer supporting multiple distributions (apt, dnf, pac
 - **Logging**: Comprehensive installation logging to modularconfig-install.log
 
 ### Package Organization  
-- **Consolidated Package List**: Single file (packages/consolidated.txt) with 22 categorized groups
-- **Alphabetized Categories**: Groups sorted alphabetically (Browsers, Build Dependencies, Database, etc.)
+- **Consolidated Package List**: Single file (packages/pkg-list.txt) with categorized groups
+- **Alphabetized Categories**: Groups sorted alphabetically by header
 - **Alphabetized Packages**: All packages within each group sorted alphabetically
 - **Installation Status**: Shows "X installed, Y to install" for each group
 
@@ -35,15 +35,7 @@ Unified Linux package installer supporting multiple distributions (apt, dnf, pac
 
 ## Current Issues 🚨
 
-### Critical Bug: Submenu Package Selection
-**Status**: ✅ FIXED - Completed
-**Problem**: Selected packages from submenus were not being added to PACKAGES_SELECTED array
-**Root Cause**: PACKAGES_SELECTED variable declared in wrong scope + missing while loop structure
-**Solution**: 
-- Moved PACKAGES_SELECTED declaration before conditional branches
-- Removed duplicate declarations  
-- Restored missing `while true; do` loop structure in interactive menu
-**Impact**: Submenu functionality now fully operational
+No active issues. Submenu package selection now installs the chosen packages as expected.
 
 ### Files Modified
 - `install.sh`: Main installer script with submenu logic
@@ -52,9 +44,8 @@ Unified Linux package installer supporting multiple distributions (apt, dnf, pac
 ## Next Steps 📋
 
 ### Immediate (High Priority)
-1. **Fix PACKAGES_SELECTED scoping**: Move variable declaration before interactive menu
-2. **Test submenu functionality**: Verify packages are properly added to installation list
-3. **Test full installation flow**: Ensure end-to-end functionality works
+1. **Confirm submenu flows**: Re-run interactive selection tests after any menu refactors
+2. **Test full installation flow**: Ensure end-to-end functionality works
 
 ### Medium Priority  
 1. **Input validation**: Better error handling for invalid comma-separated input
@@ -71,7 +62,7 @@ Unified Linux package installer supporting multiple distributions (apt, dnf, pac
 
 ### Architecture
 - Bash script with modular function design
-- Global state management via arrays (GROUP_ORDER, GROUP_VALUES, PACKAGES_SELECTED)
+- Global state management via arrays (GROUP_ORDER, GROUP_VALUES, SUBMENU_SELECTIONS)
 - Package manager abstraction layer
 - Interactive menu system using bash select/read
 
@@ -84,7 +75,7 @@ Unified Linux package installer supporting multiple distributions (apt, dnf, pac
 ### Data Structures
 - `GROUP_ORDER[]`: Array of category names (alphabetized)
 - `GROUP_VALUES[]`: Array of package lists per category
-- `PACKAGES_SELECTED[]`: Final list of packages to install
+- `SUBMENU_SELECTIONS[]`: Selected packages from the active submenu
 
 ## Testing Status
 - ✅ Main menu displays correctly
@@ -96,5 +87,10 @@ Unified Linux package installer supporting multiple distributions (apt, dnf, pac
 - ✅ End-to-end installation flow works
 
 ---
-*Last Updated: December 20, 2025*
-*Current Focus: ModularNotes rebrand completion and documentation cleanup*
+*Last Updated: December 27, 2025*
+*Current Focus: Reusable menu library + script-packaged lib sourcing + theming assets install*
+
+## Recent Changes (December 27, 2025)
+- **Reusable Menu Helper**: Added/updated `lib/menu.bash` to support caller-populated menus (items/meta arrays) and return selected indices to the calling script.
+- **Packaged Lib Sourcing**: Updated demo script approach to source libraries via `script_dir/lib/...` so scripts work when packaged and run from any working directory.
+- **Theming Assets (Planned)**: Add functionality to install/copy `theming/Wallpapers/` into `~/.local/share/wallpapers/` (implementation pending final placement/wiring).
