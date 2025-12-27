@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# lib/menu.bash - reusable menu helpers (caller provides menu items)
+# lis/menu.bash - reusable menu helpers (caller provides menu items)
 
 # Colors
-source lib/text_mods.bash || {
+source libs/text_mods.bash || {
   echo "ERROR: failed to source colors.bash" >&2
   exit 2
 }

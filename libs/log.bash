@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 # ---------------------------------------------------------
 # log.bash
 # Simple debug logging helper for Bash scripts
