@@ -2,13 +2,13 @@
 
 # ModularConfig Suite (CSI)
 
-ModularConfig Suite powers the CSI (Config Suite Installer) experience, a curated collection of installer helpers for Linux. The repository groups scripts by feature so you can immediately spot which module covers browsers, fastfetch, theming, system services, and tooling.
+ModularConfig Suite powers the CSI (Config Suite Installer) experience, a curated collection of installer helpers for Linux. The repository groups scripts by feature so you can immediately spot which module covers shell configuration, notes, theming, system services, and tooling.
 
 ---
 
 ## Overview
 
-CSI is built around a single interactive installer (`install.sh`) plus a handful of trusted utility directories. Each module ships with its own README so you can explore how it behaves outside the core installer.
+CSI is built around a single interactive installer (`install.sh`) plus a handful of trusted utility directories. Modules that include README files document their standalone behavior outside the core installer.
 
 ## Unified Installer
 
@@ -24,12 +24,26 @@ Quick examples:
 ./install.sh
 
 # non-interactive: pick groups by name and assume yes
-./install.sh --groups "Zypper / openSUSE packages (approximate names)" --yes
+./install.sh --groups "Shell Tools" --yes
 ```
 
-Optional build-from-source flows are available at the end of the install run (Neovim, Picom, Rofi, st). Use `--dry-run` first to preview commands.
+After package installs, the script can optionally run module installers (such as `vim-config`) and setup steps for Flatpak and VS Code. If `packages/npm.txt` or `packages/cargo.txt` exist, it will also offer to install those package lists. Use `--dry-run` first to preview commands.
 
-The installer also includes an optional vim configuration setup that installs dependencies and copies a custom vimrc with plugins.
+The installer includes an optional vim configuration setup that installs dependencies and applies the curated vimrc from `vim-config/`.
+
+## Manual Pages
+
+A normal `./install.sh` run installs the suite manual page to `~/.local/share/man/man7`. Use:
+
+```bash
+man modularconfig-suite
+```
+
+Running `./modularshell/install.sh` installs the ModularShell manual page:
+
+```bash
+man modularshell
+```
 
 ## Flatpak Setup
 
@@ -41,60 +55,55 @@ When you agree, `install.sh` follows the official guidance at https://code.visua
 
 ## Package Management
 
-The installer uses a consolidated package list (`packages/consolidated.txt`) organized into the same categories you see in the menu. Each header in the file (and the corresponding menu entry) covers a group such as:
-- Browsers
+The installer uses a consolidated package list (`packages/pkg-list.txt`) organized into the same categories you see in the menu. Each header in the file (and the corresponding menu entry) covers a group such as:
 - Build Dependencies
 - Database
 - Development Tools
-- Fonts & Themes
 - Network Tools
 - Office & Productivity
 - Security Tools
 - Shell Tools
 - System Monitoring
-- System Services
 - System Tools
-- Terminal Emulators
-- Text Editors
 - Virtualization
-- Web Servers & Tools
 
-Package names are automatically mapped for different distributions (e.g., `fd-find` on Debian vs `fd` on others).
+Package names are automatically mapped for different distributions (e.g., `fd-find` and `batcat` on Debian/Ubuntu).
 
 Notes:
 - Use `--log <file>` to change the logfile location (defaults to `./modularconfig-install.log`).
-- The script will attempt to skip already-installed packages and supports common package managers (`apt`, `dnf`, `pacman`, `zypper`, `apk`, `brew`).
-- Package names may vary by distribution; edit `packages/<pm>.txt` to customize.
+- The script will attempt to skip already-installed packages and supports `apt`, `dnf`, `pacman`, and `zypper` (use `--pm` to override detection).
+- Set `IGNORE_PKG_DB=1` to skip package database checks.
+- Package names may vary by distribution; edit `packages/pkg-list.txt` to customize.
 
 ## Repository Structure
 
-CSI focuses on the directories you see in this repository. The legacy Discord, MKVMerge, st, and WezTerm installers were removed so only actively maintained modules appear in the installer menu.
+CSI focuses on the directories you see in this repository. Only actively maintained modules appear in the installer menu.
 
-Each directory below ships with its own README; hover on the links or open the file to see usage notes, dependencies, and configuration tips.
+Modules with README files include usage notes, dependencies, and configuration tips.
 
-### `/browsers`
+### `/libs`
 
-- Hosts helpers for Brave, Firefox, Floorp, Zen, and related browser tooling. See [browsers/README.md](browsers/README.md) for install steps.
-
-### `/fastfetch`
-
-- Contains the OS-aware fastfetch installer plus alias helpers (Bash/Zsh/Fish) and three sample configs. See [fastfetch/README.md](fastfetch/README.md).
-
-### `/git`
-
-- Git automation scripts (`gitup`, `git-notes-status.sh`) and the SSH setup guide (`CODEBERG_SSH_SETUP.md`) that help manage repositories from the CLI.
-
-### `/neovim`
-
-- `buttervim.sh` and `build-neovim.sh` install Neovim and the ModularConfig vim stack. Details live in [neovim/README.md](neovim/README.md).
+- Shared Bash helpers for logging, menus, and text formatting.
 
 ### `/modularnotes`
 
 - Modular note-taking tooling (notes/todos, backups, templates, and shell helpers). See [modularnotes/README.md](modularnotes/README.md).
 
+### `/modularshell`
+
+- Modular Bash configuration framework plus helper functions. See [modularshell/README.md](modularshell/README.md).
+
+### `/man`
+
+- Manual pages for CSI and modules.
+
+### `/packages`
+
+- Unified package group list consumed by the installer.
+
 ### `/setup`
 
-- Utility installers such as `install_caligula.sh`, `install_geany.sh`, `install_picom.sh`, and `optional_tools.sh`. The optional tools menu now surfaces CSI-friendly bundles including `ModularShell` and the fastfetch installer.
+- Utility installers and the `optional_tools.sh` menu. The optional tools menu can fetch and run external helper installers when requested.
 
 ### `/system`
 
@@ -102,7 +111,15 @@ Each directory below ships with its own README; hover on the links or open the f
 
 ### `/theming`
 
-- Nerd font installs plus GTK theme setup. Documentation is available in [theming/README.md](theming/README.md).
+- Fonts + wallpaper setup plus the `Wallpapers/` asset library.
+
+### `/tests`
+
+- Dry-run harnesses and stored results (see `tests/scripts/` and `tests/test_dry_results/`).
+
+### `/vim-config`
+
+- Vim configuration installer used by the optional installer step.
 
 Thanks to everyone who has contributed—ModularConfig Suite (CSI) stands on top of your scripts, configurations, and feedback.
 
@@ -121,7 +138,9 @@ To test the unified installer:
 1. Run `./install.sh --dry-run` to preview actions without making changes.
 2. Check the log file (`./modularconfig-install.log` by default) for detailed output.
 3. For non-interactive testing, use `--groups <list> --yes`.
-4. Verify package installations and npm/cargo installs in a safe environment.
+4. To dry-run against all supported package managers, use `tests/scripts/test_dry_all_pm.sh`.
+5. For verbose traces, use `tests/scripts/trace_dry_all_pm.sh` (logs land in `tests/test_dry_results/`).
+6. Verify package installations and any npm/cargo installs in a safe environment.
 
 ---
 
