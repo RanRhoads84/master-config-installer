@@ -1,0 +1,104 @@
+.TH MODULARSHELL 7 "2025-12-27" "ModularConfig Suite" "Miscellaneous"
+.SH NAME
+modularshell \- modular Bash configuration framework
+.SH SYNOPSIS
+.B modularshell
+.br
+.B source
+.I ~/.bashrc
+.SH DESCRIPTION
+ModularShell is a modular Bash configuration layout used by the ModularConfig
+Suite. It installs a structured set of Bash files under
+.I ~/.config/bash
+and replaces
+.I ~/.bashrc
+to source them. It provides aliases, prompt helpers, key bindings, and utility
+functions intended for interactive shell use.
+.SH INSTALLATION
+From the module directory, run:
+.B ./install.sh
+.PP
+For non-interactive runs:
+.B ./install.sh --yes
+.PP
+The installer backs up the existing
+.I ~/.bashrc
+and
+.I ~/.config/bash
+before installing.
+.SH FILES
+.TP
+.I ~/.config/bash/
+Primary configuration directory.
+.TP
+.I ~/.config/bash/aliases.bash
+Alias definitions.
+.TP
+.I ~/.config/bash/prompt.bash
+Prompt configuration with git integration.
+.TP
+.I ~/.config/bash/keybinds.bash
+Key bindings for readline.
+.TP
+.I ~/.config/bash/fzf.bash
+FZF integration (optional).
+.TP
+.I ~/.config/bash/functions/system.bash
+System helpers and convenience functions.
+.TP
+.I ~/.bashrc
+Bootstrap file installed by the module.
+.TP
+.I ~/.bashrc.local
+Optional local overrides sourced by the bootstrap.
+.SH FUNCTIONS
+Common helpers include:
+.TP
+.B mkcd
+Create a directory and cd into it.
+.TP
+.B extract
+Extract a range of archive formats.
+.TP
+.B backup
+Create a timestamped backup of a file or directory.
+.TP
+.B calc
+Evaluate a math expression (python3 or bc).
+.TP
+.B sysinfo
+Print basic system information.
+.TP
+.B install_tools
+Install recommended CLI tools (fzf, ripgrep) using the detected package manager.
+.SH KEY BINDINGS
+.TP
+.B Ctrl+L
+Clear the screen.
+.TP
+.B Up/Down
+Search command history.
+.TP
+.B Ctrl+R
+Reverse history search (enhanced with fzf when available).
+.SH ENVIRONMENT
+.TP
+.B EDITOR
+Auto-selected editor (nvim, vim, micro, or nano).
+.TP
+.B PATH
+Extended with common user tool locations.
+.SH OPTIONAL TOOLS
+FZF and ripgrep are recommended. Prompt and file listing aliases integrate
+with eza/exa when available.
+.SH NOTES
+If
+.BR man (1)
+does not find this page, ensure
+.I ~/.local/share/man
+is in your MANPATH.
+.SH SEE ALSO
+.BR bash (1),
+.BR fzf (1),
+.BR rg (1),
+.BR git (1)

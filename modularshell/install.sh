@@ -65,7 +65,6 @@ install_modularshell() {
     
     # Create config directory
     mkdir -p "$MODULARSHELL_DIR/functions"
-    
     # Copy configuration files
     cp -r bash/* "$MODULARSHELL_DIR/"
     print_msg "   ✓ Copied configuration files" "$GREEN"
@@ -73,6 +72,24 @@ install_modularshell() {
     # Install main bashrc
     cp bashrc.example "$HOME/.bashrc"
     print_msg "   ✓ Installed .bashrc" "$GREEN"
+}
+
+install_man_page() {
+    local man_source="man/man7/modularshell.7"
+    local man_dir="$HOME/.local/share/man/man7"
+
+    if [ ! -f "$man_source" ]; then
+        print_msg "   ! Manual page not found: $man_source" "$YELLOW"
+        return
+    fi
+
+    mkdir -p "$man_dir"
+    cp "$man_source" "$man_dir/"
+    print_msg "   Installed manual page (man modularshell)" "$GREEN"
+
+    if command_exists mandb; then
+        mandb -q "$HOME/.local/share/man" >/dev/null 2>&1 || true
+    fi
 }
 
 # Install optional dependencies
@@ -166,6 +183,7 @@ main() {
     # Run installation steps
     backup_existing
     install_modularshell
+    install_man_page
     install_dependencies
     
     # Success message
