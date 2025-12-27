@@ -1,15 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # DESC: Download and install popular Nerd Fonts for terminal and code editor use
 
 # Nerd Fonts Installer
 # A script to download and install popular Nerd Fonts
 
 # Set color variables for better readability
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-RED='\033[0;31m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+source ../libs/text_mods.sh
 
 # Function to check if a command exists
 command_exists() {
@@ -54,11 +50,40 @@ FONT_VERSION="v3.4.0"
 FONTS_DIR="$HOME/.local/share/fonts"
 TEMP_DIR="/tmp/nerdfonts_install_$$" # Using PID to avoid conflicts
 
+# Wallpapers directories
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WALLPAPER_SRC_DIR="$script_dir/Wallpapers"
+WALLPAPER_DST_DIR="$HOME/.local/share/wallpapers"
+
 # Create necessary directories
 mkdir -p "$FONTS_DIR"
 mkdir -p "$TEMP_DIR"
 
-# Main installation function
+# Install wallpapers from Wallpapers/ into ~/.local/share/wallpapers/
+install_wallpapers() {
+    echo -e "\n${BLUE}===== Wallpapers Installer =====${NC}"
+    echo -e "${BLUE}Copying wallpapers from:${NC} $WALLPAPER_SRC_DIR"
+    echo -e "${BLUE}Copying wallpapers to:${NC}   $WALLPAPER_DST_DIR"
+
+    if [ ! -d "$WALLPAPER_SRC_DIR" ]; then
+        echo -e "${YELLOW}➤ Wallpapers directory not found. Skipping.${NC}"
+        echo -e "${YELLOW}  Expected: $WALLPAPER_SRC_DIR${NC}"
+        return 0
+    fi
+
+    mkdir -p "$WALLPAPER_DST_DIR"
+
+    # Copy everything under Wallpapers/ (including subfolders)
+    # Using '/.' preserves contents even if the directory is empty.
+    if cp -a "$WALLPAPER_SRC_DIR/." "$WALLPAPER_DST_DIR/"; then
+        echo -e "${GREEN}✓ Successfully installed wallpapers into:${NC} $WALLPAPER_DST_DIR"
+    else
+        echo -e "${RED}✗ Failed to copy wallpapers.${NC}"
+        return 1
+    fi
+}
+
+# Font installation function
 install_nerd_fonts() {
     local installed=0
     local skipped=0
@@ -140,6 +165,9 @@ trap cleanup SIGINT
 
 # Run the installation
 install_nerd_fonts
+
+# Install wallpapers
+install_wallpapers
 
 # Clean up the temporary directory
 rm -rf "$TEMP_DIR"
