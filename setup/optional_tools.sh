@@ -1,15 +1,10 @@
-#!/bin/bash
-# DESC: Interactive installer for optional applications from butterscripts and APT repositories
+#!/usr/bin/env bash
 
 # ModularConfig Optional Tools Installer
-# This script lets you choose which CSI helper modules to install (local modules and remote APT bundles).
+# This script lets you choose which CSI helper modules to install (local modules and remote bundles).
 
 # Define color codes
-GREEN='\033[0;32m'
-CYAN='\033[0;36m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
+source ../libs/text_mods.sh
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 menu_border() {
@@ -129,42 +124,6 @@ download_script() {
     wget -q "$script_url" -O "/tmp/$script_name"
     chmod +x "/tmp/$script_name"
     echo -e "${GREEN}Download complete.${NC}"
-}
-
-
-# Function to install Discord
-install_discord() {
-    show_header
-    echo -e "${CYAN}Installing Discord...${NC}"
-    echo -e "${YELLOW}Note: The Discord installer has various options${NC}"
-    echo -e "${YELLOW}      (install, uninstall, setup, etc.)${NC}"
-    echo
-    
-    # Download the script
-    download_script "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/discord/discord" "discord"
-    
-    echo -e "${YELLOW}Starting Discord installer...${NC}"
-    echo -e "${YELLOW}Follow the prompts during installation.${NC}"
-    echo
-    
-    # Execute the script with install option
-    bash "/tmp/discord" install
-    
-    echo -e "${GREEN}Discord installation process completed.${NC}"
-    pause
-}
-
-# Function to install Fastfetch
-install_fastfetch() {
-    show_header
-    echo -e "${CYAN}Installing Fastfetch...${NC}"
-    
-    local repo_root
-    repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-    bash "$repo_root/fastfetch/install_fastfetch.sh"
-    
-    echo -e "${GREEN}Fastfetch installation completed.${NC}"
-    pause
 }
 
 
