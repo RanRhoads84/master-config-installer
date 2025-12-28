@@ -49,13 +49,13 @@ No active issues. Submenu package selection now installs the chosen packages as 
 - `modularshell/man/man7/modularshell.7`: ModularShell manual page
 - `README.md`: Aligned overview with current layout and package list path
 - `AGENTS.md`: Updated AI instructions to match current layout and examples
+- `theming/install_fonts-wallpapers.sh`: Wired into `install.sh` optional installer flow
 
 ## Next Steps 📋
 
 ### Immediate (High Priority)
 1. **Validate man page installs**: Confirm `man modularconfig-suite` and `man modularshell` resolve after running installers.
-2. **Wire theming assets install**: Decide on `theming/Wallpapers/` destination (for example `~/.local/share/wallpapers`) and wire `theming/install_fonts-wallpapers.sh` into the installer or optional tools.
-3. **Test full installation flow**: Ensure end-to-end functionality works after any installer wiring changes.
+2. **Test full installation flow**: Ensure end-to-end functionality works after any installer wiring changes.
 
 ### Medium Priority  
 1. **Input validation**: Harden error handling for invalid comma-separated input.
@@ -98,6 +98,7 @@ No active issues. Submenu package selection now installs the chosen packages as 
 - ✅ Package manager detection reliable
 - ✅ End-to-end installation flow works
 - ✅ Dry-run matrix rerun clean after removing stale `describe_module_scope` call.
+- ✅ Dry-run matrix clean after wiring theming assets into `install.sh`.
 
 ---
 *Last Updated: December 27, 2025*
@@ -106,7 +107,7 @@ No active issues. Submenu package selection now installs the chosen packages as 
 ## Recent Changes (December 27, 2025)
 - **Reusable Menu Helper**: Added/updated `lib/menu.bash` to support caller-populated menus (items/meta arrays) and return selected indices to the calling script.
 - **Packaged Lib Sourcing**: Updated demo script approach to source libraries via `script_dir/lib/...` so scripts work when packaged and run from any working directory.
-- **Theming Assets (Planned)**: Add functionality to install/copy `theming/Wallpapers/` into `~/.local/share/wallpapers/` (implementation pending final placement/wiring).
+- **Theming Assets**: Wired `theming/install_fonts-wallpapers.sh` into the main installer prompt flow.
 - **Manual Pages**: Added CSI and ModularShell man pages and wired installers to install them.
 - **README Alignment**: Refreshed the top-level README to match current modules and installer behavior.
 - **Agent Guidance**: Updated `AGENTS.md` to track current paths, examples, and man page locations.

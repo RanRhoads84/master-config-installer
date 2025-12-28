@@ -630,6 +630,26 @@ do_fastfetch() {
 
 do_fastfetch
 
+do_theming_assets() {
+  local script="theming/install_fonts-wallpapers.sh"
+  [ -f "$script" ] || return
+  local ans
+  if [ "$ASSUME_YES" -eq 1 ]; then
+    ans=y
+  else
+    read -r -p "Install Nerd Fonts and wallpapers? [Y/n] " ans || true
+    ans=${ans:-y}
+  fi
+  if [[ "$ans" =~ ^[Yy] ]]; then
+    log "Running theming assets installer"
+    run_cmd "cd \"theming\" && ./install_fonts-wallpapers.sh"
+  else
+    log "Skipped theming assets installer"
+  fi
+}
+
+do_theming_assets
+
 do_flatpak_setup() {
   local ans
   if [ "$ASSUME_YES" -eq 1 ]; then
