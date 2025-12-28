@@ -145,4 +145,5 @@ No medium-priority items currently queued.
 - **Doc Cleanup**: Trimmed legacy ButterNotes content and updated module READMEs to match current CSI layout.
 - **VS Code Repo Fix**: Switched repo file creation to `printf | tee` to avoid heredoc indentation issues.
 - **Vim Config Layout**: Moved vimrc under `.vim/vimrc` and updated the installer to create a `~/.vimrc` shim when needed.
+- **Fastfetch Removal**: Removed fastfetch from optional installer flows while keeping it in the package list.
 - **Full Install Attempt**: Ran `./install.sh --yes` in sandbox and captured sudo/permission/network blockers for follow-up on a real host.
