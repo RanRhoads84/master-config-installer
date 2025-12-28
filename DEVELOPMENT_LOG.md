@@ -58,6 +58,9 @@ No active issues. Submenu package selection now installs the chosen packages as 
 - `setup/optional_tools.sh`: Uses `script_dir` to source `libs/`
 - `vim-config/depends.sh`: Uses `script_dir` to source `libs/`
 - `vim-config/install.sh`: Uses `script_dir` to source `libs/`
+- `install.sh`: Updated menu prompts to mention `all/back` and `q/quit/exit`
+- `packages/pkg-list.txt`: Sorted packages within groups
+- `INSTALLER.md`: Updated installer documentation and optional package list notes
 - `packages/npm.txt`: Optional npm package template list
 - `packages/cargo.txt`: Optional cargo package template list
 
@@ -68,9 +71,7 @@ No active issues. Submenu package selection now installs the chosen packages as 
 2. **Test full installation flow**: Ensure end-to-end functionality works after any installer wiring changes.
 
 ### Medium Priority  
-1. **Package list maintenance**: Keep `packages/pkg-list.txt` sorted and aligned with menu labels.
-2. **Menu polish**: Revisit main/submenu text flow if more usability feedback comes in.
-3. **Optional package usage**: Decide if additional examples or docs are needed for npm/cargo lists.
+No medium-priority items currently queued.
 
 ### Future Enhancements
 1. **Dependency resolution**: Handle package dependencies automatically.
@@ -107,6 +108,7 @@ No active issues. Submenu package selection now installs the chosen packages as 
 - ✅ Dry-run matrix rerun clean after removing stale `describe_module_scope` call.
 - ✅ Dry-run matrix clean after wiring theming assets into `install.sh`.
 - ✅ Dry-run matrix clean after menu/lib updates (`tests/scripts/test_dry_all_pm.sh`).
+- ✅ Dry-run matrix clean after package list and menu prompt updates.
 - ⚠ End-to-end installation flow not validated on a live run (dry-run only).
 
 ---
@@ -128,3 +130,7 @@ No active issues. Submenu package selection now installs the chosen packages as 
 - **Menu Exit Alias**: Added main menu `q/quit/exit` handling.
 - **Lib Install Copy**: ModularShell installer now copies `libs/` into `~/.config/bash/libs`.
 - **Dry-run Validation**: Re-ran the dry-run matrix after menu/lib updates.
+- **Menu Prompt Hints**: Documented `all/back` and quit aliases in menu prompts.
+- **Package List Cleanup**: Sorted `packages/pkg-list.txt` entries within groups.
+- **Installer Doc Refresh**: Updated `INSTALLER.md` to match current flows and optional npm/cargo lists.
+- **Dry-run Validation**: Re-ran the dry-run matrix after menu/prompt and package list updates.

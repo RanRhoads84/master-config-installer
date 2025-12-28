@@ -369,7 +369,7 @@ show_package_submenu() {
   local invalid=0
   while true; do
     selected_packages=()
-    echo -n "Enter choice(s) (0-${install_all_choice}), separated by commas, or press Enter to install all pending packages: "
+    echo -n "Enter choice(s) (0-${install_all_choice}), commas ok, Enter=install pending, 'all'=pending, 'back'=return: "
     if ! read -r choice; then
       echo
       echo "Input stream ended while selecting packages. Returning to main menu..."
@@ -541,7 +541,7 @@ else
     printf " %2d) %-56s\n" "$all_idx" "Install every group sequentially"
     echo
     echo "Select a number to open that group's submenu; runs install immediately and returns here."
-    echo -n "Enter your choice (0-${all_idx}): "
+    echo -n "Enter your choice (0-${all_idx}, q to quit): "
     if ! read -r main_choice; then
       echo
       log "Input stream ended; exiting menu."

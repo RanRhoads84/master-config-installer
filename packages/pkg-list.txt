@@ -61,21 +61,21 @@ cheat
 fd
 fzf
 thefuck
-tmux
 tldr
+tmux
 
 # System Monitoring
 btop
 htop
-nvtop
 neotop
+nvtop
 
 # System Tools
 ca-certificates
 curl
+fastfetch
 git
 gnupg
-fastfetch
 openssh
 ripgrep
 rsync
@@ -92,7 +92,7 @@ virt-firmware
 virt-install
 virt-manager
 virt-p2v
-virt-v2v-bash-completion
 virt-v2v
+virt-v2v-bash-completion
 virt-viewer
 virt-win-reg

@@ -5,9 +5,7 @@
 2. Test full installation flow: Ensure end-to-end functionality works after any installer wiring changes.
 
 ## Medium Priority
-1. Menu navigation: Improve flow between main menu and submenus as needed.
-2. Package list maintenance: Keep `packages/pkg-list.txt` sorted and aligned with menu labels.
-3. Optional package lists: Decide if additional examples or docs are needed for npm/cargo lists.
+None currently.
 
 ## Future Enhancements
 1. Dependency resolution: Handle package dependencies automatically.
@@ -21,3 +19,6 @@
 - Input validation: Hardened submenu parsing (whitespace, duplicates, and aliases).
 - Library consolidation: Standardized helper sourcing via `script_dir` and `libs/`.
 - Optional package lists: Added `packages/npm.txt` and `packages/cargo.txt` templates.
+- Menu navigation: Added explicit `back/all` hints and `q/quit/exit` main-menu alias.
+- Package list maintenance: Sorted `packages/pkg-list.txt` within groups.
+- Optional package list docs: Updated installer docs to mention npm/cargo lists.

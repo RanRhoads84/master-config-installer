@@ -12,10 +12,10 @@ Quick examples:
 ./install.sh
 
 # non-interactive: pick groups by name and assume yes
-./install.sh --groups "Zypper / openSUSE packages (approximate names)" --yes
+./install.sh --groups "Shell Tools" --yes
 ```
 
-Optional build-from-source flows are available at the end of the install run (Neovim, Picom, Rofi, st). Use `--dry-run` first to preview commands.
+After package installs, the script can optionally run module installers (such as `vim-config`, `fastfetch`, and the theming assets installer). If `packages/npm.txt` or `packages/cargo.txt` exist, it will also offer to install those package lists.
 
 The installer also includes an optional vim configuration setup that installs dependencies (git, vim, ripgrep, fzf, fd) and copies a custom vimrc with plugins.
 
@@ -29,24 +29,21 @@ The installer can also configure the Microsoft VS Code repository and install `c
 
 ## Package Organization
 
-Packages are organized in a consolidated list (`packages/consolidated.txt`) by the same categories you encounter in the installer menu. Examples include:
+Packages are organized in a consolidated list (`packages/pkg-list.txt`) by the same categories you encounter in the installer menu. Examples include:
 - Build Dependencies
 - Database
 - Development Tools
-- Fonts & Themes
 - Network Tools
 - Office & Productivity
 - Security Tools
 - Shell Tools
 - System Monitoring
-- System Services
 - System Tools
-- Terminal Emulators
-- Text Editors
 - Virtualization
 
 The installer automatically handles package name differences between distributions.
 
 - Use `--log <file>` to change the logfile location (defaults to `./modularconfig-install.log`).
-- The script will attempt to skip already-installed packages and supports common package managers (`apt`, `dnf`, `pacman`, `zypper`).
-- Package names may vary by distribution; edit `packages/<pm>.txt` to customize.
+- The script will attempt to skip already-installed packages and supports `apt`, `dnf`, `pacman`, and `zypper` (use `--pm` to override detection).
+- Package names may vary by distribution; edit `packages/pkg-list.txt` to customize.
+- Optional npm/cargo lists can be defined in `packages/npm.txt` and `packages/cargo.txt`.
