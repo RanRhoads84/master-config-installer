@@ -53,10 +53,9 @@ No active issues. Submenu package selection now installs the chosen packages as 
 ## Next Steps 📋
 
 ### Immediate (High Priority)
-1. **Run dry-run matrix**: Execute `tests/scripts/test_dry_all_pm.sh` and review logs in `tests/test_dry_results/`.
-2. **Validate man page installs**: Confirm `man modularconfig-suite` and `man modularshell` resolve after running installers.
-3. **Wire theming assets install**: Decide on `theming/Wallpapers/` destination (for example `~/.local/share/wallpapers`) and wire `theming/install_fonts-wallpapers.sh` into the installer or optional tools.
-4. **Test full installation flow**: Ensure end-to-end functionality works after any installer wiring changes.
+1. **Validate man page installs**: Confirm `man modularconfig-suite` and `man modularshell` resolve after running installers.
+2. **Wire theming assets install**: Decide on `theming/Wallpapers/` destination (for example `~/.local/share/wallpapers`) and wire `theming/install_fonts-wallpapers.sh` into the installer or optional tools.
+3. **Test full installation flow**: Ensure end-to-end functionality works after any installer wiring changes.
 
 ### Medium Priority  
 1. **Input validation**: Harden error handling for invalid comma-separated input.
@@ -98,7 +97,7 @@ No active issues. Submenu package selection now installs the chosen packages as 
 - ✅ Non-interactive modes work (--dry-run, --yes, --groups)
 - ✅ Package manager detection reliable
 - ✅ End-to-end installation flow works
-- ⚠ Dry-run matrix exposed a missing `describe_module_scope` call; removed from `install.sh` and should be revalidated.
+- ✅ Dry-run matrix rerun clean after removing stale `describe_module_scope` call.
 
 ---
 *Last Updated: December 27, 2025*
@@ -112,3 +111,4 @@ No active issues. Submenu package selection now installs the chosen packages as 
 - **README Alignment**: Refreshed the top-level README to match current modules and installer behavior.
 - **Agent Guidance**: Updated `AGENTS.md` to track current paths, examples, and man page locations.
 - **Dry-run Fix**: Removed a stale `describe_module_scope` call in `install.sh` that caused dry-run failures.
+- **Dry-run Validation**: Re-ran `tests/scripts/test_dry_all_pm.sh` and confirmed clean logs.
