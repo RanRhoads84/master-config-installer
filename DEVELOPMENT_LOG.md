@@ -41,6 +41,7 @@ Unified Linux package installer supporting multiple distributions (apt, dnf, pac
 ## Current Issues 🚨
 
 No active issues. Submenu package selection now installs the chosen packages as expected.
+Full end-to-end install was attempted in a sandboxed run and hit sudo/permission/network restrictions.
 
 ### Files Updated (Recent)
 - `install.sh`: Suite man page install step
@@ -109,7 +110,7 @@ No medium-priority items currently queued.
 - ✅ Dry-run matrix clean after wiring theming assets into `install.sh`.
 - ✅ Dry-run matrix clean after menu/lib updates (`tests/scripts/test_dry_all_pm.sh`).
 - ✅ Dry-run matrix clean after package list and menu prompt updates.
-- ⚠ End-to-end installation flow not validated on a live run (dry-run only).
+- ⚠ End-to-end install attempted in sandbox: sudo blocked (`no new privileges`), user-home writes denied for man pages/vim/wallpapers, and network failures for font downloads/Flatpak; needs a real host run.
 
 ---
 *Last Updated: December 28, 2025*
@@ -134,3 +135,4 @@ No medium-priority items currently queued.
 - **Package List Cleanup**: Sorted `packages/pkg-list.txt` entries within groups.
 - **Installer Doc Refresh**: Updated `INSTALLER.md` to match current flows and optional npm/cargo lists.
 - **Dry-run Validation**: Re-ran the dry-run matrix after menu/prompt and package list updates.
+- **Full Install Attempt**: Ran `./install.sh --yes` in sandbox and captured sudo/permission/network blockers for follow-up on a real host.
