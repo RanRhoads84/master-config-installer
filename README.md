@@ -25,7 +25,7 @@ Quick examples:
 ./install.sh --groups "Shell Tools" --yes
 ```
 
-After package installs, the script can optionally run module installers (such as `vim-config` and theming assets) and setup steps for Flatpak and VS Code. The `fastfetch` step runs only when `fastfetch/install_fastfetch.sh` is present. If `packages/npm.txt` or `packages/cargo.txt` exist, it will also offer to install those package lists. Use `--dry-run` first to preview commands.
+After package installs, the script can optionally run module installers (such as `vim-config` and theming assets) and setup steps for Flatpak and VS Code. If `packages/npm.txt` or `packages/cargo.txt` exist, it will also offer to install those package lists. Use `--dry-run` first to preview commands.
 
 The installer includes an optional vim configuration setup that installs dependencies and applies the curated vimrc from `vim-config/`.
 

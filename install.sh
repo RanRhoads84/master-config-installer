@@ -109,7 +109,7 @@ set_pm_install_cmd() {
 
 # Leave this commented out for now
 #describe_module_scope() {
-#  local modules=(browsers fastfetch git neovim setup system theming modularshell vim-config)
+#  local modules=(browsers git neovim setup system theming modularshell vim-config)
 #  local available=()
 #  for module in "${modules[@]}"; do
 #    if [ -d "$module" ]; then
@@ -642,27 +642,6 @@ do_vim_config() {
 }
 
 do_vim_config
-
-do_fastfetch() {
-  local ff_dir="fastfetch"
-  local script="${ff_dir}/install_fastfetch.sh"
-  [ -f "$script" ] || return
-  local ans
-  if [ "$ASSUME_YES" -eq 1 ]; then
-    ans=y
-  else
-    read -r -p "Install fastfetch and its configuration files? [Y/n] " ans || true
-    ans=${ans:-y}
-  fi
-  if [[ "$ans" =~ ^[Yy] ]]; then
-    log "Running fastfetch installer"
-    run_cmd "cd \"$ff_dir\" && ./install_fastfetch.sh"
-  else
-    log "Skipped fastfetch installer"
-  fi
-}
-
-do_fastfetch
 
 do_theming_assets() {
   local script="theming/install_fonts-wallpapers.sh"

@@ -96,7 +96,7 @@ alias myalias="command"
 ModularShell works seamlessly with the modular helpers in this workspace:
 
 - **ModularNotes** – A modular note-taking and todo manager located at [../modularnotes/README.md](../modularnotes/README.md).
-- **Other CSI modules** – The optional tools menu can fetch external helper bundles (fastfetch, browsers, editors) and theming assets without duplication.
+- **Other CSI modules** – The optional tools menu can fetch external helper bundles (browsers, editors) and theming assets without duplication.
 
 ## 🚀 Key Bindings
 

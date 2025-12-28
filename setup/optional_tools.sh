@@ -319,15 +319,14 @@ show_butterscripts_menu() {
         echo -e "${CYAN}4. ${NC}Geany - Text Editor with plugins (Latest version 2.1 from source)"
         echo -e "${CYAN}5. ${NC}Browsers - Firefox, LibreWolf, Brave, Floorp, Chromium, Zen"
         echo -e "${CYAN}6. ${NC}Discord - Chat and Voice Application"
-        echo -e "${CYAN}7. ${NC}Fastfetch - System Information Display Tool"
-        echo -e "${CYAN}8. ${NC}Custom Neovim - JustAGuy Linux Pre-configured Editor"
-        echo -e "${CYAN}9. ${NC}Vanilla Neovim (Latest Build) - Compiled from Source"
+        echo -e "${CYAN}7. ${NC}Custom Neovim - JustAGuy Linux Pre-configured Editor"
+        echo -e "${CYAN}8. ${NC}Vanilla Neovim (Latest Build) - Compiled from Source"
         echo -e "${CYAN}0. ${NC}Return to Main Menu"
         echo
         echo -e "${YELLOW}NOTE: Each installer has its own interactive options.${NC}"
         echo -e "${YELLOW}      It's recommended to install one at a time.${NC}"
         echo
-        read -p "Enter your choice [0-9]: " choice
+        read -p "Enter your choice [0-8]: " choice
         
         case $choice in
             1)
@@ -411,8 +410,7 @@ show_butterscripts_menu() {
                 pause
                 ;;
             6) install_discord ;;
-            7) install_fastfetch ;;
-            8)
+            7)
                 download_script "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/neovim/buttervim.sh" "buttervim.sh"
                 if bash "/tmp/buttervim.sh"; then
                     echo -e "${GREEN}Neovim installation process completed.${NC}"
@@ -421,7 +419,7 @@ show_butterscripts_menu() {
                 fi
                 pause
                 ;;
-            9)
+            8)
                 download_script "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/neovim/build-neovim.sh" "build-neovim.sh"
                 if bash "/tmp/build-neovim.sh"; then
                     echo -e "${GREEN}Neovim build and installation completed.${NC}"
