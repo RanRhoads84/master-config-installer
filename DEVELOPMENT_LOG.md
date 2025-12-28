@@ -60,9 +60,11 @@ Full end-to-end install was attempted in a sandboxed run and hit sudo/permission
 - `demo_menu.sh`: Uses `libs/` paths for demo menu helpers
 - `setup/optional_tools.sh`: Uses `script_dir` to source `libs/`
 - `vim-config/depends.sh`: Uses `script_dir` to source `libs/`
-- `vim-config/install.sh`: Uses `script_dir` to source `libs/`
+- `vim-config/install.sh`: Uses `script_dir` to source `libs/` and handles `.vim/vimrc` installs with a `~/.vimrc` shim
+- `vim-config/.vim/vimrc`: Moved the main vimrc into the `.vim` directory
 - `install.sh`: Updated menu prompts to mention `all/back` and `q/quit/exit`
 - `packages/pkg-list.txt`: Sorted packages within groups
+- `install.sh`: Fixed VS Code repo file creation for dnf/zypper/apt
 - `packages/npm.txt`: Optional npm package template list
 - `packages/cargo.txt`: Optional cargo package template list
 - `modularshell/README.md`: Removed legacy ButterBash content, added man page note
@@ -141,4 +143,6 @@ No medium-priority items currently queued.
 - **Installer Doc Refresh**: Updated `INSTALLER.md` to match current flows and optional npm/cargo lists.
 - **Dry-run Validation**: Re-ran the dry-run matrix after menu/prompt and package list updates.
 - **Doc Cleanup**: Trimmed legacy ButterNotes content and updated module READMEs to match current CSI layout.
+- **VS Code Repo Fix**: Switched repo file creation to `printf | tee` to avoid heredoc indentation issues.
+- **Vim Config Layout**: Moved vimrc under `.vim/vimrc` and updated the installer to create a `~/.vimrc` shim when needed.
 - **Full Install Attempt**: Ran `./install.sh --yes` in sandbox and captured sudo/permission/network blockers for follow-up on a real host.
