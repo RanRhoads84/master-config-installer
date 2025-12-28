@@ -2,8 +2,9 @@
 # lis/menu.bash - reusable menu helpers (caller provides menu items)
 
 # Colors
-source libs/text_mods.bash || {
-  echo "ERROR: failed to source colors.bash" >&2
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$script_dir/text_mods.bash" || {
+  echo "ERROR: failed to source text_mods.bash" >&2
   exit 2
 }
 

@@ -1,0 +1,6 @@
+# List npm packages to install globally (one per line).
+# Lines starting with # are ignored.
+#
+# Example:
+# eslint
+# typescript

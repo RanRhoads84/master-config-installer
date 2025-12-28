@@ -4,8 +4,9 @@
 # This script lets you choose which CSI helper modules to install (local modules and remote bundles).
 
 # Define color codes
-source ../libs/text_mods.sh
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$script_dir/../libs/text_mods.bash"
+REPO_ROOT="$(cd "$script_dir/.." && pwd)"
 
 menu_border() {
     echo "+-------------------------------------------------------------+"

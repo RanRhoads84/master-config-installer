@@ -4,10 +4,15 @@
 # =========================
 # Color definitions
 # =========================
-source ../libs/text_mods.bash || {
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$script_dir/libs/text_mods.bash" ]; then
+  source "$script_dir/libs/text_mods.bash"
+elif [ -f "$script_dir/../../libs/text_mods.bash" ]; then
+  source "$script_dir/../../libs/text_mods.bash"
+else
   echo "ERROR: failed to source text_mods.bash" >&2
   exit 2
-}
+fi
 
 #RED="\[\e[1;31m\]"            # SSH msg
 #GREEN="\[\e[1;32m\]"          # user/host
@@ -58,4 +63,3 @@ ${TEAL}(${GREEN}\u${ssh_message}${RESET}${TEAL})\
 ${TEAL_DARK}{${GREEN}\h${RESET}${TEAL_DARK}}${RESET}\
 \n${ORANGE}\w${YELLOW}\$(parse_git_branch)${RESET}\
 \n${GREEN_PROMPT}\$ ${RESET}"
-

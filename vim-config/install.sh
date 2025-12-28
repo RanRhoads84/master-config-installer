@@ -5,7 +5,8 @@
 VERBOSE=1
 
 # --- colors ---
-../libs/text_mods.bash
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$script_dir/../libs/text_mods.bash"
 
 log() {
   [[ "$VERBOSE" -eq 1 ]] && printf "${BLUE}[*]${NC} %s\n" "$*"

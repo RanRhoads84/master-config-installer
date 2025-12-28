@@ -3,24 +3,25 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Colors (optional)
-source lib/text_mods.bash || {
-  echo "ERROR: failed to source colors.bash" >&2
+source "$script_dir/libs/text_mods.bash" || {
+  echo "ERROR: failed to source text_mods.bash" >&2
   exit 2
 }
 
 # Don’t clear screen in demo runs
 MENU_NO_CLEAR=1
 
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-menu_lib="$script_dir/lib/menu.bash"
+menu_lib="$script_dir/libs/menu.bash"
 
-# Load menu.bash library from script-location/lib/, exit if not found with error.
+# Load menu.bash library from script-location/libs/, exit if not found with error.
 if [[ ! -f "$menu_lib" ]]; then
   echo "ERROR: required library not found: $menu_lib" >&2
   echo "Expected layout (packaged together):" >&2
   echo "  $script_dir/demo_menu.sh" >&2
-  echo "  $script_dir/lib/menu.bash" >&2
+  echo "  $script_dir/libs/menu.bash" >&2
   exit 2
 fi
 

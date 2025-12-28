@@ -5,7 +5,8 @@
 # A script to download and install popular Nerd Fonts
 
 # Set color variables for better readability
-source ../libs/text_mods.sh
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$script_dir/../libs/text_mods.bash"
 
 # Function to check if a command exists
 command_exists() {
@@ -51,7 +52,6 @@ FONTS_DIR="$HOME/.local/share/fonts"
 TEMP_DIR="/tmp/nerdfonts_install_$$" # Using PID to avoid conflicts
 
 # Wallpapers directories
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WALLPAPER_SRC_DIR="$script_dir/Wallpapers"
 WALLPAPER_DST_DIR="$HOME/.local/share/wallpapers"
 

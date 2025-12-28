@@ -64,10 +64,16 @@ install_modularshell() {
     fi
     
     # Create config directory
-    mkdir -p "$MODULARSHELL_DIR/functions"
+    mkdir -p "$MODULARSHELL_DIR/functions" "$MODULARSHELL_DIR/libs"
     # Copy configuration files
     cp -r bash/* "$MODULARSHELL_DIR/"
     print_msg "   ✓ Copied configuration files" "$GREEN"
+    if [ -d "../libs" ]; then
+        cp -r ../libs/* "$MODULARSHELL_DIR/libs/"
+        print_msg "   ✓ Copied library files" "$GREEN"
+    else
+        print_msg "   ⚠ Library files not found; skipping" "$YELLOW"
+    fi
 
     # Install main bashrc
     cp bashrc.example "$HOME/.bashrc"

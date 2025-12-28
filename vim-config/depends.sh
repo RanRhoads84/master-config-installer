@@ -3,8 +3,9 @@
 #!/usr/bin/env bash
 
 # ---------------- colors ----------------
-. ../libs/text_mods.bash
-# ----------------------------------------  
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. "$script_dir/../libs/text_mods.bash"
+# ----------------------------------------
 
 log()  { printf "${BLUE}[*]${NC} %s\n" "$*"; }
 ok()   { printf "${GREEN}[+]${NC} %s\n" "$*"; }
@@ -128,4 +129,3 @@ main() {
 }
 
 main "$@"
-
