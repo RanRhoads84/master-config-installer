@@ -3,6 +3,7 @@
 ## Immediate (High Priority)
 1. Validate man page installs: Confirm `man modularconfig-suite` and `man modularshell` resolve after running installers.
 2. Test full installation flow: Re-run `./install.sh --yes` on a real host (sandbox blocked sudo/network/home writes).
+3. Move post-menu steps into the main menu: Integrate npm/cargo, vim-config, theming assets, Flatpak, and VS Code prompts into the menu flow instead of running after group installs.
 
 ## Medium Priority
 None currently.
