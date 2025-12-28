@@ -98,6 +98,7 @@ No active issues. Submenu package selection now installs the chosen packages as 
 - ✅ Non-interactive modes work (--dry-run, --yes, --groups)
 - ✅ Package manager detection reliable
 - ✅ End-to-end installation flow works
+- ⚠ Dry-run matrix exposed a missing `describe_module_scope` call; removed from `install.sh` and should be revalidated.
 
 ---
 *Last Updated: December 27, 2025*
@@ -110,3 +111,4 @@ No active issues. Submenu package selection now installs the chosen packages as 
 - **Manual Pages**: Added CSI and ModularShell man pages and wired installers to install them.
 - **README Alignment**: Refreshed the top-level README to match current modules and installer behavior.
 - **Agent Guidance**: Updated `AGENTS.md` to track current paths, examples, and man page locations.
+- **Dry-run Fix**: Removed a stale `describe_module_scope` call in `install.sh` that caused dry-run failures.

@@ -450,7 +450,6 @@ process_group_selection() {
 }
 
 echo "Package manager: $PM"
-describe_module_scope
 
 if [ "$ASSUME_YES" -eq 1 ]; then
   for i in "${!GROUP_ORDER[@]}"; do
