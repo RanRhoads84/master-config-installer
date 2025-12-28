@@ -15,7 +15,7 @@ Quick examples:
 ./install.sh --groups "Shell Tools" --yes
 ```
 
-After package installs, the script can optionally run module installers (such as `vim-config`, `fastfetch`, and the theming assets installer). If `packages/npm.txt` or `packages/cargo.txt` exist, it will also offer to install those package lists.
+After package installs, the script can optionally run module installers (such as `vim-config` and the theming assets installer). The `fastfetch` step runs only when `fastfetch/install_fastfetch.sh` is present. If `packages/npm.txt` or `packages/cargo.txt` exist, it will also offer to install those package lists.
 
 The installer also includes an optional vim configuration setup that installs dependencies (git, vim, ripgrep, fzf, fd) and copies a custom vimrc with plugins.
 

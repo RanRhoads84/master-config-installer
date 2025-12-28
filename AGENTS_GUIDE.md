@@ -5,8 +5,8 @@ focuses on safe, repeatable workflows for the installer and module scripts.
 
 ## Scope
 Agents should operate from the repo root and focus on `install.sh`, module
-directories (for example `browsers/`, `fastfetch/`, `theming/`), and package
-lists in `packages/`.
+directories (for example `modularshell/`, `modularnotes/`, `theming/`, `setup/`),
+and package lists in `packages/`.
 
 ## Safe Defaults
 - Use `./install.sh --dry-run` for any validation run.
@@ -23,8 +23,8 @@ lists in `packages/`.
 ## Editing Expectations
 - Keep scripts Bash-first and match local formatting.
 - Update module READMEs when behavior changes.
-- Keep package group headers in `packages/consolidated.txt` aligned with the menu labels.
+- Keep package group headers in `packages/pkg-list.txt` aligned with the menu labels.
 
 ## Coordination
 - Align commits with the repo style (`docs:`, `fix(installer):`, `chore(push):`).
-- Use `AGENT_SKILLS.md` for skill expectations and `MCP_CAPABILITIES.md` for tool limits.
+- Use `SKILLS.md` for skill expectations and `MCP_CAPABILITIES.md` for tool limits.

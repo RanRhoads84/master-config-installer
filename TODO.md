@@ -2,7 +2,7 @@
 
 ## Immediate (High Priority)
 1. Validate man page installs: Confirm `man modularconfig-suite` and `man modularshell` resolve after running installers.
-2. Test full installation flow: Ensure end-to-end functionality works after any installer wiring changes.
+2. Test full installation flow: Re-run `./install.sh --yes` on a real host (sandbox blocked sudo/network/home writes).
 
 ## Medium Priority
 None currently.
@@ -22,3 +22,5 @@ None currently.
 - Menu navigation: Added explicit `back/all` hints and `q/quit/exit` main-menu alias.
 - Package list maintenance: Sorted `packages/pkg-list.txt` within groups.
 - Optional package list docs: Updated installer docs to mention npm/cargo lists.
+- Full install attempt: Ran `./install.sh --yes` in sandbox; blocked by sudo/no-new-privileges, home write permissions, and network restrictions.
+- Documentation refresh: Updated README, INSTALLER, AGENTS_GUIDE, and module docs to reflect current CSI layout.

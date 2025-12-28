@@ -57,7 +57,7 @@ Source `~/.config/modularnotes/aliases.bash` if your rc file does not already lo
 ## Integrations
 
 - **ModularShell** — keeps your shell experience aligned with ModularNotes workflows.
-- **Optional tools menu** — ModularConfig's installer can add browsers, theming helpers, and fastfetch without conflicts.
+- **Optional tools menu** — ModularConfig's optional tools menu can fetch external helper bundles (fastfetch, browsers, editors) and theming assets without conflicts.
 - **Clipboard utilities** — `modularnotes clip` works with `xclip`, `wl-clipboard`, or similar tools.
 
 ## Troubleshooting

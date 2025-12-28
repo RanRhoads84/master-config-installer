@@ -50,6 +50,8 @@ Full end-to-end install was attempted in a sandboxed run and hit sudo/permission
 - `modularshell/man/man7/modularshell.7`: ModularShell manual page
 - `README.md`: Aligned overview with current layout and package list path
 - `AGENTS.md`: Updated AI instructions to match current layout and examples
+- `AGENTS_GUIDE.md`: Updated scope and package list references
+- `INSTALLER.md`: Updated optional flows and package list notes
 - `theming/install_fonts-wallpapers.sh`: Wired into `install.sh` optional installer flow
 - `install.sh`: Improved submenu input handling and added main-menu quit alias
 - `modularshell/install.sh`: Copies `libs/` into `~/.config/bash/libs`
@@ -61,9 +63,12 @@ Full end-to-end install was attempted in a sandboxed run and hit sudo/permission
 - `vim-config/install.sh`: Uses `script_dir` to source `libs/`
 - `install.sh`: Updated menu prompts to mention `all/back` and `q/quit/exit`
 - `packages/pkg-list.txt`: Sorted packages within groups
-- `INSTALLER.md`: Updated installer documentation and optional package list notes
 - `packages/npm.txt`: Optional npm package template list
 - `packages/cargo.txt`: Optional cargo package template list
+- `modularshell/README.md`: Removed legacy ButterBash content, added man page note
+- `modularshell/DOCUMENTATION.md`: Modernized naming and repo references
+- `modularnotes/README.md`: Updated optional tools description
+- `modularnotes/HOW-TO.md`: Removed legacy ButterNotes section
 
 ## Next Steps 📋
 
@@ -135,4 +140,5 @@ No medium-priority items currently queued.
 - **Package List Cleanup**: Sorted `packages/pkg-list.txt` entries within groups.
 - **Installer Doc Refresh**: Updated `INSTALLER.md` to match current flows and optional npm/cargo lists.
 - **Dry-run Validation**: Re-ran the dry-run matrix after menu/prompt and package list updates.
+- **Doc Cleanup**: Trimmed legacy ButterNotes content and updated module READMEs to match current CSI layout.
 - **Full Install Attempt**: Ran `./install.sh --yes` in sandbox and captured sudo/permission/network blockers for follow-up on a real host.

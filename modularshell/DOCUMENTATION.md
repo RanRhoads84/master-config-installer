@@ -1,4 +1,4 @@
-# ButterBash Complete Documentation
+# ModularShell Complete Documentation
 
 ## What Was Done - Session Summary
 
@@ -9,7 +9,7 @@
 
 ### Key User-Driven Improvements
 - Simplified installer integration for multi-project scenarios
-- Removed obsolete butterscripts/bashrc in favor of dedicated ButterBash project
+- Removed obsolete legacy bashrc in favor of dedicated ModularShell project
 
 ### Transformation Process
 
@@ -31,12 +31,12 @@
    - Added comprehensive README with examples
    - Created automated installer script with skip confirmation support
    - Added `.gitignore` for common files
-   - Integrated with ButterScripts ecosystem as option #1
+   - Integrated with ModularConfig Suite ecosystem as option #1
 
 6. **Integration improvements**
-   - Added ButterBash to ButterScripts optional_tools.sh as starred option
+   - Added ModularShell to `setup/optional_tools.sh` as a prioritized option
    - Simplified multi-installer approach based on user feedback
-   - Removed obsolete butterscripts/bashrc directory
+   - Removed obsolete legacy bashrc directory
    - Enhanced cross-project documentation and references
 
 ## Complete File Structure
@@ -44,6 +44,7 @@
 ```
 ~/.config/bash/
 ├── aliases.bash          # All command shortcuts
+├── libs/                 # Shared color helpers
 ├── prompt.bash           # Git-aware prompt configuration  
 ├── keybinds.bash         # Keyboard shortcuts
 ├── fzf.bash              # FZF fuzzy finder setup
@@ -159,7 +160,7 @@
 
 ### Functions
 
-For note-taking and todo management, use [ButterNotes](https://codeberg.org/justaguylinux/butternotes)
+For note-taking and todo management, use [ModularNotes](../modularnotes/README.md)
 
 #### Utility Functions
 
@@ -244,7 +245,10 @@ The installer (`install.sh`) performs:
 2. Creates directory structure
 3. Copies all module files
 5. Optionally installs recommended tools
-6. Supports multiple package managers (apt, dnf, pacman, brew)
+6. Supports multiple package managers (apt, dnf, pacman, zypper)
+
+Manual page:
+`man modularshell`
 
 ## Customization
 
@@ -260,7 +264,7 @@ Edit individual files in `~/.config/bash/functions/`
 ## Project Info
 
 - **Author**: JustAGuyLinux (YouTube)
-- **Repository**: https://codeberg.org/justaguylinux/butterbash
+- **Repository**: https://codeberg.org/justaguylinux/master-config-installer
 - **License**: MIT
 
 ## Technical Details
@@ -309,7 +313,7 @@ cp ~/.bashrc.backup.[timestamp] ~/.bashrc
 source ~/.bashrc
 ```
 
-## What Makes ButterBash Special
+## What Makes ModularShell Special
 
 1. **Modular** - Easy to maintain and extend
 2. **Non-destructive** - Always backs up existing config
@@ -320,4 +324,4 @@ source ~/.bashrc
 
 ---
 
-This documentation serves as a complete reference for ButterBash functionality and can be used to continue development even in a new session.
+This documentation serves as a complete reference for ModularShell functionality and can be used to continue development even in a new session.
