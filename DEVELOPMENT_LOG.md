@@ -51,6 +51,13 @@ No active issues. Submenu package selection now installs the chosen packages as 
 - `AGENTS.md`: Updated AI instructions to match current layout and examples
 - `theming/install_fonts-wallpapers.sh`: Wired into `install.sh` optional installer flow
 - `install.sh`: Improved submenu input handling and added main-menu quit alias
+- `modularshell/install.sh`: Copies `libs/` into `~/.config/bash/libs`
+- `modularshell/bash/prompt.bash`: Falls back to repo `libs/` when needed
+- `libs/menu.bash`: Sources `text_mods.bash` via `script_dir`
+- `demo_menu.sh`: Uses `libs/` paths for demo menu helpers
+- `setup/optional_tools.sh`: Uses `script_dir` to source `libs/`
+- `vim-config/depends.sh`: Uses `script_dir` to source `libs/`
+- `vim-config/install.sh`: Uses `script_dir` to source `libs/`
 - `packages/npm.txt`: Optional npm package template list
 - `packages/cargo.txt`: Optional cargo package template list
 
@@ -97,15 +104,16 @@ No active issues. Submenu package selection now installs the chosen packages as 
 - ✅ Submenu package selection works (FIXED)
 - ✅ Non-interactive modes work (--dry-run, --yes, --groups)
 - ✅ Package manager detection reliable
-- ✅ End-to-end installation flow works
 - ✅ Dry-run matrix rerun clean after removing stale `describe_module_scope` call.
 - ✅ Dry-run matrix clean after wiring theming assets into `install.sh`.
+- ✅ Dry-run matrix clean after menu/lib updates (`tests/scripts/test_dry_all_pm.sh`).
+- ⚠ End-to-end installation flow not validated on a live run (dry-run only).
 
 ---
-*Last Updated: December 27, 2025*
-*Current Focus: Reusable menu library + script-packaged lib sourcing + theming assets install*
+*Last Updated: December 28, 2025*
+*Current Focus: Full install validation + man page verification*
 
-## Recent Changes (December 27, 2025)
+## Recent Changes (December 28, 2025)
 - **Reusable Menu Helper**: Added/updated `libs/menu.bash` to support caller-populated menus (items/meta arrays) and return selected indices to the calling script.
 - **Packaged Lib Sourcing**: Updated demo script approach to source libraries via `script_dir/libs/...` so scripts work when packaged and run from any working directory.
 - **Theming Assets**: Wired `theming/install_fonts-wallpapers.sh` into the main installer prompt flow.
@@ -117,3 +125,6 @@ No active issues. Submenu package selection now installs the chosen packages as 
 - **Input Validation**: Improved submenu parsing to handle whitespace, duplicates, and common aliases.
 - **Lib Path Cleanup**: Standardized helper sourcing on `script_dir` and `libs/`.
 - **Optional Lists**: Added `packages/npm.txt` and `packages/cargo.txt` templates.
+- **Menu Exit Alias**: Added main menu `q/quit/exit` handling.
+- **Lib Install Copy**: ModularShell installer now copies `libs/` into `~/.config/bash/libs`.
+- **Dry-run Validation**: Re-ran the dry-run matrix after menu/lib updates.
