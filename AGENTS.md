@@ -1,5 +1,7 @@
 # Repository Guidelines
 
+**Canonical agent doc:** see `AGENTS_CONSOLIDATED.md` for the single consolidated playbook.
+
 ## Project Structure & Module Organization
 This repository is a Bash-first installer suite. Key locations:
 - `install.sh` is the unified interactive installer and main entry point.

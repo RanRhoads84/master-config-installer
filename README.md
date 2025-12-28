@@ -8,6 +8,12 @@ ModularConfig Suite powers the CSI (Config Suite Installer) experience, a curate
 
 CSI is built around a single interactive installer (`install.sh`) plus a handful of trusted utility directories. Modules that include README files document their standalone behavior outside the core installer.
 
+## Documentation
+
+Focused docs live in `docs/`:
+
+- [docs/README.md](docs/README.md)
+
 ## Unified Installer
 
 This repository includes the CSI entry point: `install.sh`.

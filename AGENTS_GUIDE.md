@@ -1,5 +1,7 @@
 # Agents Guide
 
+**Canonical agent doc:** see `AGENTS_CONSOLIDATED.md` for the single consolidated playbook.
+
 This guide is for automation agents working on ModularConfig Suite (CSI). It
 focuses on safe, repeatable workflows for the installer and module scripts.
 
