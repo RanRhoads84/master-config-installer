@@ -585,175 +585,32 @@ else
   done
 fi
 
-do_npm() {
-  npm_file="packages/npm.txt"
-  [ -f "$npm_file" ] || return
-  mapfile -t npm_pkgs < <(grep -E -v '^\s*#' "$npm_file" | sed '/^$/d')
-  [ ${#npm_pkgs[@]} -eq 0 ] && return
-  if [ "$ASSUME_YES" -eq 1 ]; then
-    ans=y
-  else
-    read -r -p "Install npm global packages? (${#npm_pkgs[@]}) [Y/n] " ans || true
-    ans=${ans:-y}
-  fi
-  if [[ "$ans" =~ ^[Yy] ]]; then
-    for p in "${npm_pkgs[@]}"; do
-      run_cmd "npm install -g $p"
-    done
-  fi
-}
-
-do_cargo() {
-  cargo_file="packages/cargo.txt"
-  [ -f "$cargo_file" ] || return
-  mapfile -t cargo_pkgs < <(grep -E -v '^\s*#' "$cargo_file" | sed '/^$/d')
-  [ ${#cargo_pkgs[@]} -eq 0 ] && return
-  if [ "$ASSUME_YES" -eq 1 ]; then
-    ans=y
-  else
-    read -r -p "Install cargo packages? (${#cargo_pkgs[@]}) [Y/n] " ans || true
-    ans=${ans:-y}
-  fi
-  if [[ "$ans" =~ ^[Yy] ]]; then
-    for p in "${cargo_pkgs[@]}"; do
-      run_cmd "cargo install $p || true"
-    done
-  fi
-}
-
+# shellcheck source=setup/npm.sh
+source "$(dirname "$0")/functions/npm.sh"
 do_npm
 
+# shellcheck source=setup/cargo.sh
+source "$(dirname "$0")/functions/cargo.sh"
 do_cargo
 
-do_vim_config() {
-  vim_config_dir="vim-config"
-  [ -d "$vim_config_dir" ] || return
-  if [ "$ASSUME_YES" -eq 1 ]; then
-    ans=y
-  else
-    read -r -p "Install vim configuration? [Y/n] " ans || true
-    ans=${ans:-y}
-  fi
-  if [[ "$ans" =~ ^[Yy] ]]; then
-    log "Installing vim configuration"
-    run_cmd "cd $vim_config_dir && ./depends.sh"
-    run_cmd "cd $vim_config_dir && ./install.sh"
-  fi
-}
-
+# shellcheck source=setup/vim-config.sh
+source "$(dirname "$0")/functions/vim-config.sh"
 do_vim_config
 
-do_theming_assets() {
-  local script="theming/install_fonts-wallpapers.sh"
-  [ -f "$script" ] || return
-  local ans
-  if [ "$ASSUME_YES" -eq 1 ]; then
-    ans=y
-  else
-    read -r -p "Install Nerd Fonts and wallpapers? [Y/n] " ans || true
-    ans=${ans:-y}
-  fi
-  if [[ "$ans" =~ ^[Yy] ]]; then
-    log "Running theming assets installer"
-    run_cmd "cd \"theming\" && ./install_fonts-wallpapers.sh"
-  else
-    log "Skipped theming assets installer"
-  fi
-}
-
+# shellcheck source=setup/theming.sh
+source "$(dirname "$0")/functions/theming.sh"
 do_theming_assets
 
-do_flatpak_setup() {
-  local ans
-  if [ "$ASSUME_YES" -eq 1 ]; then
-    ans=y
-  else
-    read -r -p "Set up Flatpak (install + add Flathub remote)? [Y/n] " ans || true
-    ans=${ans:-y}
-  fi
-  if [[ ! "$ans" =~ ^[Yy] ]]; then
-    log "Skipped Flatpak setup"
-    return
-  fi
-  if ! command -v flatpak >/dev/null 2>&1; then
-    if [ -n "$PM_INSTALL_CMD" ]; then
-      log "Installing Flatpak via $PM_INSTALL_CMD"
-      run_cmd "$PM_INSTALL_CMD flatpak"
-    else
-      echo "Flatpak is not installed and there is no configured package manager command. See https://flatpak.org/setup/ for manual steps."
-      return
-    fi
-  fi
-  log "Configuring Flatpak remote (https://flatpak.org/setup/)"
-  run_cmd "flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo"
-  run_cmd "flatpak update --assumeyes"
-  echo "Flatpak is ready. See https://flatpak.org/setup/ for distro-specific guidance."
-}
-
+# shellcheck source=setup/flatpak.sh
+source "$(dirname "$0")/functions/flatpak.sh"
 do_flatpak_setup
 
-do_vscode_setup() {
-  local ans
-  if [ "$ASSUME_YES" -eq 1 ]; then
-    ans=y
-  else
-    read -r -p "Set up Visual Studio Code repository and install code? [Y/n] " ans || true
-    ans=${ans:-y}
-  fi
-  if [[ ! "$ans" =~ ^[Yy] ]]; then
-    log "Skipped VS Code setup"
-    return
-  fi
-  if command -v code >/dev/null 2>&1; then
-    log "VS Code already installed; skipping repository setup"
-    return
-  fi
-  case "$PM" in
-    apt)
-      run_cmd "sudo apt-get install -y wget gpg"
-      local keyring="/usr/share/keyrings/microsoft-vscode.gpg"
-      if [ ! -f "$keyring" ]; then
-        local tmp_key
-        tmp_key=$(mktemp)
-        run_cmd "wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > $tmp_key"
-        run_cmd "sudo install -D -o root -g root -m 644 $tmp_key $keyring"
-        run_cmd "rm -f $tmp_key"
-      fi
-      local sources="/etc/apt/sources.list.d/vscode.sources"
-      if [ ! -f "$sources" ]; then
-        run_cmd "printf '%s\n' 'Types: deb' 'URIs: https://packages.microsoft.com/repos/code' 'Suites: stable' 'Components: main' 'Architectures: amd64,arm64,armhf' \"Signed-By: $keyring\" | sudo tee \"$sources\" > /dev/null"
-      fi
-      run_cmd "sudo apt update"
-      run_cmd "$PM_INSTALL_CMD code"
-      ;;
-    dnf)
-      run_cmd "sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc"
-      local repo_file="/etc/yum.repos.d/vscode.repo"
-      if [ ! -f "$repo_file" ]; then
-        run_cmd "printf '%s\n' '[code]' 'name=Visual Studio Code' 'baseurl=https://packages.microsoft.com/yumrepos/vscode' 'enabled=1' 'autorefresh=1' 'type=rpm-md' 'gpgcheck=1' 'gpgkey=https://packages.microsoft.com/keys/microsoft.asc' | sudo tee \"$repo_file\" > /dev/null"
-      fi
-      run_cmd "sudo dnf check-update"
-      run_cmd "sudo dnf install -y code"
-      ;;
-    zypper)
-      run_cmd "sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc"
-      local repo_file="/etc/zypp/repos.d/vscode.repo"
-      if [ ! -f "$repo_file" ]; then
-        run_cmd "printf '%s\n' '[code]' 'name=Visual Studio Code' 'baseurl=https://packages.microsoft.com/yumrepos/vscode' 'enabled=1' 'autorefresh=1' 'type=rpm-md' 'gpgcheck=1' 'gpgkey=https://packages.microsoft.com/keys/microsoft.asc' | sudo tee \"$repo_file\" > /dev/null"
-      fi
-      run_cmd "sudo zypper refresh"
-      run_cmd "sudo zypper install -y code"
-      ;;
-    *)
-      log "VS Code setup is only wired for apt/dnf/zypper; skipping for $PM"
-      ;;
-  esac
-}
-
+# shellcheck source=setup/vscode.sh
+source "$(dirname "$0")/functions/vscode.sh"
 do_vscode_setup
 
 # shellcheck source=setup/git-config.sh
-source "$(dirname "$0")/setup/git-config.sh"
+source "$(dirname "$0")/functions/git-config.sh"
 do_git_config
 
 log "Install step completed (dry-run=$DRY_RUN)"
