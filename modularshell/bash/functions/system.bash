@@ -172,11 +172,7 @@ print_distro_logo() {
         return
     fi
 
-    # Fallback if screenfetch is unavailable
-    if [ -r /etc/os-release ]; then
-        . /etc/os-release
-        printf "%s%s%s\n" "$indent" "$GREEN" "$ID$RESET"
-    fi
+    printf "%s%s\n" "$indent" $BOLD$RED"screenfetch is not installed. Please install 'screenfetch' to display the distro logo."
 }
 
 # Find GPU
