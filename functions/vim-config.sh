@@ -29,6 +29,9 @@ do_vim_config() {
         log "Installing vim configuration"
         run_cmd "cd $vim_config_dir && ./depends.sh"
         run_cmd "cd $vim_config_dir && ./install.sh"
+        declare -f _summary_record >/dev/null 2>&1 && _summary_record "Vim config" "installed"
+    else
+        declare -f _summary_record >/dev/null 2>&1 && _summary_record "Vim config" "skipped"
     fi
 }
 

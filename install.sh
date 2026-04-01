@@ -123,6 +123,9 @@ set_pm_install_cmd() {
 #  log "Installer modules: ${available[*]}"
 #}
 
+# shellcheck source=functions/summary.sh
+source "$(dirname "$0")/functions/summary.sh"
+
 if [ -n "$OVERRIDE_PM" ]; then
   PM="$OVERRIDE_PM"
   log "Overriding package manager: $PM"
@@ -609,10 +612,14 @@ do_flatpak_setup
 source "$(dirname "$0")/functions/vscode.sh"
 do_vscode_setup
 
+# shellcheck source=functions/modularshell.sh
+source "$(dirname "$0")/functions/modularshell.sh"
+do_modularshell
+
 # shellcheck source=setup/git-config.sh
 source "$(dirname "$0")/functions/git-config.sh"
 do_git_config
 
 log "Install step completed (dry-run=$DRY_RUN)"
 
-echo "Done. Review $LOGFILE for details."
+print_install_summary

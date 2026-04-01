@@ -31,6 +31,9 @@ do_cargo() {
         for p in "${cargo_pkgs[@]}"; do
             run_cmd "cargo install $p || true"
         done
+        declare -f _summary_record >/dev/null 2>&1 && _summary_record "Cargo packages" "installed" "${#cargo_pkgs[@]} packages"
+    else
+        declare -f _summary_record >/dev/null 2>&1 && _summary_record "Cargo packages" "skipped"
     fi
 }
 

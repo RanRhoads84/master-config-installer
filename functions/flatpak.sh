@@ -38,6 +38,7 @@ do_flatpak_setup() {
     fi
     if [[ ! "$ans" =~ ^[Yy] ]]; then
         log "Skipped Flatpak setup"
+        declare -f _summary_record >/dev/null 2>&1 && _summary_record "Flatpak" "skipped"
         return
     fi
     if ! command -v flatpak >/dev/null 2>&1; then
@@ -46,6 +47,7 @@ do_flatpak_setup() {
             run_cmd "$PM_INSTALL_CMD flatpak"
         else
             echo "Flatpak is not installed and there is no configured package manager. See https://flatpak.org/setup/ for manual steps."
+            declare -f _summary_record >/dev/null 2>&1 && _summary_record "Flatpak" "failed" "no package manager available"
             return
         fi
     fi
@@ -53,6 +55,7 @@ do_flatpak_setup() {
     run_cmd "flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo"
     run_cmd "flatpak update --assumeyes"
     echo "Flatpak is ready. See https://flatpak.org/setup/ for distro-specific guidance."
+    declare -f _summary_record >/dev/null 2>&1 && _summary_record "Flatpak" "installed" "Flathub remote configured"
 }
 
 [[ "${BASH_SOURCE[0]}" == "${0}" ]] && do_flatpak_setup

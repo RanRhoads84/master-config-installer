@@ -31,6 +31,9 @@ do_npm() {
         for p in "${npm_pkgs[@]}"; do
             run_cmd "npm install -g $p"
         done
+        declare -f _summary_record >/dev/null 2>&1 && _summary_record "npm packages" "installed" "${#npm_pkgs[@]} packages"
+    else
+        declare -f _summary_record >/dev/null 2>&1 && _summary_record "npm packages" "skipped"
     fi
 }
 

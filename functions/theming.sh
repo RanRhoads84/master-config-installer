@@ -28,8 +28,10 @@ do_theming_assets() {
     if [[ "$ans" =~ ^[Yy] ]]; then
         log "Running theming assets installer"
         run_cmd "cd \"theming\" && ./install_fonts-wallpapers.sh"
+        declare -f _summary_record >/dev/null 2>&1 && _summary_record "Theming assets" "installed" "fonts + wallpapers"
     else
         log "Skipped theming assets installer"
+        declare -f _summary_record >/dev/null 2>&1 && _summary_record "Theming assets" "skipped"
     fi
 }
 

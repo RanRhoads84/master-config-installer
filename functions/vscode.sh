@@ -38,10 +38,12 @@ do_vscode_setup() {
     fi
     if [[ ! "$ans" =~ ^[Yy] ]]; then
         log "Skipped VS Code setup"
+        declare -f _summary_record >/dev/null 2>&1 && _summary_record "VS Code" "skipped"
         return
     fi
     if command -v code >/dev/null 2>&1; then
         log "VS Code already installed; skipping"
+        declare -f _summary_record >/dev/null 2>&1 && _summary_record "VS Code" "already_installed"
         return
     fi
     case "$PM" in
@@ -61,6 +63,7 @@ do_vscode_setup() {
             fi
             run_cmd "sudo apt update"
             run_cmd "$PM_INSTALL_CMD code"
+            declare -f _summary_record >/dev/null 2>&1 && _summary_record "VS Code" "installed" "apt"
             ;;
         dnf)
             run_cmd "sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc"
@@ -70,6 +73,7 @@ do_vscode_setup() {
             fi
             run_cmd "sudo dnf check-update"
             run_cmd "sudo dnf install -y code"
+            declare -f _summary_record >/dev/null 2>&1 && _summary_record "VS Code" "installed" "dnf"
             ;;
         zypper)
             run_cmd "sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc"
@@ -79,6 +83,7 @@ do_vscode_setup() {
             fi
             run_cmd "sudo zypper refresh"
             run_cmd "sudo zypper install -y code"
+            declare -f _summary_record >/dev/null 2>&1 && _summary_record "VS Code" "installed" "zypper"
             ;;
         pacman)
             echo "  1) visual-studio-code-bin (AUR) — full Microsoft build with marketplace and all features (recommended)"
@@ -95,24 +100,30 @@ do_vscode_setup() {
                         yay_ans=${yay_ans:-n}
                         if [[ "$yay_ans" =~ ^[Yy] ]]; then
                             run_cmd "yay -S --noconfirm visual-studio-code-bin"
+                            declare -f _summary_record >/dev/null 2>&1 && _summary_record "VS Code" "installed" "visual-studio-code-bin (AUR)"
                         else
                             log "Skipped VS Code AUR install"
+                            declare -f _summary_record >/dev/null 2>&1 && _summary_record "VS Code" "skipped"
                         fi
                     else
                         log "yay not available; cannot install from AUR"
                         echo "yay is not installed. Install yay first to get visual-studio-code-bin from AUR."
+                        declare -f _summary_record >/dev/null 2>&1 && _summary_record "VS Code" "failed" "yay not installed"
                     fi
                     ;;
                 2)
                     run_cmd "sudo pacman -S --noconfirm code"
+                    declare -f _summary_record >/dev/null 2>&1 && _summary_record "VS Code" "installed" "code (OSS, pacman)"
                     ;;
                 *)
                     log "Skipped VS Code install"
+                    declare -f _summary_record >/dev/null 2>&1 && _summary_record "VS Code" "skipped"
                     ;;
             esac
             ;;
         *)
             log "VS Code setup is only wired for apt/dnf/zypper/pacman; skipping for $PM"
+            declare -f _summary_record >/dev/null 2>&1 && _summary_record "VS Code" "skipped" "unsupported PM: $PM"
             ;;
     esac
 }
