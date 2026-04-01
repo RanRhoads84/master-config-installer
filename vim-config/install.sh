@@ -1,14 +1,12 @@
+# Installs Custom Vim configuration files to the user's home directory.
+
 #!/usr/bin/env bash
-set -euo pipefail
 
 VERBOSE=1
 
 # --- colors ---
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # no color
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$script_dir/../libs/text_mods.bash"
 
 log() {
   [[ "$VERBOSE" -eq 1 ]] && printf "${BLUE}[*]${NC} %s\n" "$*"
@@ -38,20 +36,29 @@ else
 fi
 
 # --- Copy Vim config ---
-if [[ -d .vim ]]; then
+vim_dir="$script_dir/.vim"
+vimrc_file="$script_dir/.vimrc"
+
+if [[ -d "$vim_dir" ]]; then
   log "Copying .vim directory to home"
-  cp -rv .vim ~/
+  cp -rv "$vim_dir" ~/
   ok ".vim directory copied"
 else
   warn ".vim directory not found, skipping"
 fi
 
-if [[ -f .vimrc ]]; then
+if [[ -f "$vimrc_file" ]]; then
   log "Copying .vimrc to home"
-  cp -v .vimrc ~/
+  cp -v "$vimrc_file" ~/.vimrc
   ok ".vimrc copied"
+elif [[ -f "$vim_dir/vimrc" ]]; then
+  log "Using ~/.vim/vimrc from the copied .vim directory"
+  if [[ ! -f ~/.vimrc ]]; then
+    printf "source ~/.vim/vimrc\n" > ~/.vimrc
+    ok "Created ~/.vimrc shim"
+  fi
 else
-  warn ".vimrc not found, skipping"
+  warn "Vimrc not found, skipping"
 fi
 
 ok "Setup complete"

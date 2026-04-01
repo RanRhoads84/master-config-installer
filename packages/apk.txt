@@ -1,2 +1,0 @@
-# APK / Alpine support removed by request. This file retained as placeholder.
-# If you need an Alpine package list again, recreate this file with desired packages.

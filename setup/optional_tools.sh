@@ -1,16 +1,27 @@
-#!/bin/bash
-# DESC: Interactive installer for optional applications from butterscripts and APT repositories
+#!/usr/bin/env bash
 
-# Butter Applications Installer
-# This script allows you to choose which applications to install from the
-# butterscripts repository by drewgrif, and also provides APT-based installations.
+# ModularConfig Optional Tools Installer
+# This script lets you choose which CSI helper modules to install (local modules and remote bundles).
 
 # Define color codes
-GREEN='\033[0;32m'
-CYAN='\033[0;36m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$script_dir/../libs/text_mods.bash"
+REPO_ROOT="$(cd "$script_dir/.." && pwd)"
+
+menu_border() {
+    echo "+-------------------------------------------------------------+"
+}
+
+print_menu_block() {
+    local title="$1"
+    local subtitle="$2"
+    echo -e "${CYAN}"$(menu_border)"${NC}"
+    printf "${CYAN}| ${NC}%-57s${CYAN} |${NC}\n" "$title"
+    if [ -n "$subtitle" ]; then
+        printf "${CYAN}| ${NC}%-57s${CYAN} |${NC}\n" "$subtitle"
+    fi
+    echo -e "${CYAN}"$(menu_border)"${NC}"
+}
 
 # Define package categories globally for reuse
 declare -a PRINTER_PACKAGES=(
@@ -39,11 +50,9 @@ declare -a BLUETOOTH_PACKAGES=(
 # Function to display script header
 show_header() {
     clear
-    echo -e "${CYAN}=========================================================${NC}"
-    echo -e "${CYAN}           BUTTER APPLICATIONS INSTALLER                 ${NC}"
-    echo -e "${CYAN}=========================================================${NC}"
-    echo -e "${YELLOW}This script will help you install various applications${NC}"
-    echo -e "${YELLOW}from the butterscripts repository and APT packages.${NC}"
+    print_menu_block "MODULARCONFIG OPTIONAL TOOLS INSTALLER" "Helper modules + APT utilities"
+    echo -e "${YELLOW}This script installs ModularConfig Suite helper modules${NC}"
+    echo -e "${YELLOW}alongside APT-based utilities.${NC}"
     echo
 }
 
@@ -116,55 +125,6 @@ download_script() {
     wget -q "$script_url" -O "/tmp/$script_name"
     chmod +x "/tmp/$script_name"
     echo -e "${GREEN}Download complete.${NC}"
-}
-
-
-# Function to install Discord
-install_discord() {
-    show_header
-    echo -e "${CYAN}Installing Discord...${NC}"
-    echo -e "${YELLOW}Note: The Discord installer has various options${NC}"
-    echo -e "${YELLOW}      (install, uninstall, setup, etc.)${NC}"
-    echo
-    
-    # Download the script
-    download_script "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/discord/discord" "discord"
-    
-    echo -e "${YELLOW}Starting Discord installer...${NC}"
-    echo -e "${YELLOW}Follow the prompts during installation.${NC}"
-    echo
-    
-    # Execute the script with install option
-    bash "/tmp/discord" install
-    
-    echo -e "${GREEN}Discord installation process completed.${NC}"
-    pause
-}
-
-# Function to install Fastfetch
-install_fastfetch() {
-    show_header
-    echo -e "${CYAN}Installing Fastfetch...${NC}"
-    
-    # Create a temporary directory for fastfetch configs
-    mkdir -p /tmp/fastfetch-configs
-    
-    # Download the script
-    download_script "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/fastfetch/install_fastfetch.sh" "install_fastfetch.sh"
-
-    # Download config files needed by the script
-    wget -q "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/fastfetch/config.jsonc" -O "/tmp/fastfetch-configs/config.jsonc"
-    wget -q "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/fastfetch/minimal.jsonc" -O "/tmp/fastfetch-configs/minimal.jsonc"
-    wget -q "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/fastfetch/server.jsonc" -O "/tmp/fastfetch-configs/server.jsonc"
-    
-    # Set script directory to the temporary location
-    export script_dir="/tmp/fastfetch-configs"
-    
-    # Execute the script
-    bash "/tmp/install_fastfetch.sh"
-    
-    echo -e "${GREEN}Fastfetch installation completed.${NC}"
-    pause
 }
 
 
@@ -345,57 +305,44 @@ install_apt_packages() {
     pause
 }
 
-# ButterScripts menu function
+# ModularConfig helper menu function
 show_butterscripts_menu() {
     local choice
-    
+
     while true; do
         show_header
-        echo -e "${YELLOW}Select a ButterScript to install:${NC}"
-        echo -e "${CYAN}1. ${NC}ButterBash - Modular bash configuration framework ⭐"
+        print_menu_block "ModularConfig helper installers" "Choose one helper to install"
+        echo -e "${YELLOW}Select a ModularConfig Suite helper to install:${NC}"
+        echo -e "${CYAN}1. ${NC}ModularShell - Modular bash configuration framework ⭐"
         echo -e "${CYAN}2. ${NC}ButterZsh - Modular zsh configuration framework ⭐"
-        echo -e "${CYAN}3. ${NC}ButterNotes - Universal note-taking and project management tool"
+        echo -e "${CYAN}3. ${NC}ModularNotes - Universal note-taking and project organization tool"
         echo -e "${CYAN}4. ${NC}Geany - Text Editor with plugins (Latest version 2.1 from source)"
         echo -e "${CYAN}5. ${NC}Browsers - Firefox, LibreWolf, Brave, Floorp, Chromium, Zen"
         echo -e "${CYAN}6. ${NC}Discord - Chat and Voice Application"
-        echo -e "${CYAN}7. ${NC}Fastfetch - System Information Display Tool"
-        echo -e "${CYAN}8. ${NC}Custom Neovim - JustAGuy Linux Pre-configured Editor"
-        echo -e "${CYAN}9. ${NC}Vanilla Neovim (Latest Build) - Compiled from Source"
-        echo -e "${CYAN}10. ${NC}Return to Main Menu"
+        echo -e "${CYAN}7. ${NC}Custom Neovim - JustAGuy Linux Pre-configured Editor"
+        echo -e "${CYAN}8. ${NC}Vanilla Neovim (Latest Build) - Compiled from Source"
+        echo -e "${CYAN}0. ${NC}Return to Main Menu"
         echo
         echo -e "${YELLOW}NOTE: Each installer has its own interactive options.${NC}"
         echo -e "${YELLOW}      It's recommended to install one at a time.${NC}"
         echo
-        read -p "Enter your choice [1-10]: " choice
+        read -p "Enter your choice [0-8]: " choice
         
         case $choice in
             1)
-                echo -e "${CYAN}Installing ButterBash...${NC}"
-                echo -e "${YELLOW}ButterBash provides a modular bash configuration framework.${NC}"
-                echo -e "${YELLOW}This will backup your current .bashrc and install the full ButterBash configuration.${NC}"
+                echo -e "${CYAN}Installing ModularShell...${NC}"
+                echo -e "${YELLOW}ModularShell provides a modular bash configuration framework.${NC}"
+                echo -e "${YELLOW}This will backup your current .bashrc and install the ModularShell configuration.${NC}"
                 echo
                 
-                if ask_yes_no "Do you want to install ButterBash (will backup existing .bashrc)?"; then
-                    # Clone the repository to temp location
-                    temp_dir="/tmp/butterbash-$(date +%s)"
-                    echo -e "${YELLOW}Cloning ButterBash repository...${NC}"
-                    
-                    if git clone --quiet https://codeberg.org/justaguylinux/butterbash.git "$temp_dir" 2>/dev/null; then
-                        # Run installer from the cloned directory without confirmation
-                        cd "$temp_dir"
-                        export SKIP_CONFIRMATION=true
-                        if bash install.sh; then
-                            echo -e "${GREEN}ButterBash installation completed.${NC}"
-                        else
-                            echo -e "${RED}ButterBash installation failed or was cancelled.${NC}"
-                        fi
-                        cd - > /dev/null
-                        rm -rf "$temp_dir"
+                if ask_yes_no "Do you want to install ModularShell (will backup existing .bashrc)?"; then
+                    if (cd "$REPO_ROOT/modularshell" && bash install.sh --yes); then
+                        echo -e "${GREEN}ModularShell installation completed.${NC}"
                     else
-                        echo -e "${RED}Failed to clone ButterBash repository${NC}"
+                        echo -e "${RED}ModularShell installation failed or was cancelled.${NC}"
                     fi
                 else
-                    echo -e "${YELLOW}ButterBash installation cancelled.${NC}"
+                    echo -e "${YELLOW}ModularShell installation cancelled.${NC}"
                 fi
                 pause
                 ;;
@@ -406,12 +353,10 @@ show_butterscripts_menu() {
                 echo
 
                 if ask_yes_no "Do you want to install ButterZsh (will backup existing .zshrc)?"; then
-                    # Clone the repository to temp location
                     temp_dir="/tmp/butterzsh-$(date +%s)"
                     echo -e "${YELLOW}Cloning ButterZsh repository...${NC}"
 
                     if git clone --quiet https://codeberg.org/justaguylinux/butterzsh.git "$temp_dir" 2>/dev/null; then
-                        # Run installer from the cloned directory without confirmation
                         cd "$temp_dir"
                         export SKIP_CONFIRMATION=true
                         if bash install.sh; then
@@ -430,31 +375,19 @@ show_butterscripts_menu() {
                 pause
                 ;;
             3)
-                echo -e "${CYAN}Installing ButterNotes...${NC}"
-                echo -e "${YELLOW}ButterNotes provides note-taking, todo management, and project organization.${NC}"
-                echo -e "${YELLOW}Works with any shell (bash, zsh, fish) and integrates beautifully with ButterBash.${NC}"
+                echo -e "${CYAN}Installing ModularNotes...${NC}"
+                echo -e "${YELLOW}ModularNotes provides note-taking, todo management, and project organization.${NC}"
+                echo -e "${YELLOW}Works with any shell (bash, zsh, fish) and integrates beautifully with ModularShell.${NC}"
                 echo
 
-                if ask_yes_no "Do you want to install ButterNotes?"; then
-                    # Clone the repository to temp location
-                    temp_dir="/tmp/butternotes-$(date +%s)"
-                    echo -e "${YELLOW}Cloning ButterNotes repository...${NC}"
-
-                    if git clone --quiet https://codeberg.org/justaguylinux/butternotes.git "$temp_dir" 2>/dev/null; then
-                        # Run installer from the cloned directory
-                        cd "$temp_dir"
-                        if bash install.sh; then
-                            echo -e "${GREEN}ButterNotes installation completed.${NC}"
-                        else
-                            echo -e "${RED}ButterNotes installation failed or was cancelled.${NC}"
-                        fi
-                        cd - > /dev/null
-                        rm -rf "$temp_dir"
+                if ask_yes_no "Do you want to install ModularNotes?"; then
+                    if (cd "$REPO_ROOT/modularnotes" && bash install.sh); then
+                        echo -e "${GREEN}ModularNotes installation completed.${NC}"
                     else
-                        echo -e "${RED}Failed to clone ButterNotes repository${NC}"
+                        echo -e "${RED}ModularNotes installation failed or was cancelled.${NC}"
                     fi
                 else
-                    echo -e "${YELLOW}ButterNotes installation cancelled.${NC}"
+                    echo -e "${YELLOW}ModularNotes installation cancelled.${NC}"
                 fi
                 pause
                 ;;
@@ -477,8 +410,7 @@ show_butterscripts_menu() {
                 pause
                 ;;
             6) install_discord ;;
-            7) install_fastfetch ;;
-            8)
+            7)
                 download_script "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/neovim/buttervim.sh" "buttervim.sh"
                 if bash "/tmp/buttervim.sh"; then
                     echo -e "${GREEN}Neovim installation process completed.${NC}"
@@ -487,7 +419,7 @@ show_butterscripts_menu() {
                 fi
                 pause
                 ;;
-            9)
+            8)
                 download_script "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/neovim/build-neovim.sh" "build-neovim.sh"
                 if bash "/tmp/build-neovim.sh"; then
                     echo -e "${GREEN}Neovim build and installation completed.${NC}"
@@ -496,7 +428,7 @@ show_butterscripts_menu() {
                 fi
                 pause
                 ;;
-            10) return ;;
+            0) return ;; 
             *)
                 echo -e "${RED}Invalid option. Please try again.${NC}"
                 pause
@@ -511,17 +443,18 @@ show_system_support_menu() {
     
     while true; do
         show_header
+        print_menu_block "System Support Installations" "Printer & Bluetooth utilities"
         echo -e "${YELLOW}System Support Installations:${NC}"
         echo -e "${CYAN}1. ${NC}Printer Support - CUPS and related drivers"
         echo -e "${CYAN}2. ${NC}Bluetooth Support - BluezZ and related utilities"
-        echo -e "${CYAN}3. ${NC}Return to Main Menu"
+        echo -e "${CYAN}0. ${NC}Return to Main Menu"
         echo
-        read -p "Enter your choice [1-3]: " choice
+        read -p "Enter your choice [0-2]: " choice
         
         case $choice in
             1) install_printer_support ;;
             2) install_bluetooth_support ;;
-            3) return ;;
+            0) return ;;
             *)
                 echo -e "${RED}Invalid option. Please try again.${NC}"
                 pause
@@ -554,22 +487,23 @@ show_main_menu() {
     
     while true; do
         show_header
+        print_menu_block "ModularConfig Installer Options" "Select the next installation step"
         echo -e "${YELLOW}Please select an installation option:${NC}"
-        echo -e "${CYAN}1. ${NC}Butterscripts Installers"
+        echo -e "${CYAN}1. ${NC}ModularConfig helper installers"
         echo -e "${CYAN}2. ${NC}APT Package Installation"
         echo -e "${CYAN}3. ${NC}System Support (Printer & Bluetooth)"
         echo -e "${CYAN}4. ${NC}Reboot System"
-        echo -e "${CYAN}5. ${NC}Exit"
+        echo -e "${CYAN}0. ${NC}Exit"
         echo
-        read -p "Enter your choice [1-5]: " choice
+        read -p "Enter your choice [0-4]: " choice
         
         case $choice in
             1) show_butterscripts_menu ;;
             2) install_apt_packages ;;
             3) show_system_support_menu ;;
             4) reboot_system ;;
-            5) 
-                echo -e "${GREEN}Exiting installer. Thank you for using Butter Installer!${NC}"
+            0)
+                echo -e "${GREEN}Exiting installer. Thank you for using ModularConfig Optional Tools!${NC}"
                 exit 0
                 ;;
             *)

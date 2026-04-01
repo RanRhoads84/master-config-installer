@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # DESC: Install and configure LightDM display manager with slick-greeter
 
 # ===========================================
@@ -16,10 +16,24 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Function to display script header
+menu_border() {
+    echo "+-------------------------------------------------------------+"
+}
+
+print_menu_block() {
+    local title="$1"
+    local subtitle="$2"
+    echo -e "${CYAN}"$(menu_border)"${NC}"
+    printf "${CYAN}| ${NC}%-57s${CYAN} |${NC}\n" "$title"
+    if [ -n "$subtitle" ]; then
+        printf "${CYAN}| ${NC}%-57s${CYAN} |${NC}\n" "$subtitle"
+    fi
+    echo -e "${CYAN}"$(menu_border)"${NC}"
+}
+
 show_header() {
-    echo -e "${CYAN}=========================================================${NC}"
-    echo -e "${CYAN}         DISPLAY MANAGER INSTALLATION SCRIPT             ${NC}"
-    echo -e "${CYAN}=========================================================${NC}"
+    echo
+    print_menu_block "DISPLAY MANAGER INSTALLATION SCRIPT" "LightDM is the recommended option"
     echo -e "${YELLOW}This script will help you install a display manager${NC}"
     echo -e "${YELLOW}for your system. LightDM is the recommended option.${NC}"
     echo
@@ -172,7 +186,7 @@ fi
 # If none of the above are installed, offer a choice to the user
 echo -e "${YELLOW}No supported display manager found.${NC}"
 
-# Menu for user choice
+print_menu_block "Display Manager Options" "Choose an option (0 to skip)"
 echo -e "\n${CYAN}Choose an option (or '0' to skip):${NC}"
 echo -e "${CYAN}1. ${NC}Install LightDM (recommended) - Lightweight and feature-rich"
 echo -e "${CYAN}2. ${NC}Install minimal GDM3 - GNOME Display Manager"

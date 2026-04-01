@@ -1,3 +1,6 @@
-# Cargo-installed crates
-caligula
-# Note: requires rustup / cargo toolchain
+# List cargo crates to install (one per line).
+# Lines starting with # are ignored.
+#
+# Example:
+# ripgrep
+# fd-find

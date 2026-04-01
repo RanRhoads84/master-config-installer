@@ -1,0 +1,98 @@
+# Build Dependencies
+atk
+cairo
+clang
+gdk-pixbuf
+glib2
+gtk3
+llvm
+mesa
+pango
+
+# Database
+mongodb
+mysql
+postgresql
+redis
+sqlite3
+
+# Development Tools
+autoconf
+automake
+check
+cmake
+cppcheck
+g++
+gcc
+gettext
+intltool
+libtool
+make
+ninja
+pkg-config
+
+# Network Tools
+aria2
+netcat
+nmap
+rclone
+socat
+tcpdump
+wireshark
+
+# Office & Productivity
+evolution
+libreoffice
+nextcloud-client
+thunderbird
+
+# Security Tools
+clamav
+fail2ban
+gnutls
+gpg
+openssl
+rkhunter
+
+# Shell Tools
+bash-completion
+bat
+cheat
+fd
+fzf
+thefuck
+tldr
+tmux
+
+# System Monitoring
+btop
+htop
+neotop
+nvtop
+
+# System Tools
+ca-certificates
+curl
+fastfetch
+git
+gnupg
+openssh
+ripgrep
+rsync
+software-properties-common
+tar
+tree
+unzip
+wget
+zip
+
+# Virtualization
+virt-bridge-setup
+virt-firmware
+virt-install
+virt-manager
+virt-p2v
+virt-v2v
+virt-v2v-bash-completion
+virt-viewer
+virt-win-reg

@@ -1,7 +1,0 @@
-# Pacman / Arch packages
-# Most common packages are centralized in packages/duplicates.txt
-# Add only distro-unique packages here.
-
-# (Duplicates moved to packages/duplicates.txt)
-# Example unique package kept here:
-mkvtoolnix-cli
