@@ -752,6 +752,10 @@ do_vscode_setup() {
 
 do_vscode_setup
 
+# shellcheck source=setup/git-config.sh
+source "$(dirname "$0")/setup/git-config.sh"
+do_git_config
+
 log "Install step completed (dry-run=$DRY_RUN)"
 
 echo "Done. Review $LOGFILE for details."
