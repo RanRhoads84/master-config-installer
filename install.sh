@@ -123,6 +123,25 @@ set_pm_install_cmd() {
 
 # shellcheck source=functions/summary.sh
 source "$(dirname "$0")/functions/summary.sh"
+# shellcheck source=functions/npm.sh
+source "$(dirname "$0")/functions/npm.sh"
+# shellcheck source=functions/cargo.sh
+source "$(dirname "$0")/functions/cargo.sh"
+# shellcheck source=functions/vim-config.sh
+source "$(dirname "$0")/functions/vim-config.sh"
+# shellcheck source=functions/theming.sh
+source "$(dirname "$0")/functions/theming.sh"
+# shellcheck source=functions/flatpak.sh
+source "$(dirname "$0")/functions/flatpak.sh"
+# shellcheck source=functions/vscode.sh
+source "$(dirname "$0")/functions/vscode.sh"
+# shellcheck source=functions/modularshell.sh
+source "$(dirname "$0")/functions/modularshell.sh"
+# shellcheck source=functions/git-config.sh
+source "$(dirname "$0")/functions/git-config.sh"
+
+declare -a MODULE_NAMES=("npm" "Cargo" "Vim Config" "Theming Assets" "Flatpak" "VS Code" "ModularShell" "Git Config")
+declare -a MODULE_FUNCS=("do_npm" "do_cargo" "do_vim_config" "do_theming_assets" "do_flatpak_setup" "do_vscode_setup" "do_modularshell" "do_git_config")
 
 if [ -n "$OVERRIDE_PM" ]; then
   PM="$OVERRIDE_PM"
@@ -585,12 +604,23 @@ else
         "$num" "$g" "$installed" "$pending_str"
     done
 
+    echo -e "  ${DIM}${CYAN}├────┴──────────────────────────────┴───────────┴───────────────┤${NC}"
+    printf "  ${DIM}${CYAN}│${NC} ${DIM}%-62s${NC}${DIM}${CYAN}│${NC}\n" "  Setup & Configuration"
+    echo -e "  ${DIM}${CYAN}├────┬──────────────────────────────┬───────────┬───────────────┤${NC}"
+
+    for mi in "${!MODULE_NAMES[@]}"; do
+      actions+=("module:$mi")
+      num=${#actions[@]}
+      printf "  ${DIM}${CYAN}│${NC} %2d ${DIM}${CYAN}│${NC} %-28s ${DIM}${CYAN}│${NC} ${DIM}%9s${NC} ${DIM}${CYAN}│${NC} ${DIM}%13s${NC} ${DIM}${CYAN}│${NC}\n" \
+        "$num" "${MODULE_NAMES[$mi]}" "─" "─"
+    done
+
     all_idx=$(( ${#actions[@]} + 1 ))
     actions+=("all")
 
     echo -e "  ${DIM}${CYAN}├────┴──────────────────────────────┴───────────┴───────────────┤${NC}"
     printf "  ${DIM}${CYAN}│${NC}  %-2s  %-58s${DIM}${CYAN}│${NC}\n" "0" "Exit installer"
-    printf "  ${DIM}${CYAN}│${NC} %-3s  %-58s${DIM}${CYAN}│${NC}\n" "$all_idx" "Install all groups"
+    printf "  ${DIM}${CYAN}│${NC} %-3s  %-58s${DIM}${CYAN}│${NC}\n" "$all_idx" "Install all groups and run setup"
     echo -e "  ${DIM}${CYAN}└──────────────────────────────────────────────────────────────────┘${NC}"
     echo
     printf "  ${BOLD}Choice [0-%-s]:${NC} " "$all_idx"
@@ -630,49 +660,24 @@ else
       group:*)
         process_group_selection "${action#group:}"
         ;;
+      module:*)
+        mi="${action#module:}"
+        "${MODULE_FUNCS[$mi]}"
+        ;;
       all)
         for j in "${!GROUP_ORDER[@]}"; do
           mapfile -t _all_pkgs < <(get_group_packages "$j")
           install_package_batch "${_all_pkgs[@]}"
           _refresh_group_count "$j"
         done
+        for mi in "${!MODULE_FUNCS[@]}"; do
+          "${MODULE_FUNCS[$mi]}"
+        done
         break
         ;;
     esac
   done
 fi
-
-# shellcheck source=functions/npm.sh
-source "$(dirname "$0")/functions/npm.sh"
-do_npm
-
-# shellcheck source=functions/cargo.sh
-source "$(dirname "$0")/functions/cargo.sh"
-do_cargo
-
-# shellcheck source=functions/vim-config.sh
-source "$(dirname "$0")/functions/vim-config.sh"
-do_vim_config
-
-# shellcheck source=functions/theming.sh
-source "$(dirname "$0")/functions/theming.sh"
-do_theming_assets
-
-# shellcheck source=functions/flatpak.sh
-source "$(dirname "$0")/functions/flatpak.sh"
-do_flatpak_setup
-
-# shellcheck source=functions/vscode.sh
-source "$(dirname "$0")/functions/vscode.sh"
-do_vscode_setup
-
-# shellcheck source=functions/modularshell.sh
-source "$(dirname "$0")/functions/modularshell.sh"
-do_modularshell
-
-# shellcheck source=functions/git-config.sh
-source "$(dirname "$0")/functions/git-config.sh"
-do_git_config
 
 log "Install step completed (dry-run=$DRY_RUN)"
 
