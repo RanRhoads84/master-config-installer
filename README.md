@@ -31,7 +31,7 @@ Quick examples:
 ./install.sh --groups "Shell Tools" --yes
 ```
 
-After package installs, the script can optionally run module installers (such as `vim-config` and theming assets) and setup steps for Flatpak and VS Code. If `packages/npm.txt` or `packages/cargo.txt` exist, it will also offer to install those package lists. Use `--dry-run` first to preview commands.
+After selecting package groups, the menu also offers setup steps for npm, cargo, vim-config, theming, Flatpak, VS Code, ModularShell, and git config. Use `--dry-run` first to preview commands without making changes.
 
 The installer includes an optional vim configuration setup that installs dependencies and applies the curated vimrc from `vim-config/`.
 
@@ -88,10 +88,6 @@ Modules with README files include usage notes, dependencies, and configuration t
 ### `/libs`
 
 - Shared Bash helpers for logging, menus, and text formatting.
-
-### `/modularnotes`
-
-- Modular note-taking tooling (notes/todos, backups, templates, and shell helpers). See [modularnotes/README.md](modularnotes/README.md).
 
 ### `/modularshell`
 

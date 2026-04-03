@@ -3,8 +3,10 @@ temp/
 backups/
 backups/modularconfig-suite-backup-20251219192321.tar.gz
 .kdev4/modularconfig-suite.kdev4
-git-push.sh
 modularconfig-install.log
+.bak.*
+vim-config/.vim/plugged/
+vim-config/.vim/.netrwhist
 
 # Ignore test logs and traces
 tests/test_dry_results/*.log

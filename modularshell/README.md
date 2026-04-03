@@ -12,7 +12,7 @@ A smooth, modular Bash configuration framework that makes your shell experience 
 - **Extensive Aliases**: Productivity shortcuts for common tasks.
 - **Archive Extraction**: Universal `extract` helper for every archive format.
 - **System Functions**: Quick system info, colored man pages, and more.
-- **Extension Ready**: Works seamlessly with [ModularNotes](../modularnotes/README.md) for note-taking and todo management.
+- **Extension Ready**: Pairs with other CSI modules for theming, vim config, and optional tooling.
 
 ## 📦 Installation
 
@@ -95,7 +95,6 @@ alias myalias="command"
 
 ModularShell works seamlessly with the modular helpers in this workspace:
 
-- **ModularNotes** – A modular note-taking and todo manager located at [../modularnotes/README.md](../modularnotes/README.md).
 - **Other CSI modules** – The optional tools menu can fetch external helper bundles (browsers, editors) and theming assets without duplication.
 
 ## 🚀 Key Bindings

@@ -15,10 +15,6 @@ These are standalone directories with their own installers and/or docs:
   - Docs: `modularshell/README.md`, `modularshell/DOCUMENTATION.md`
   - Man page: `modularshell/man/man7/modularshell.7`
 
-- `modularnotes/` — note-taking tooling
-  - Installer: `modularnotes/install.sh`
-  - Docs: `modularnotes/README.md`, `modularnotes/HOW-TO.md`
-
 - `vim-config/` — vim setup used by the optional installer step
   - Dependencies: `vim-config/depends.sh`
   - Installer: `vim-config/install.sh`

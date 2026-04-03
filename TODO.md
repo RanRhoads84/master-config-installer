@@ -3,7 +3,7 @@
 ## Immediate (High Priority)
 1. Validate man page installs: Confirm `man modularconfig-suite` and `man modularshell` resolve after running installers.
 2. Test full installation flow: Re-run `./install.sh --yes` on a real host (sandbox blocked sudo/network/home writes).
-3. Triage temp/: Determine if `temp/git-setup.sh` duplicates `functions/git-config.sh` and integrate or delete; promote `temp/test-vscode-setup.sh` to `tests/` or drop it.
+3. Validate man page installs and run full install on real hardware (these are the same task — needs sudo/network).
 
 ## Medium Priority
 None currently.
@@ -15,6 +15,7 @@ None currently.
 4. Progress reporting: Summarize per-group install results and timing.
 
 ## Completed
+- temp/ triage: deleted superseded git-setup.sh and broken test-vscode-setup.sh.
 - Post-menu integration: npm, cargo, vim-config, theming, flatpak, vscode, modularshell, git-config are now selectable menu items under "Setup & Configuration" instead of running unconditionally.
 - Menu performance overhaul: cached group counts eliminate per-render subprocess forks; render cost is now zero.
 - Menu visuals: ANSI colors, clear on render, unicode box-drawing table, color-coded columns.

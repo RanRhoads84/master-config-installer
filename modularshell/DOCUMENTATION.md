@@ -160,8 +160,6 @@
 
 ### Functions
 
-For note-taking and todo management, use [ModularNotes](../modularnotes/README.md)
-
 #### Utility Functions
 
 **Directory Operations:**
