@@ -4,6 +4,9 @@
 
 IFS=$'\n\t'
 
+# shellcheck source=libs/text_mods.bash
+source "$(dirname "$0")/libs/text_mods.bash"
+
 LOGFILE="./modularconfig-install.log"
 DRY_RUN=0
 ASSUME_YES=0
@@ -41,11 +44,6 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-# When running in dry-run mode, avoid interactive prompts by assuming yes.
-# This prevents `read` prompts from blocking CI or non-interactive runs.
-if [ "${DRY_RUN:-0}" -eq 1 ] && [ "${ASSUME_YES:-0}" -eq 0 ]; then
-  ASSUME_YES=1
-fi
 
 log() {
   local msg="$1"
@@ -173,9 +171,9 @@ while IFS= read -r line || [ -n "$line" ]; do
     continue
   fi
   if [ -z "${GROUP_VALUES[$current_group_index]}" ]; then
-    GROUP_VALUES[$current_group_index]="$line_trim"
+    GROUP_VALUES[current_group_index]="$line_trim"
   else
-    GROUP_VALUES[$current_group_index]+=$'\n'$line_trim
+    GROUP_VALUES[current_group_index]+=$'\n'$line_trim
   fi
 done < "$CONSOLIDATED_FILE"
 
@@ -219,6 +217,8 @@ is_installed() {
 }
 
 declare -a SUBMENU_SELECTIONS=()
+declare -a GROUP_INSTALLED=()
+declare -a GROUP_TOTAL=()
 ORDERED_GROUP_INDICES=()
 for i in "${!GROUP_ORDER[@]}"; do
   ORDERED_GROUP_INDICES+=("$i")
@@ -250,6 +250,7 @@ install_package_batch() {
   for pkg in "${mapped[@]}"; do
     if is_installed "$pkg"; then
       log "Skipping installed package: $pkg"
+      (( _PKG_ALREADY_INSTALLED++ )) || true
     else
       to_install+=("$pkg")
     fi
@@ -302,6 +303,8 @@ install_package_batch() {
       avail+=("$pkg")
     else
       missing+=("$pkg")
+      (( _PKG_UNAVAILABLE++ )) || true
+      _PKG_UNAVAILABLE_NAMES+=("$pkg")
     fi
   done
 
@@ -318,6 +321,9 @@ install_package_batch() {
   pkg_list=$(printf '%s ' "${avail[@]}")
   if ! run_cmd "$PM_INSTALL_CMD $pkg_list"; then
     log "Install command failed for some packages; continuing"
+    (( _PKG_FAILED += ${#avail[@]} )) || true
+  else
+    (( _PKG_INSTALLED += ${#avail[@]} )) || true
   fi
   if [ ${#missing[@]} -gt 0 ]; then
     log "Packages not found in repos and skipped: ${missing[*]}"
@@ -329,9 +335,9 @@ show_package_submenu() {
   local group_name="${GROUP_ORDER[$group_idx]}"
   local group_data="${GROUP_VALUES[$group_idx]}"
 
-  echo
-  echo "=== $group_name ==="
-  echo "Select individual packages to install:"
+  clear
+  echo -e "  ${BOLD}${BRIGHT_CYAN}=== ${group_name} ===${NC}"
+  echo -e "  ${DIM}Select packages to install (numbers, ranges, or 'all'):${NC}"
   echo
 
   local pkg_options=()
@@ -361,10 +367,14 @@ show_package_submenu() {
   local install_all_choice=$(( ${#pkg_options[@]} + 1 ))
 
   for i in "${!pkg_options[@]}"; do
-    echo "$((i+1))) ${pkg_options[$i]}"
+    if [ "${pkg_status[$i]}" = "installed" ]; then
+      printf "  ${GREEN}%3d)${NC} %s\n" "$((i+1))" "${pkg_options[$i]}"
+    else
+      printf "  ${YELLOW}%3d)${NC} %s\n" "$((i+1))" "${pkg_options[$i]}"
+    fi
   done
-  printf " %2d) Install ALL packages in this group\n" "$install_all_choice"
-  echo "  0) Back to main menu"
+  printf "  ${CYAN}%3d)${NC} Install ALL packages in this group\n" "$install_all_choice"
+  echo -e "  ${DIM}    0) Back${NC}"
   echo
 
   local selected_packages=()
@@ -372,7 +382,7 @@ show_package_submenu() {
   local invalid=0
   while true; do
     selected_packages=()
-    echo -n "Enter choice(s) (0-${install_all_choice}), commas ok, Enter=install pending, 'all'=pending, 'back'=return: "
+    printf "  ${BOLD}Choice (0-%d, 'all', 'back'):${NC} " "$install_all_choice"
     if ! read -r choice; then
       echo
       echo "Input stream ended while selecting packages. Returning to main menu..."
@@ -469,6 +479,39 @@ show_package_submenu() {
   SUBMENU_SELECTIONS=("${selected_packages[@]}")
 }
 
+_build_group_counts() {
+  local i pkg mapped total installed
+  for i in "${!GROUP_ORDER[@]}"; do
+    total=0; installed=0
+    if [ -n "${GROUP_VALUES[$i]}" ]; then
+      while IFS= read -r pkg; do
+        pkg=$(echo "$pkg" | sed -E 's/^\s+|\s+$//g')
+        [ -z "$pkg" ] && continue
+        (( total++ ))
+        mapped=$(map_name "$pkg")
+        is_installed "$mapped" && (( installed++ )) || true
+      done <<< "${GROUP_VALUES[$i]}"
+    fi
+    GROUP_INSTALLED[i]=$installed
+    GROUP_TOTAL[i]=$total
+  done
+}
+
+_refresh_group_count() {
+  local i="$1" pkg mapped total=0 installed=0
+  if [ -n "${GROUP_VALUES[$i]}" ]; then
+    while IFS= read -r pkg; do
+      pkg=$(echo "$pkg" | sed -E 's/^\s+|\s+$//g')
+      [ -z "$pkg" ] && continue
+      (( total++ ))
+      mapped=$(map_name "$pkg")
+      is_installed "$mapped" && (( installed++ )) || true
+    done <<< "${GROUP_VALUES[$i]}"
+  fi
+  GROUP_INSTALLED[i]=$installed
+  GROUP_TOTAL[i]=$total
+}
+
 process_group_selection() {
   local group_idx="$1"
   show_package_submenu "$group_idx"
@@ -476,6 +519,7 @@ process_group_selection() {
     return 0
   fi
   install_package_batch "${SUBMENU_SELECTIONS[@]}"
+  _refresh_group_count "$group_idx"
   SUBMENU_SELECTIONS=()
 }
 
@@ -507,44 +551,50 @@ elif [ -n "$SELECT_GROUPS" ]; then
     install_package_batch "${group_pkgs[@]}"
   done
 else
+  _build_group_counts
   while true; do
+    clear
+    echo -e "${BOLD}${BRIGHT_CYAN}  ModularConfig Suite Installer${NC}  ${DIM}[${PM}]${NC}"
     echo
-    echo "+-------------------------------------------------------------+"
-    echo "|                   Package group overview                    |"
-    echo "+----+-------------------------------+-----------+------------+"
-    printf "| %2s | %-29s | %9s | %10s |\n" "ID" "Group" "Installed" "Available"
-    echo "+----+-------------------------------+-----------+------------+"
+    echo -e "  ${DIM}${CYAN}┌────┬──────────────────────────────┬───────────┬───────────────┐${NC}"
+    printf "  ${DIM}${CYAN}│${NC} ${BOLD}%-2s${NC} ${DIM}${CYAN}│${NC} ${BOLD}%-28s${NC} ${DIM}${CYAN}│${NC} ${BOLD}%-9s${NC} ${DIM}${CYAN}│${NC} ${BOLD}%-13s${NC} ${DIM}${CYAN}│${NC}\n" \
+      "ID" "Group" "Installed" "Not Installed"
+    echo -e "  ${DIM}${CYAN}├────┼──────────────────────────────┼───────────┼───────────────┤${NC}"
 
     actions=()
     for idx in "${ORDERED_GROUP_INDICES[@]}"; do
       g="${GROUP_ORDER[$idx]}"
-      total_count=0
-      installed_count=0
-      if [ -n "${GROUP_VALUES[$idx]}" ]; then
-        while IFS= read -r pkg; do
-          pkg=$(echo "$pkg" | sed -E 's/^\s+|\s+$//g')
-          [ -z "$pkg" ] && continue
-          total_count=$((total_count + 1))
-          mapped_pkg=$(map_name "$pkg")
-          if is_installed "$mapped_pkg"; then
-            installed_count=$((installed_count + 1))
-          fi
-        done <<< "${GROUP_VALUES[$idx]}"
+      installed=${GROUP_INSTALLED[$idx]:-0}
+      total=${GROUP_TOTAL[$idx]:-0}
+      pending=$(( total - installed ))
+
+      if (( total == 0 )); then
+        pending_str="  -"
+        pending_color="${DIM}"
+      elif (( pending == 0 )); then
+        pending_str="  done"
+        pending_color="${GREEN}"
+      else
+        pending_str="$pending"
+        pending_color="${YELLOW}"
       fi
-      to_install=$((total_count - installed_count))
+
       actions+=("group:$idx")
-      printf "| %2d | %-29s | %9d | %10d |\n" "$(( ${#actions[@]} ))" "$g" "$installed_count" "$to_install"
+      num=${#actions[@]}
+      printf "  ${DIM}${CYAN}│${NC} %2d ${DIM}${CYAN}│${NC} %-28s ${DIM}${CYAN}│${NC} ${GREEN}%9d${NC} ${DIM}${CYAN}│${NC} ${pending_color}%13s${NC} ${DIM}${CYAN}│${NC}\n" \
+        "$num" "$g" "$installed" "$pending_str"
     done
-    echo "+----+-------------------------------+-----------+------------+"
 
     all_idx=$(( ${#actions[@]} + 1 ))
     actions+=("all")
 
-    printf "  %2d) %-56s\n" 0 "Exit installer"
-    printf " %2d) %-56s\n" "$all_idx" "Install every group sequentially"
+    echo -e "  ${DIM}${CYAN}├────┴──────────────────────────────┴───────────┴───────────────┤${NC}"
+    printf "  ${DIM}${CYAN}│${NC}  %-2s  %-58s${DIM}${CYAN}│${NC}\n" "0" "Exit installer"
+    printf "  ${DIM}${CYAN}│${NC} %-3s  %-58s${DIM}${CYAN}│${NC}\n" "$all_idx" "Install all groups"
+    echo -e "  ${DIM}${CYAN}└──────────────────────────────────────────────────────────────────┘${NC}"
     echo
-    echo "Select a number to open that group's submenu; runs install immediately and returns here."
-    echo -n "Enter your choice (0-${all_idx}, q to quit): "
+    printf "  ${BOLD}Choice [0-%-s]:${NC} " "$all_idx"
+
     if ! read -r main_choice; then
       echo
       log "Input stream ended; exiting menu."
@@ -552,7 +602,6 @@ else
     fi
     main_choice_trim="$(echo "$main_choice" | tr -d '[:space:]')"
     if [[ -z "$main_choice_trim" ]]; then
-      echo "Please select an option."
       continue
     fi
     case "${main_choice_trim,,}" in
@@ -562,7 +611,8 @@ else
         ;;
     esac
     if [[ ! "$main_choice_trim" =~ ^[0-9]+$ ]]; then
-      echo "Invalid input: $main_choice"
+      echo -e "  ${RED}Invalid input: $main_choice${NC}"
+      sleep 1
       continue
     fi
     if [ "$main_choice_trim" -eq 0 ]; then
@@ -571,7 +621,8 @@ else
     fi
     sel_index=$((main_choice_trim - 1))
     if [ "$sel_index" -lt 0 ] || [ "$sel_index" -ge "${#actions[@]}" ]; then
-      echo "Choice out of range: $main_choice"
+      echo -e "  ${RED}Choice out of range: $main_choice${NC}"
+      sleep 1
       continue
     fi
     action="${actions[$sel_index]}"
@@ -581,34 +632,37 @@ else
         ;;
       all)
         for j in "${!GROUP_ORDER[@]}"; do
-          process_group_selection "$j"
+          mapfile -t _all_pkgs < <(get_group_packages "$j")
+          install_package_batch "${_all_pkgs[@]}"
+          _refresh_group_count "$j"
         done
+        break
         ;;
     esac
   done
 fi
 
-# shellcheck source=setup/npm.sh
+# shellcheck source=functions/npm.sh
 source "$(dirname "$0")/functions/npm.sh"
 do_npm
 
-# shellcheck source=setup/cargo.sh
+# shellcheck source=functions/cargo.sh
 source "$(dirname "$0")/functions/cargo.sh"
 do_cargo
 
-# shellcheck source=setup/vim-config.sh
+# shellcheck source=functions/vim-config.sh
 source "$(dirname "$0")/functions/vim-config.sh"
 do_vim_config
 
-# shellcheck source=setup/theming.sh
+# shellcheck source=functions/theming.sh
 source "$(dirname "$0")/functions/theming.sh"
 do_theming_assets
 
-# shellcheck source=setup/flatpak.sh
+# shellcheck source=functions/flatpak.sh
 source "$(dirname "$0")/functions/flatpak.sh"
 do_flatpak_setup
 
-# shellcheck source=setup/vscode.sh
+# shellcheck source=functions/vscode.sh
 source "$(dirname "$0")/functions/vscode.sh"
 do_vscode_setup
 
@@ -616,7 +670,7 @@ do_vscode_setup
 source "$(dirname "$0")/functions/modularshell.sh"
 do_modularshell
 
-# shellcheck source=setup/git-config.sh
+# shellcheck source=functions/git-config.sh
 source "$(dirname "$0")/functions/git-config.sh"
 do_git_config
 

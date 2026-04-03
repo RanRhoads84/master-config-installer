@@ -5,6 +5,13 @@
 
 declare -a _SUMMARY_ITEMS=()
 
+# Package install counters — incremented directly by install_package_batch
+declare -i _PKG_INSTALLED=0
+declare -i _PKG_ALREADY_INSTALLED=0
+declare -i _PKG_UNAVAILABLE=0
+declare -i _PKG_FAILED=0
+declare -a _PKG_UNAVAILABLE_NAMES=()
+
 # _summary_record <label> <status> [detail]
 #   status: installed | skipped | already_installed | failed
 _summary_record() {
@@ -102,13 +109,29 @@ print_install_summary() {
         _box_row "${left}${spacer}${right_col}"
     done
 
+    # Packages aggregate row
+    if (( _PKG_INSTALLED + _PKG_ALREADY_INSTALLED + _PKG_FAILED > 0 )); then
+        local pkg_right="${C_OK}✔  ${_PKG_INSTALLED} installed${R}"
+        (( _PKG_ALREADY_INSTALLED > 0 )) && pkg_right+="${C_ALREADY}  (${_PKG_ALREADY_INSTALLED} already installed)${R}"
+        (( _PKG_FAILED > 0 )) && pkg_right+="  ${C_FAIL}${_PKG_FAILED} failed${R}"
+        local pkg_right_plain
+        pkg_right_plain=$(printf '%b' "$pkg_right" | sed 's/\x1b\[[0-9;]*m//g')
+        local pkg_label="Packages"
+        local pkg_gap=$(( INNER - ${#pkg_label} - ${#pkg_right_plain} - 2 ))
+        [[ $pkg_gap -lt 1 ]] && pkg_gap=1
+        _box_row "${C_LABEL}${pkg_label}${R}$(printf '%*s' "$pkg_gap" "")${pkg_right}"
+    fi
+
     _box_blank
     _box_mid
 
     # Totals line
+    local grand_installed=$(( installed + _PKG_INSTALLED + _PKG_ALREADY_INSTALLED ))
+    local grand_failed=$(( failed + _PKG_FAILED ))
     local totals_str
-    totals_str=$(printf "${C_OK}%d installed${R}  ${C_SKIP}%d skipped${R}" "$installed" "$skipped")
-    [[ $failed -gt 0 ]] && totals_str+="  $(printf "${C_FAIL}%d failed${R}" "$failed")"
+    totals_str=$(printf "${C_OK}%d installed${R}  ${C_SKIP}%d skipped${R}" "$grand_installed" "$skipped")
+    [[ $grand_failed -gt 0 ]] && totals_str+="  $(printf "${C_FAIL}%d failed${R}" "$grand_failed")"
+    [[ $_PKG_UNAVAILABLE -gt 0 ]] && totals_str+="  $(printf "${C_SKIP}%d unavailable${R}" "$_PKG_UNAVAILABLE")"
     _box_row "  $totals_str"
 
     _box_blank
@@ -119,4 +142,17 @@ print_install_summary() {
 
     _box_bot
     echo
+
+    if (( _PKG_UNAVAILABLE > 0 )); then
+        printf "  ${C_SKIP}%d packages were not available in repos. Show list? [y/N]:${R} " "$_PKG_UNAVAILABLE"
+        local ans
+        read -r ans
+        if [[ "${ans,,}" == "y" ]]; then
+            echo
+            for pkg in "${_PKG_UNAVAILABLE_NAMES[@]}"; do
+                printf "  ${C_FAIL}✘${R}  %s\n" "$pkg"
+            done
+            echo
+        fi
+    fi
 }
