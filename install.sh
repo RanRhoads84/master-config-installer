@@ -44,6 +44,16 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
+if [ -n "$OVERRIDE_PM" ]; then
+  case "$OVERRIDE_PM" in
+    apt|dnf|pacman|zypper) ;;
+    *)
+      echo "Error: unsupported package manager '${OVERRIDE_PM}'. Must be one of: apt, dnf, pacman, zypper" >&2
+      exit 1
+      ;;
+  esac
+fi
+
 
 log() {
   local msg="$1"

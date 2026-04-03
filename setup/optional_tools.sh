@@ -3,6 +3,8 @@
 # ModularConfig Optional Tools Installer
 # This script lets you choose which CSI helper modules to install (local modules and remote bundles).
 
+set -euo pipefail
+
 # Define color codes
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$script_dir/../libs/text_mods.bash"
@@ -378,7 +380,7 @@ show_butterscripts_menu() {
                 echo
 
                 if ask_yes_no "Do you want to install ButterZsh (will backup existing .zshrc)?"; then
-                    temp_dir="/tmp/butterzsh-$(date +%s)"
+                    temp_dir="$(mktemp -d)"
                     echo -e "${YELLOW}Cloning ButterZsh repository...${NC}"
 
                     if git clone --quiet https://codeberg.org/justaguylinux/butterzsh.git "$temp_dir" 2>/dev/null; then
