@@ -15,7 +15,7 @@
 
 Notes:
 
-- `--dry-run` automatically behaves like `--yes` to avoid blocking on prompts.
+- `--dry-run` and `--yes` are independent flags. Dry-run prints commands without executing them but does not skip prompts on its own.
 - The installer writes a log file (default: `./modularconfig-install.log`).
 
 ## Command-line options
@@ -32,18 +32,24 @@ Notes:
 
 1. Detects a package manager (or uses `--pm`).
 2. Loads package groups from `packages/pkg-list.txt`.
-3. Lets you:
-   - select a group, then select packages within it, **or**
-   - install all groups, **or**
-   - install specific groups via `--groups`, **or**
-   - install everything via `--yes`.
-4. Optionally offers extra steps (prompted at the end):
-   - npm global packages from `packages/npm.txt` (if present)
-   - cargo packages from `packages/cargo.txt` (if present)
-   - vim configuration installer from `vim-config/`
-   - fonts + wallpapers installer from `theming/install_fonts-wallpapers.sh`
-   - Flatpak setup (install + add Flathub remote)
-   - VS Code repo setup + install `code` (wired for `apt`, `dnf`, `zypper`)
+3. Presents a colored, unicode table menu with two sections:
+
+   **Package groups** (10 groups: Build Dependencies, Database, Development Tools,
+   Network Tools, Office & Productivity, Security Tools, Shell Tools, System Monitoring,
+   System Tools, Virtualization) — each row shows how many packages in the group are
+   already installed vs. not yet installed.
+
+   **Setup & Configuration** (8 modules: npm, Cargo, Vim Config, Theming Assets,
+   Flatpak, VS Code, ModularShell, Git Config) — selecting a module runs its
+   handler from `functions/` immediately and returns to the menu.
+
+4. Selecting a package group opens a submenu: install all packages in the group, or
+   pick individual packages.
+5. "Install all groups and run setup" installs every package group and all setup
+   modules, then exits.
+6. After the menu, prints a colored install summary: per-module status rows, an
+   aggregate Packages row (N installed, N already installed), a totals line, and an
+   opt-in prompt to list unavailable packages.
 
 ## Logs
 

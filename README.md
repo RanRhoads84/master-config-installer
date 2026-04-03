@@ -31,7 +31,7 @@ Quick examples:
 ./install.sh --groups "Shell Tools" --yes
 ```
 
-After selecting package groups, the menu also offers setup steps for npm, cargo, vim-config, theming, Flatpak, VS Code, ModularShell, and git config. Use `--dry-run` first to preview commands without making changes.
+The menu has two sections: **Package groups** (10 groups, each showing installed vs. not-installed counts) and **Setup & Configuration** (8 modules: npm, Cargo, Vim Config, Theming Assets, Flatpak, VS Code, ModularShell, Git Config). Selecting a package group opens a submenu to install individual packages or the whole group. Selecting a setup module runs it immediately. "Install all groups and run setup" processes everything and exits. Use `--dry-run` first to preview commands without making changes.
 
 The installer includes an optional vim configuration setup that installs dependencies and applies the curated vimrc from `vim-config/`.
 
