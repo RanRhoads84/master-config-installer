@@ -1,9 +1,7 @@
 # TODO (from DEVELOPMENT_LOG.md → Next Steps)
 
 ## Immediate (High Priority)
-1. Validate man page installs: Confirm `man modularconfig-suite` and `man modularshell` resolve after running installers.
-2. Test full installation flow: Re-run `./install.sh --yes` on a real host (sandbox blocked sudo/network/home writes).
-3. Validate man page installs and run full install on real hardware (these are the same task — needs sudo/network).
+None currently.
 
 ## Medium Priority
 None currently.
@@ -15,6 +13,7 @@ None currently.
 4. Progress reporting: Summarize per-group install results and timing.
 
 ## Completed
+- Full install on real hardware: validated man pages, menu flow, sudo operations, and network installs.
 - temp/ triage: deleted superseded git-setup.sh and broken test-vscode-setup.sh.
 - Post-menu integration: npm, cargo, vim-config, theming, flatpak, vscode, modularshell, git-config are now selectable menu items under "Setup & Configuration" instead of running unconditionally.
 - Menu performance overhaul: cached group counts eliminate per-render subprocess forks; render cost is now zero.
