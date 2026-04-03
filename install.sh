@@ -4,6 +4,9 @@
 
 IFS=$'\n\t'
 
+# shellcheck source=libs/text_mods.bash
+source "$(dirname "$0")/libs/text_mods.bash"
+
 LOGFILE="./modularconfig-install.log"
 DRY_RUN=0
 ASSUME_YES=0
@@ -41,11 +44,6 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-# When running in dry-run mode, avoid interactive prompts by assuming yes.
-# This prevents `read` prompts from blocking CI or non-interactive runs.
-if [ "${DRY_RUN:-0}" -eq 1 ] && [ "${ASSUME_YES:-0}" -eq 0 ]; then
-  ASSUME_YES=1
-fi
 
 log() {
   local msg="$1"
@@ -123,6 +121,28 @@ set_pm_install_cmd() {
 #  log "Installer modules: ${available[*]}"
 #}
 
+# shellcheck source=functions/summary.sh
+source "$(dirname "$0")/functions/summary.sh"
+# shellcheck source=functions/npm.sh
+source "$(dirname "$0")/functions/npm.sh"
+# shellcheck source=functions/cargo.sh
+source "$(dirname "$0")/functions/cargo.sh"
+# shellcheck source=functions/vim-config.sh
+source "$(dirname "$0")/functions/vim-config.sh"
+# shellcheck source=functions/theming.sh
+source "$(dirname "$0")/functions/theming.sh"
+# shellcheck source=functions/flatpak.sh
+source "$(dirname "$0")/functions/flatpak.sh"
+# shellcheck source=functions/vscode.sh
+source "$(dirname "$0")/functions/vscode.sh"
+# shellcheck source=functions/modularshell.sh
+source "$(dirname "$0")/functions/modularshell.sh"
+# shellcheck source=functions/git-config.sh
+source "$(dirname "$0")/functions/git-config.sh"
+
+declare -a MODULE_NAMES=("npm" "Cargo" "Vim Config" "Theming Assets" "Flatpak" "VS Code" "ModularShell" "Git Config")
+declare -a MODULE_FUNCS=("do_npm" "do_cargo" "do_vim_config" "do_theming_assets" "do_flatpak_setup" "do_vscode_setup" "do_modularshell" "do_git_config")
+
 if [ -n "$OVERRIDE_PM" ]; then
   PM="$OVERRIDE_PM"
   log "Overriding package manager: $PM"
@@ -170,9 +190,9 @@ while IFS= read -r line || [ -n "$line" ]; do
     continue
   fi
   if [ -z "${GROUP_VALUES[$current_group_index]}" ]; then
-    GROUP_VALUES[$current_group_index]="$line_trim"
+    GROUP_VALUES[current_group_index]="$line_trim"
   else
-    GROUP_VALUES[$current_group_index]+=$'\n'$line_trim
+    GROUP_VALUES[current_group_index]+=$'\n'$line_trim
   fi
 done < "$CONSOLIDATED_FILE"
 
@@ -216,6 +236,8 @@ is_installed() {
 }
 
 declare -a SUBMENU_SELECTIONS=()
+declare -a GROUP_INSTALLED=()
+declare -a GROUP_TOTAL=()
 ORDERED_GROUP_INDICES=()
 for i in "${!GROUP_ORDER[@]}"; do
   ORDERED_GROUP_INDICES+=("$i")
@@ -247,6 +269,7 @@ install_package_batch() {
   for pkg in "${mapped[@]}"; do
     if is_installed "$pkg"; then
       log "Skipping installed package: $pkg"
+      (( _PKG_ALREADY_INSTALLED++ )) || true
     else
       to_install+=("$pkg")
     fi
@@ -299,6 +322,8 @@ install_package_batch() {
       avail+=("$pkg")
     else
       missing+=("$pkg")
+      (( _PKG_UNAVAILABLE++ )) || true
+      _PKG_UNAVAILABLE_NAMES+=("$pkg")
     fi
   done
 
@@ -315,6 +340,9 @@ install_package_batch() {
   pkg_list=$(printf '%s ' "${avail[@]}")
   if ! run_cmd "$PM_INSTALL_CMD $pkg_list"; then
     log "Install command failed for some packages; continuing"
+    (( _PKG_FAILED += ${#avail[@]} )) || true
+  else
+    (( _PKG_INSTALLED += ${#avail[@]} )) || true
   fi
   if [ ${#missing[@]} -gt 0 ]; then
     log "Packages not found in repos and skipped: ${missing[*]}"
@@ -326,9 +354,9 @@ show_package_submenu() {
   local group_name="${GROUP_ORDER[$group_idx]}"
   local group_data="${GROUP_VALUES[$group_idx]}"
 
-  echo
-  echo "=== $group_name ==="
-  echo "Select individual packages to install:"
+  clear
+  echo -e "  ${BOLD}${BRIGHT_CYAN}=== ${group_name} ===${NC}"
+  echo -e "  ${DIM}Select packages to install (numbers, ranges, or 'all'):${NC}"
   echo
 
   local pkg_options=()
@@ -358,10 +386,14 @@ show_package_submenu() {
   local install_all_choice=$(( ${#pkg_options[@]} + 1 ))
 
   for i in "${!pkg_options[@]}"; do
-    echo "$((i+1))) ${pkg_options[$i]}"
+    if [ "${pkg_status[$i]}" = "installed" ]; then
+      printf "  ${GREEN}%3d)${NC} %s\n" "$((i+1))" "${pkg_options[$i]}"
+    else
+      printf "  ${YELLOW}%3d)${NC} %s\n" "$((i+1))" "${pkg_options[$i]}"
+    fi
   done
-  printf " %2d) Install ALL packages in this group\n" "$install_all_choice"
-  echo "  0) Back to main menu"
+  printf "  ${CYAN}%3d)${NC} Install ALL packages in this group\n" "$install_all_choice"
+  echo -e "  ${DIM}    0) Back${NC}"
   echo
 
   local selected_packages=()
@@ -369,7 +401,7 @@ show_package_submenu() {
   local invalid=0
   while true; do
     selected_packages=()
-    echo -n "Enter choice(s) (0-${install_all_choice}), commas ok, Enter=install pending, 'all'=pending, 'back'=return: "
+    printf "  ${BOLD}Choice (0-%d, 'all', 'back'):${NC} " "$install_all_choice"
     if ! read -r choice; then
       echo
       echo "Input stream ended while selecting packages. Returning to main menu..."
@@ -466,6 +498,39 @@ show_package_submenu() {
   SUBMENU_SELECTIONS=("${selected_packages[@]}")
 }
 
+_build_group_counts() {
+  local i pkg mapped total installed
+  for i in "${!GROUP_ORDER[@]}"; do
+    total=0; installed=0
+    if [ -n "${GROUP_VALUES[$i]}" ]; then
+      while IFS= read -r pkg; do
+        pkg=$(echo "$pkg" | sed -E 's/^\s+|\s+$//g')
+        [ -z "$pkg" ] && continue
+        (( total++ ))
+        mapped=$(map_name "$pkg")
+        is_installed "$mapped" && (( installed++ )) || true
+      done <<< "${GROUP_VALUES[$i]}"
+    fi
+    GROUP_INSTALLED[i]=$installed
+    GROUP_TOTAL[i]=$total
+  done
+}
+
+_refresh_group_count() {
+  local i="$1" pkg mapped total=0 installed=0
+  if [ -n "${GROUP_VALUES[$i]}" ]; then
+    while IFS= read -r pkg; do
+      pkg=$(echo "$pkg" | sed -E 's/^\s+|\s+$//g')
+      [ -z "$pkg" ] && continue
+      (( total++ ))
+      mapped=$(map_name "$pkg")
+      is_installed "$mapped" && (( installed++ )) || true
+    done <<< "${GROUP_VALUES[$i]}"
+  fi
+  GROUP_INSTALLED[i]=$installed
+  GROUP_TOTAL[i]=$total
+}
+
 process_group_selection() {
   local group_idx="$1"
   show_package_submenu "$group_idx"
@@ -473,6 +538,7 @@ process_group_selection() {
     return 0
   fi
   install_package_batch "${SUBMENU_SELECTIONS[@]}"
+  _refresh_group_count "$group_idx"
   SUBMENU_SELECTIONS=()
 }
 
@@ -504,44 +570,61 @@ elif [ -n "$SELECT_GROUPS" ]; then
     install_package_batch "${group_pkgs[@]}"
   done
 else
+  _build_group_counts
   while true; do
+    clear
+    echo -e "${BOLD}${BRIGHT_CYAN}  ModularConfig Suite Installer${NC}  ${DIM}[${PM}]${NC}"
     echo
-    echo "+-------------------------------------------------------------+"
-    echo "|                   Package group overview                    |"
-    echo "+----+-------------------------------+-----------+------------+"
-    printf "| %2s | %-29s | %9s | %10s |\n" "ID" "Group" "Installed" "Available"
-    echo "+----+-------------------------------+-----------+------------+"
+    echo -e "  ${DIM}${CYAN}┌────┬──────────────────────────────┬───────────┬───────────────┐${NC}"
+    printf "  ${DIM}${CYAN}│${NC} ${BOLD}%-2s${NC} ${DIM}${CYAN}│${NC} ${BOLD}%-28s${NC} ${DIM}${CYAN}│${NC} ${BOLD}%-9s${NC} ${DIM}${CYAN}│${NC} ${BOLD}%-13s${NC} ${DIM}${CYAN}│${NC}\n" \
+      "ID" "Group" "Installed" "Not Installed"
+    echo -e "  ${DIM}${CYAN}├────┼──────────────────────────────┼───────────┼───────────────┤${NC}"
 
     actions=()
     for idx in "${ORDERED_GROUP_INDICES[@]}"; do
       g="${GROUP_ORDER[$idx]}"
-      total_count=0
-      installed_count=0
-      if [ -n "${GROUP_VALUES[$idx]}" ]; then
-        while IFS= read -r pkg; do
-          pkg=$(echo "$pkg" | sed -E 's/^\s+|\s+$//g')
-          [ -z "$pkg" ] && continue
-          total_count=$((total_count + 1))
-          mapped_pkg=$(map_name "$pkg")
-          if is_installed "$mapped_pkg"; then
-            installed_count=$((installed_count + 1))
-          fi
-        done <<< "${GROUP_VALUES[$idx]}"
+      installed=${GROUP_INSTALLED[$idx]:-0}
+      total=${GROUP_TOTAL[$idx]:-0}
+      pending=$(( total - installed ))
+
+      if (( total == 0 )); then
+        pending_str="  -"
+        pending_color="${DIM}"
+      elif (( pending == 0 )); then
+        pending_str="  done"
+        pending_color="${GREEN}"
+      else
+        pending_str="$pending"
+        pending_color="${YELLOW}"
       fi
-      to_install=$((total_count - installed_count))
+
       actions+=("group:$idx")
-      printf "| %2d | %-29s | %9d | %10d |\n" "$(( ${#actions[@]} ))" "$g" "$installed_count" "$to_install"
+      num=${#actions[@]}
+      printf "  ${DIM}${CYAN}│${NC} %2d ${DIM}${CYAN}│${NC} %-28s ${DIM}${CYAN}│${NC} ${GREEN}%9d${NC} ${DIM}${CYAN}│${NC} ${pending_color}%13s${NC} ${DIM}${CYAN}│${NC}\n" \
+        "$num" "$g" "$installed" "$pending_str"
     done
-    echo "+----+-------------------------------+-----------+------------+"
+
+    echo -e "  ${DIM}${CYAN}├────┴──────────────────────────────┴───────────┴───────────────┤${NC}"
+    printf "  ${DIM}${CYAN}│${NC} ${DIM}%-62s${NC}${DIM}${CYAN}│${NC}\n" "  Setup & Configuration"
+    echo -e "  ${DIM}${CYAN}├────┬──────────────────────────────┬───────────┬───────────────┤${NC}"
+
+    for mi in "${!MODULE_NAMES[@]}"; do
+      actions+=("module:$mi")
+      num=${#actions[@]}
+      printf "  ${DIM}${CYAN}│${NC} %2d ${DIM}${CYAN}│${NC} %-28s ${DIM}${CYAN}│${NC} ${DIM}%9s${NC} ${DIM}${CYAN}│${NC} ${DIM}%13s${NC} ${DIM}${CYAN}│${NC}\n" \
+        "$num" "${MODULE_NAMES[$mi]}" "─" "─"
+    done
 
     all_idx=$(( ${#actions[@]} + 1 ))
     actions+=("all")
 
-    printf "  %2d) %-56s\n" 0 "Exit installer"
-    printf " %2d) %-56s\n" "$all_idx" "Install every group sequentially"
+    echo -e "  ${DIM}${CYAN}├────┴──────────────────────────────┴───────────┴───────────────┤${NC}"
+    printf "  ${DIM}${CYAN}│${NC}  %-2s  %-58s${DIM}${CYAN}│${NC}\n" "0" "Exit installer"
+    printf "  ${DIM}${CYAN}│${NC} %-3s  %-58s${DIM}${CYAN}│${NC}\n" "$all_idx" "Install all groups and run setup"
+    echo -e "  ${DIM}${CYAN}└──────────────────────────────────────────────────────────────────┘${NC}"
     echo
-    echo "Select a number to open that group's submenu; runs install immediately and returns here."
-    echo -n "Enter your choice (0-${all_idx}, q to quit): "
+    printf "  ${BOLD}Choice [0-%-s]:${NC} " "$all_idx"
+
     if ! read -r main_choice; then
       echo
       log "Input stream ended; exiting menu."
@@ -549,7 +632,6 @@ else
     fi
     main_choice_trim="$(echo "$main_choice" | tr -d '[:space:]')"
     if [[ -z "$main_choice_trim" ]]; then
-      echo "Please select an option."
       continue
     fi
     case "${main_choice_trim,,}" in
@@ -559,7 +641,8 @@ else
         ;;
     esac
     if [[ ! "$main_choice_trim" =~ ^[0-9]+$ ]]; then
-      echo "Invalid input: $main_choice"
+      echo -e "  ${RED}Invalid input: $main_choice${NC}"
+      sleep 1
       continue
     fi
     if [ "$main_choice_trim" -eq 0 ]; then
@@ -568,7 +651,8 @@ else
     fi
     sel_index=$((main_choice_trim - 1))
     if [ "$sel_index" -lt 0 ] || [ "$sel_index" -ge "${#actions[@]}" ]; then
-      echo "Choice out of range: $main_choice"
+      echo -e "  ${RED}Choice out of range: $main_choice${NC}"
+      sleep 1
       continue
     fi
     action="${actions[$sel_index]}"
@@ -576,186 +660,25 @@ else
       group:*)
         process_group_selection "${action#group:}"
         ;;
+      module:*)
+        mi="${action#module:}"
+        "${MODULE_FUNCS[$mi]}"
+        ;;
       all)
         for j in "${!GROUP_ORDER[@]}"; do
-          process_group_selection "$j"
+          mapfile -t _all_pkgs < <(get_group_packages "$j")
+          install_package_batch "${_all_pkgs[@]}"
+          _refresh_group_count "$j"
         done
+        for mi in "${!MODULE_FUNCS[@]}"; do
+          "${MODULE_FUNCS[$mi]}"
+        done
+        break
         ;;
     esac
   done
 fi
 
-do_npm() {
-  npm_file="packages/npm.txt"
-  [ -f "$npm_file" ] || return
-  mapfile -t npm_pkgs < <(grep -E -v '^\s*#' "$npm_file" | sed '/^$/d')
-  [ ${#npm_pkgs[@]} -eq 0 ] && return
-  if [ "$ASSUME_YES" -eq 1 ]; then
-    ans=y
-  else
-    read -r -p "Install npm global packages? (${#npm_pkgs[@]}) [Y/n] " ans || true
-    ans=${ans:-y}
-  fi
-  if [[ "$ans" =~ ^[Yy] ]]; then
-    for p in "${npm_pkgs[@]}"; do
-      run_cmd "npm install -g $p"
-    done
-  fi
-}
-
-do_cargo() {
-  cargo_file="packages/cargo.txt"
-  [ -f "$cargo_file" ] || return
-  mapfile -t cargo_pkgs < <(grep -E -v '^\s*#' "$cargo_file" | sed '/^$/d')
-  [ ${#cargo_pkgs[@]} -eq 0 ] && return
-  if [ "$ASSUME_YES" -eq 1 ]; then
-    ans=y
-  else
-    read -r -p "Install cargo packages? (${#cargo_pkgs[@]}) [Y/n] " ans || true
-    ans=${ans:-y}
-  fi
-  if [[ "$ans" =~ ^[Yy] ]]; then
-    for p in "${cargo_pkgs[@]}"; do
-      run_cmd "cargo install $p || true"
-    done
-  fi
-}
-
-do_npm
-
-do_cargo
-
-do_vim_config() {
-  vim_config_dir="vim-config"
-  [ -d "$vim_config_dir" ] || return
-  if [ "$ASSUME_YES" -eq 1 ]; then
-    ans=y
-  else
-    read -r -p "Install vim configuration? [Y/n] " ans || true
-    ans=${ans:-y}
-  fi
-  if [[ "$ans" =~ ^[Yy] ]]; then
-    log "Installing vim configuration"
-    run_cmd "cd $vim_config_dir && ./depends.sh"
-    run_cmd "cd $vim_config_dir && ./install.sh"
-  fi
-}
-
-do_vim_config
-
-do_theming_assets() {
-  local script="theming/install_fonts-wallpapers.sh"
-  [ -f "$script" ] || return
-  local ans
-  if [ "$ASSUME_YES" -eq 1 ]; then
-    ans=y
-  else
-    read -r -p "Install Nerd Fonts and wallpapers? [Y/n] " ans || true
-    ans=${ans:-y}
-  fi
-  if [[ "$ans" =~ ^[Yy] ]]; then
-    log "Running theming assets installer"
-    run_cmd "cd \"theming\" && ./install_fonts-wallpapers.sh"
-  else
-    log "Skipped theming assets installer"
-  fi
-}
-
-do_theming_assets
-
-do_flatpak_setup() {
-  local ans
-  if [ "$ASSUME_YES" -eq 1 ]; then
-    ans=y
-  else
-    read -r -p "Set up Flatpak (install + add Flathub remote)? [Y/n] " ans || true
-    ans=${ans:-y}
-  fi
-  if [[ ! "$ans" =~ ^[Yy] ]]; then
-    log "Skipped Flatpak setup"
-    return
-  fi
-  if ! command -v flatpak >/dev/null 2>&1; then
-    if [ -n "$PM_INSTALL_CMD" ]; then
-      log "Installing Flatpak via $PM_INSTALL_CMD"
-      run_cmd "$PM_INSTALL_CMD flatpak"
-    else
-      echo "Flatpak is not installed and there is no configured package manager command. See https://flatpak.org/setup/ for manual steps."
-      return
-    fi
-  fi
-  log "Configuring Flatpak remote (https://flatpak.org/setup/)"
-  run_cmd "flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo"
-  run_cmd "flatpak update --assumeyes"
-  echo "Flatpak is ready. See https://flatpak.org/setup/ for distro-specific guidance."
-}
-
-do_flatpak_setup
-
-do_vscode_setup() {
-  local ans
-  if [ "$ASSUME_YES" -eq 1 ]; then
-    ans=y
-  else
-    read -r -p "Set up Visual Studio Code repository and install code? [Y/n] " ans || true
-    ans=${ans:-y}
-  fi
-  if [[ ! "$ans" =~ ^[Yy] ]]; then
-    log "Skipped VS Code setup"
-    return
-  fi
-  if command -v code >/dev/null 2>&1; then
-    log "VS Code already installed; skipping repository setup"
-    return
-  fi
-  case "$PM" in
-    apt)
-      run_cmd "sudo apt-get install -y wget gpg"
-      local keyring="/usr/share/keyrings/microsoft-vscode.gpg"
-      if [ ! -f "$keyring" ]; then
-        local tmp_key
-        tmp_key=$(mktemp)
-        run_cmd "wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > $tmp_key"
-        run_cmd "sudo install -D -o root -g root -m 644 $tmp_key $keyring"
-        run_cmd "rm -f $tmp_key"
-      fi
-      local sources="/etc/apt/sources.list.d/vscode.sources"
-      if [ ! -f "$sources" ]; then
-        run_cmd "printf '%s\n' 'Types: deb' 'URIs: https://packages.microsoft.com/repos/code' 'Suites: stable' 'Components: main' 'Architectures: amd64,arm64,armhf' \"Signed-By: $keyring\" | sudo tee \"$sources\" > /dev/null"
-      fi
-      run_cmd "sudo apt update"
-      run_cmd "$PM_INSTALL_CMD code"
-      ;;
-    dnf)
-      run_cmd "sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc"
-      local repo_file="/etc/yum.repos.d/vscode.repo"
-      if [ ! -f "$repo_file" ]; then
-        run_cmd "printf '%s\n' '[code]' 'name=Visual Studio Code' 'baseurl=https://packages.microsoft.com/yumrepos/vscode' 'enabled=1' 'autorefresh=1' 'type=rpm-md' 'gpgcheck=1' 'gpgkey=https://packages.microsoft.com/keys/microsoft.asc' | sudo tee \"$repo_file\" > /dev/null"
-      fi
-      run_cmd "sudo dnf check-update"
-      run_cmd "sudo dnf install -y code"
-      ;;
-    zypper)
-      run_cmd "sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc"
-      local repo_file="/etc/zypp/repos.d/vscode.repo"
-      if [ ! -f "$repo_file" ]; then
-        run_cmd "printf '%s\n' '[code]' 'name=Visual Studio Code' 'baseurl=https://packages.microsoft.com/yumrepos/vscode' 'enabled=1' 'autorefresh=1' 'type=rpm-md' 'gpgcheck=1' 'gpgkey=https://packages.microsoft.com/keys/microsoft.asc' | sudo tee \"$repo_file\" > /dev/null"
-      fi
-      run_cmd "sudo zypper refresh"
-      run_cmd "sudo zypper install -y code"
-      ;;
-    *)
-      log "VS Code setup is only wired for apt/dnf/zypper; skipping for $PM"
-      ;;
-  esac
-}
-
-do_vscode_setup
-
-# shellcheck source=setup/git-config.sh
-source "$(dirname "$0")/setup/git-config.sh"
-do_git_config
-
 log "Install step completed (dry-run=$DRY_RUN)"
 
-echo "Done. Review $LOGFILE for details."
+print_install_summary

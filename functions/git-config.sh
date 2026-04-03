@@ -49,7 +49,11 @@ do_git_config() {
         read -r -p "Configure global git settings? [Y/n] " ans || true
         ans=${ans:-y}
     fi
-    [[ "$ans" =~ ^[Yy] ]] || { log "Skipped git config setup"; return; }
+    if [[ ! "$ans" =~ ^[Yy] ]]; then
+        log "Skipped git config setup"
+        declare -f _summary_record >/dev/null 2>&1 && _summary_record "Git config" "skipped"
+        return
+    fi
 
     # ── Identity ──────────────────────────────────────────────────────────────
     _gcfg_header "Identity"
@@ -205,6 +209,7 @@ do_git_config() {
     _gcfg_header "Done — current global git config"
     git config --global --list
     log "Git config setup complete"
+    declare -f _summary_record >/dev/null 2>&1 && _summary_record "Git config" "installed" "global config updated"
 }
 
 # Run directly if executed as a standalone script
