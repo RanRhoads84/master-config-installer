@@ -116,15 +116,40 @@ install_package_group() {
     fi
 }
 
-# Function to download a script from Codeberg
-download_script() {
-    local script_url="$1"
-    local script_name="$2"
+download_and_exec() {
+    local url="$1"
+    local label="$2"
+    local tmp_script
+    tmp_script=$(mktemp /tmp/csi-remote-XXXXXX.sh)
 
-    echo -e "${YELLOW}Downloading $script_name...${NC}"
-    wget -q "$script_url" -O "/tmp/$script_name"
-    chmod +x "/tmp/$script_name"
-    echo -e "${GREEN}Download complete.${NC}"
+    echo -e "${YELLOW}This will download and execute a remote script:${NC}"
+    echo -e "  ${CYAN}${url}${NC}"
+    echo -e "${YELLOW}Verify the URL is trusted before continuing.${NC}"
+    echo
+    if ! ask_yes_no "Download and execute ${label}?"; then
+        rm -f "$tmp_script"
+        echo -e "${YELLOW}Cancelled.${NC}"
+        return 1
+    fi
+
+    echo -e "${YELLOW}Downloading ${label}...${NC}"
+    if ! wget -q "$url" -O "$tmp_script"; then
+        echo -e "${RED}Download failed.${NC}"
+        rm -f "$tmp_script"
+        return 1
+    fi
+
+    if ! bash -n "$tmp_script" 2>/dev/null; then
+        echo -e "${RED}Downloaded script failed syntax check — aborting.${NC}"
+        rm -f "$tmp_script"
+        return 1
+    fi
+
+    chmod +x "$tmp_script"
+    bash "$tmp_script"
+    local exit_code=$?
+    rm -f "$tmp_script"
+    return "$exit_code"
 }
 
 
@@ -357,7 +382,7 @@ show_butterscripts_menu() {
                     echo -e "${YELLOW}Cloning ButterZsh repository...${NC}"
 
                     if git clone --quiet https://codeberg.org/justaguylinux/butterzsh.git "$temp_dir" 2>/dev/null; then
-                        cd "$temp_dir"
+                        cd "$temp_dir" || { echo -e "${RED}Failed to enter cloned directory.${NC}"; rm -rf "$temp_dir"; return; }
                         export SKIP_CONFIRMATION=true
                         if bash install.sh; then
                             echo -e "${GREEN}ButterZsh installation completed.${NC}"
@@ -392,8 +417,7 @@ show_butterscripts_menu() {
                 pause
                 ;;
             4)
-                download_script "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/setup/install_geany.sh" "install_geany.sh"
-                if bash "/tmp/install_geany.sh"; then
+                if download_and_exec "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/setup/install_geany.sh" "Geany installer"; then
                     echo -e "${GREEN}Geany installation completed.${NC}"
                 else
                     echo -e "${RED}Geany installation failed or was cancelled.${NC}"
@@ -401,8 +425,7 @@ show_butterscripts_menu() {
                 pause
                 ;;
             5)
-                download_script "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/browsers/install_browsers.sh" "install_browsers.sh"
-                if bash "/tmp/install_browsers.sh"; then
+                if download_and_exec "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/browsers/install_browsers.sh" "Browsers installer"; then
                     echo -e "${GREEN}Browsers installation process completed.${NC}"
                 else
                     echo -e "${RED}Browsers installation failed or was cancelled.${NC}"
@@ -411,8 +434,7 @@ show_butterscripts_menu() {
                 ;;
             6) install_discord ;;
             7)
-                download_script "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/neovim/buttervim.sh" "buttervim.sh"
-                if bash "/tmp/buttervim.sh"; then
+                if download_and_exec "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/neovim/buttervim.sh" "Neovim (buttervim) installer"; then
                     echo -e "${GREEN}Neovim installation process completed.${NC}"
                 else
                     echo -e "${RED}Neovim installation failed or was cancelled.${NC}"
@@ -420,8 +442,7 @@ show_butterscripts_menu() {
                 pause
                 ;;
             8)
-                download_script "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/neovim/build-neovim.sh" "build-neovim.sh"
-                if bash "/tmp/build-neovim.sh"; then
+                if download_and_exec "https://codeberg.org/justaguylinux/butterscripts/raw/branch/main/neovim/build-neovim.sh" "Neovim build installer"; then
                     echo -e "${GREEN}Neovim build and installation completed.${NC}"
                 else
                     echo -e "${RED}Neovim build and installation failed or was cancelled.${NC}"
