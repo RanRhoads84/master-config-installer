@@ -9,7 +9,7 @@ Start here:
 - [Modules](MODULES.md)
 - [Development & testing](DEVELOPMENT.md)
 - [Troubleshooting](TROUBLESHOOTING.md)
-- [Agent playbook (canonical)](../AGENTS_CONSOLIDATED.md)
+- [Agent playbook](../AGENTS.md)
 
 If you prefer `man` pages, the suite installs a local manual page:
 

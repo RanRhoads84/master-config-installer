@@ -1,4 +1,4 @@
-# TODO (from DEVELOPMENT_LOG.md → Next Steps)
+# TODO (from docs/DEVELOPMENT_LOG.md → Next Steps)
 
 ## Immediate (High Priority)
 None currently.
