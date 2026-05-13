@@ -44,6 +44,16 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
+if [ -n "$OVERRIDE_PM" ]; then
+  case "$OVERRIDE_PM" in
+    apt|dnf|pacman|zypper) ;;
+    *)
+      echo "Error: unsupported package manager '${OVERRIDE_PM}'. Must be one of: apt, dnf, pacman, zypper" >&2
+      exit 1
+      ;;
+  esac
+fi
+
 
 log() {
   local msg="$1"
@@ -619,9 +629,9 @@ else
     actions+=("all")
 
     echo -e "  ${DIM}${CYAN}├────┴──────────────────────────────┴───────────┴───────────────┤${NC}"
-    printf "  ${DIM}${CYAN}│${NC}  %-2s  %-58s${DIM}${CYAN}│${NC}\n" "0" "Exit installer"
-    printf "  ${DIM}${CYAN}│${NC} %-3s  %-58s${DIM}${CYAN}│${NC}\n" "$all_idx" "Install all groups and run setup"
-    echo -e "  ${DIM}${CYAN}└──────────────────────────────────────────────────────────────────┘${NC}"
+    printf "  ${DIM}${CYAN}│${NC}  %-2s  %-57s${DIM}${CYAN}│${NC}\n" "0" "Exit installer"
+    printf "  ${DIM}${CYAN}│${NC} %-3s  %-57s${DIM}${CYAN}│${NC}\n" "$all_idx" "Install all groups and run setup"
+    echo -e "  ${DIM}${CYAN}└───────────────────────────────────────────────────────────────┘${NC}"
     echo
     printf "  ${BOLD}Choice [0-%-s]:${NC} " "$all_idx"
 

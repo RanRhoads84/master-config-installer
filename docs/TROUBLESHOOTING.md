@@ -39,7 +39,7 @@ IGNORE_PKG_DB=1 ./install.sh --dry-run --yes
 
 ## VS Code setup
 
-- Repo setup is currently wired for `apt`, `dnf`, and `zypper`.
+- Repo setup is supported for `apt`, `dnf`, `zypper`, and `pacman`. On pacman-based systems, CSI prompts you to choose between the AUR build and the OSS build.
 - If `code` is already installed, CSI skips repository configuration.
 
 ## Vim-config step fails

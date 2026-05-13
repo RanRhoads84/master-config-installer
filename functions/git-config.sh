@@ -41,6 +41,12 @@ _gcfg_header() {
     printf "\n${BOLD}${GREEN}=== %s ===${NC}\n" "$1"
 }
 
+_gcfg_run() {
+    log "RUN: $*"
+    [ "${DRY_RUN:-0}" -eq 1 ] && { log "DRY-RUN: $*"; return 0; }
+    "$@"
+}
+
 do_git_config() {
     local ans
     if [[ "$ASSUME_YES" -eq 1 ]]; then
@@ -63,8 +69,8 @@ do_git_config() {
     local name email
     name=$(_gcfg_ask "Full name" "$current_name")
     email=$(_gcfg_ask "Email address" "$current_email")
-    run_cmd "git config --global user.name \"$name\""
-    run_cmd "git config --global user.email \"$email\""
+    _gcfg_run git config --global user.name "$name"
+    _gcfg_run git config --global user.email "$email"
 
     # ── Editor ────────────────────────────────────────────────────────────────
     _gcfg_header "Editor"
@@ -72,7 +78,7 @@ do_git_config() {
     current_editor=$(git config --global core.editor 2>/dev/null || echo "vim")
     local editor
     editor=$(_gcfg_ask "Default editor (vim/nano/nvim/code --wait/etc.)" "$current_editor")
-    run_cmd "git config --global core.editor \"$editor\""
+    _gcfg_run git config --global core.editor "$editor"
 
     # ── Default branch ────────────────────────────────────────────────────────
     _gcfg_header "Default branch"
@@ -80,7 +86,7 @@ do_git_config() {
     current_branch=$(git config --global init.defaultBranch 2>/dev/null || echo "main")
     local default_branch
     default_branch=$(_gcfg_ask "Default branch name for new repos" "$current_branch")
-    run_cmd "git config --global init.defaultBranch \"$default_branch\""
+    _gcfg_run git config --global init.defaultBranch "$default_branch"
 
     # ── Pull / merge strategy ─────────────────────────────────────────────────
     _gcfg_header "Merge / Rebase strategy"
@@ -90,11 +96,11 @@ do_git_config() {
     local strategy_choice
     read -rp "$(printf "${CYAN}Choose [1-3]${NC} [1]: ")" strategy_choice
     case "${strategy_choice:-1}" in
-        2) run_cmd "git config --global pull.rebase true"
+        2) _gcfg_run git config --global pull.rebase true
            printf "${YELLOW}Set: pull.rebase = true${NC}\n" ;;
-        3) run_cmd "git config --global pull.ff only"
+        3) _gcfg_run git config --global pull.ff only
            printf "${YELLOW}Set: pull.ff = only${NC}\n" ;;
-        *) run_cmd "git config --global pull.rebase false"
+        *) _gcfg_run git config --global pull.rebase false
            printf "${YELLOW}Set: pull.rebase = false (merge)${NC}\n" ;;
     esac
 
@@ -103,10 +109,10 @@ do_git_config() {
     if _gcfg_ask_yn "Sign commits with an SSH key?"; then
         local ssh_key
         ssh_key=$(_gcfg_ask "Path to SSH public key" "$HOME/.ssh/id_ed25519.pub")
-        run_cmd "git config --global gpg.format ssh"
-        run_cmd "git config --global user.signingKey \"$ssh_key\""
-        run_cmd "git config --global commit.gpgSign true"
-        run_cmd "git config --global tag.gpgSign true"
+        _gcfg_run git config --global gpg.format ssh
+        _gcfg_run git config --global user.signingKey "$ssh_key"
+        _gcfg_run git config --global commit.gpgSign true
+        _gcfg_run git config --global tag.gpgSign true
         printf "${YELLOW}SSH signing enabled: %s${NC}\n" "$ssh_key"
     elif _gcfg_ask_yn "Sign commits with a GPG key instead?"; then
         local gpg_keys
@@ -115,14 +121,14 @@ do_git_config() {
         [[ -n "$gpg_keys" ]] && { echo "Available GPG keys:"; echo "$gpg_keys"; }
         local gpg_key
         gpg_key=$(_gcfg_ask "GPG key ID")
-        run_cmd "git config --global gpg.format openpgp"
-        run_cmd "git config --global user.signingKey \"$gpg_key\""
-        run_cmd "git config --global commit.gpgSign true"
-        run_cmd "git config --global tag.gpgSign true"
+        _gcfg_run git config --global gpg.format openpgp
+        _gcfg_run git config --global user.signingKey "$gpg_key"
+        _gcfg_run git config --global commit.gpgSign true
+        _gcfg_run git config --global tag.gpgSign true
         printf "${YELLOW}GPG signing enabled: %s${NC}\n" "$gpg_key"
     else
-        run_cmd "git config --global commit.gpgSign false"
-        run_cmd "git config --global tag.gpgSign false"
+        _gcfg_run git config --global commit.gpgSign false
+        _gcfg_run git config --global tag.gpgSign false
         printf "${YELLOW}Commit signing disabled.${NC}\n"
     fi
 
@@ -136,9 +142,9 @@ do_git_config() {
         local cred_choice
         read -rp "$(printf "${CYAN}Choose [1-4]${NC} [4]: ")" cred_choice
         case "${cred_choice:-4}" in
-            1) run_cmd "git config --global credential.helper store" ;;
-            2) run_cmd "git config --global credential.helper 'cache --timeout=900'" ;;
-            3) run_cmd "git config --global credential.helper manager" ;;
+            1) _gcfg_run git config --global credential.helper store ;;
+            2) _gcfg_run git config --global credential.helper 'cache --timeout=900' ;;
+            3) _gcfg_run git config --global credential.helper manager ;;
             *) printf "${YELLOW}Skipped.${NC}\n" ;;
         esac
     fi
@@ -170,21 +176,21 @@ do_git_config() {
                         rurl=$(_gcfg_ask "Remote URL (SSH or HTTPS)")
                         if git -C "$repo_path" remote get-url "$rname" &>/dev/null; then
                             printf "${YELLOW}Remote '%s' already exists. Updating URL.${NC}\n" "$rname"
-                            run_cmd "git -C \"$repo_path\" remote set-url \"$rname\" \"$rurl\""
+                            _gcfg_run git -C "$repo_path" remote set-url "$rname" "$rurl"
                         else
-                            run_cmd "git -C \"$repo_path\" remote add \"$rname\" \"$rurl\""
+                            _gcfg_run git -C "$repo_path" remote add "$rname" "$rurl"
                         fi
                         ;;
                     2)
                         local rremove
                         rremove=$(_gcfg_ask "Remote name to remove")
-                        run_cmd "git -C \"$repo_path\" remote remove \"$rremove\""
+                        _gcfg_run git -C "$repo_path" remote remove "$rremove"
                         ;;
                     3)
                         local rold rnew
                         rold=$(_gcfg_ask "Current remote name")
                         rnew=$(_gcfg_ask "New remote name")
-                        run_cmd "git -C \"$repo_path\" remote rename \"$rold\" \"$rnew\""
+                        _gcfg_run git -C "$repo_path" remote rename "$rold" "$rnew"
                         ;;
                     *)
                         adding_remotes=0
@@ -200,11 +206,11 @@ do_git_config() {
     # ── Quality-of-life ───────────────────────────────────────────────────────
     _gcfg_header "Quality-of-life defaults"
     _gcfg_ask_yn "Enable autocorrect for mistyped commands?" \
-        && run_cmd "git config --global help.autocorrect 10"
+        && _gcfg_run git config --global help.autocorrect 10
     _gcfg_ask_yn "Use color UI always?" \
-        && run_cmd "git config --global color.ui always"
+        && _gcfg_run git config --global color.ui always
     _gcfg_ask_yn "Set push.default to 'current'?" \
-        && run_cmd "git config --global push.default current"
+        && _gcfg_run git config --global push.default current
 
     _gcfg_header "Done — current global git config"
     git config --global --list

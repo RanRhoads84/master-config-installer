@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # DESC: Download and install popular Nerd Fonts for terminal and code editor use
 
+set -euo pipefail
+
 # Nerd Fonts Installer
 # A script to download and install popular Nerd Fonts
 
@@ -49,7 +51,7 @@ fonts=(
 # Font version and directories
 FONT_VERSION="v3.4.0"
 FONTS_DIR="$HOME/.local/share/fonts"
-TEMP_DIR="/tmp/nerdfonts_install_$$" # Using PID to avoid conflicts
+TEMP_DIR="$(mktemp -d)"
 
 # Wallpapers directories
 WALLPAPER_SRC_DIR="$script_dir/Wallpapers"
@@ -57,7 +59,6 @@ WALLPAPER_DST_DIR="$HOME/.local/share/wallpapers"
 
 # Create necessary directories
 mkdir -p "$FONTS_DIR"
-mkdir -p "$TEMP_DIR"
 
 # Install wallpapers from Wallpapers/ into ~/.local/share/wallpapers/
 install_wallpapers() {
@@ -155,21 +156,15 @@ install_nerd_fonts() {
 
 # Handle script interruption
 cleanup() {
-    echo -e "\n${YELLOW}Script interrupted. Cleaning up...${NC}"
     rm -rf "$TEMP_DIR"
-    exit 1
 }
 
-# Set the trap for SIGINT (Ctrl+C)
-trap cleanup SIGINT
+trap cleanup EXIT
 
 # Run the installation
 install_nerd_fonts
 
 # Install wallpapers
 install_wallpapers
-
-# Clean up the temporary directory
-rm -rf "$TEMP_DIR"
 
 echo -e "\n${GREEN}Installation process completed.${NC}"

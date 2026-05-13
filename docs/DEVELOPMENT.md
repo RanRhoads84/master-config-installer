@@ -12,7 +12,11 @@
 ./install.sh --dry-run
 ```
 
-Dry-run mode prints commands and avoids interactive prompts by implicitly assuming yes.
+Dry-run mode prints commands without executing them. It does not skip interactive prompts — `--dry-run` and `--yes` are independent flags. To run fully non-interactively, combine both:
+
+```bash
+./install.sh --dry-run --yes
+```
 
 ## Non-interactive test runs
 

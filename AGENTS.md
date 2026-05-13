@@ -7,12 +7,12 @@ This repository is a Bash-first installer suite. Key locations:
 - `install.sh` is the unified interactive installer and main entry point.
 - `packages/` holds the unified group list in `packages/pkg-list.txt` (optional `packages/npm.txt` and `packages/cargo.txt` are honored if present).
 - Shared Bash helpers live in `libs/`; suite and module man pages live in `man/` and module `man/` folders.
-- Module directories like `modularnotes/`, `modularshell/`, `setup/`, `system/`, `theming/`, and `vim-config/` each include their own README (when available).
+- Module directories like `modularshell/`, `setup/`, `system/`, `theming/`, and `vim-config/` each include their own README (when available).
 - `tests/scripts/` contains dry-run harnesses; `tests/test_dry_results/` stores logs.
 - `theming/Wallpapers/` is a large asset library.
 
 ## Build, Test, and Development Commands
-- `./install.sh --dry-run` preview actions without changes (auto assumes yes).
+- `./install.sh --dry-run` preview actions without changes.
 - `./install.sh` run the interactive menu.
 - `./install.sh --groups "Shell Tools" --yes` run non-interactively by group name.
 - `./install.sh --pm apt --log ./modularconfig-install.log` override PM and log location.

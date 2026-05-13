@@ -53,9 +53,9 @@ do_vscode_setup() {
             if [ ! -f "$keyring" ]; then
                 local tmp_key
                 tmp_key=$(mktemp)
-                run_cmd "wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > $tmp_key"
-                run_cmd "sudo install -D -o root -g root -m 644 $tmp_key $keyring"
-                run_cmd "rm -f $tmp_key"
+                run_cmd "wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > \"$tmp_key\""
+                run_cmd "sudo install -D -o root -g root -m 644 \"$tmp_key\" \"$keyring\""
+                run_cmd "rm -f \"$tmp_key\""
             fi
             local sources="/etc/apt/sources.list.d/vscode.sources"
             if [ ! -f "$sources" ]; then

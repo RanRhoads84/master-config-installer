@@ -17,7 +17,7 @@ Work from the repo root. The primary touchpoints are:
 - `install.sh` — unified installer and main entry point.
 - `packages/` — package lists (especially `packages/pkg-list.txt`).
 - `libs/` — shared Bash helpers.
-- Module directories (examples): `modularshell/`, `modularnotes/`, `theming/`, `setup/`, `system/`, `vim-config/`.
+- Module directories (examples): `modularshell/`, `theming/`, `setup/`, `system/`, `vim-config/`.
 - `tests/scripts/` — dry-run harnesses; `tests/test_dry_results/` stores logs.
 
 ---
@@ -51,10 +51,6 @@ Use these defaults unless the task explicitly requires otherwise:
 - Use `IGNORE_PKG_DB=1` in automated tests / containers.
 - Avoid `sudo` unless the task explicitly requires it.
 - Keep changes idempotent and minimize destructive actions.
-
-Notes:
-
-- In CSI, `--dry-run` implicitly behaves like `--yes` to avoid blocking on prompts.
 
 ---
 
