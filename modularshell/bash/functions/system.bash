@@ -206,7 +206,7 @@ get_uptime() {
 # System Overview
 system_overview() {
     echo
-    echo -e "${BLUE}============ System Overview =============${RESET}"
+    echo -e '\033[1;34m============ System Overview =============\033[0m'
 
     OS="$(. /etc/os-release 2>/dev/null && echo "$PRETTY_NAME")"
 
