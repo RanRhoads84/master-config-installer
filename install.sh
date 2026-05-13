@@ -6,6 +6,8 @@ IFS=$'\n\t'
 
 # shellcheck source=libs/text_mods.bash
 source "$(dirname "$0")/libs/text_mods.bash"
+# shellcheck source=libs/aur_helper.bash
+source "$(dirname "$0")/libs/aur_helper.bash"
 
 LOGFILE="./modularconfig-install.log"
 DRY_RUN=0
@@ -14,6 +16,7 @@ SELECT_GROUPS=""
 PM_INSTALL_CMD=""
 OVERRIDE_PM=""
 IGNORE_PKG_DB="${IGNORE_PKG_DB:-0}"
+# USE_AUR / AUR_HELPER / AUR_HELPER_OVERRIDE are managed by libs/aur_helper.bash
 CONSOLIDATED_FILE="packages/pkg-list.txt"
 declare -a ORDERED_GROUP_INDICES=()
 
@@ -27,7 +30,12 @@ Options:
   --pm <name>      Override detected package manager (apt|dnf|pacman|zypper)
   --log <file>     Path to log file (default: ./modularconfig-install.log)
   --groups <list>  Comma-separated group names to select non-interactively
+  --no-aur         On pacman, do not use an AUR helper (yay/paru)
   -h, --help       Show this help
+
+Environment:
+  AUR_HELPER       Force a specific AUR helper binary (e.g., yay, paru)
+  USE_AUR          Set to 0 to disable AUR integration (same as --no-aur)
 EOF
 }
 
@@ -38,6 +46,7 @@ while [ "$#" -gt 0 ]; do
     --log) if [ -n "${2:-}" ]; then LOGFILE="$2"; shift 2; else shift; fi ;;
     --groups) if [ -n "${2:-}" ]; then SELECT_GROUPS="$2"; shift 2; else shift; fi ;;
     --pm) if [ -n "${2:-}" ]; then OVERRIDE_PM="$2"; shift 2; else shift; fi ;;
+    --no-aur) USE_AUR=0; shift ;;
     -h|--help) usage; exit 0 ;;
     --) shift; break ;;
     *) break ;;
@@ -168,6 +177,16 @@ fi
 
 if [ -n "$PM" ]; then
   set_pm_install_cmd "$PM"
+fi
+
+if apply_aur_helper "$PM"; then
+  [ -n "$AUR_HELPER" ] && log "AUR helper detected: $AUR_HELPER"
+elif [ "$PM" = "pacman" ] && [ "$USE_AUR" -eq 1 ]; then
+  if [ -n "$AUR_HELPER_OVERRIDE" ]; then
+    log "AUR helper override '$AUR_HELPER_OVERRIDE' not found; AUR packages will be skipped"
+  else
+    log "No AUR helper (yay/paru) found; AUR packages will be skipped. Install one to enable."
+  fi
 fi
 
 if [ ! -f "$CONSOLIDATED_FILE" ]; then
@@ -314,7 +333,13 @@ install_package_batch() {
         dnf --quiet list available "$p" >/dev/null 2>&1 && return 0 || return 1
         ;;
       pacman)
-        pacman -Si "$p" >/dev/null 2>&1 && return 0 || return 1
+        if pacman -Si "$p" >/dev/null 2>&1; then
+          return 0
+        fi
+        if [ -n "$AUR_HELPER" ]; then
+          "$AUR_HELPER" -Si "$p" >/dev/null 2>&1 && return 0 || return 1
+        fi
+        return 1
         ;;
       zypper)
         zypper se -s "$p" >/dev/null 2>&1 && return 0 || return 1
@@ -552,7 +577,11 @@ process_group_selection() {
   SUBMENU_SELECTIONS=()
 }
 
-echo "Package manager: $PM"
+if [ -n "$AUR_HELPER" ]; then
+  echo "Package manager: $PM (with AUR via $AUR_HELPER)"
+else
+  echo "Package manager: $PM"
+fi
 
 if [ "$ASSUME_YES" -eq 1 ]; then
   for i in "${!GROUP_ORDER[@]}"; do
@@ -583,7 +612,11 @@ else
   _build_group_counts
   while true; do
     clear
-    echo -e "${BOLD}${BRIGHT_CYAN}  ModularConfig Suite Installer${NC}  ${DIM}[${PM}]${NC}"
+    if [ -n "$AUR_HELPER" ]; then
+      echo -e "${BOLD}${BRIGHT_CYAN}  ModularConfig Suite Installer${NC}  ${DIM}[${PM} + ${AUR_HELPER}]${NC}"
+    else
+      echo -e "${BOLD}${BRIGHT_CYAN}  ModularConfig Suite Installer${NC}  ${DIM}[${PM}]${NC}"
+    fi
     echo
     echo -e "  ${DIM}${CYAN}┌────┬──────────────────────────────┬───────────┬───────────────┐${NC}"
     printf "  ${DIM}${CYAN}│${NC} ${BOLD}%-2s${NC} ${DIM}${CYAN}│${NC} ${BOLD}%-28s${NC} ${DIM}${CYAN}│${NC} ${BOLD}%-9s${NC} ${DIM}${CYAN}│${NC} ${BOLD}%-13s${NC} ${DIM}${CYAN}│${NC}\n" \

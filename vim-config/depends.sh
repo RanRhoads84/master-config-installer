@@ -5,6 +5,8 @@
 # ---------------- colors ----------------
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$script_dir/../libs/text_mods.bash"
+# AUR helper detection is shared with the rest of the installer.
+[ -f "$script_dir/../libs/aur_helper.bash" ] && . "$script_dir/../libs/aur_helper.bash"
 # ----------------------------------------
 
 log()  { printf "${BLUE}[*]${NC} %s\n" "$*"; }
@@ -71,8 +73,20 @@ install_packages() {
       ok "Installed packages via $pm"
       ;;
     pacman)
-      as_root pacman -Syu --noconfirm git vim ripgrep fzf fd
-      ok "Installed packages via pacman"
+      local AUR_HELPER=""
+      local PM_INSTALL_CMD="sudo pacman -Syu --noconfirm"
+      if declare -F apply_aur_helper >/dev/null 2>&1; then
+        apply_aur_helper pacman || true
+      fi
+      if [ -n "$AUR_HELPER" ]; then
+        ok "Using AUR helper: $AUR_HELPER"
+        # AUR helpers refuse to run as root — invoke directly, never via as_root.
+        $PM_INSTALL_CMD git vim ripgrep fzf fd
+        ok "Installed packages via $AUR_HELPER (pacman + AUR)"
+      else
+        as_root pacman -Syu --noconfirm git vim ripgrep fzf fd
+        ok "Installed packages via pacman"
+      fi
       ;;
     zypper)
       as_root zypper refresh

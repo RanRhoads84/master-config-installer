@@ -26,7 +26,13 @@ Notes:
 - `--yes` / `-y` — assume yes to prompts.
 - `--groups <list>` — comma-separated group names (must match headers in `packages/pkg-list.txt`).
 - `--pm <name>` — override package manager detection (`apt|dnf|pacman|zypper`).
+- `--no-aur` — on pacman, do not use an AUR helper (yay/paru); restricts installs to official repos.
 - `--log <file>` — change log path.
+
+Environment variables:
+
+- `AUR_HELPER` — force a specific AUR helper binary (e.g. `AUR_HELPER=paru ./install.sh`).
+- `USE_AUR=0` — same effect as `--no-aur`.
 
 ## What the installer does (high level)
 

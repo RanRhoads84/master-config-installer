@@ -28,7 +28,7 @@ The installer supports:
 
 - `apt`
 - `dnf`
-- `pacman`
+- `pacman` (uses an AUR helper — `yay` or `paru` — when one is installed, so AUR packages resolve transparently alongside official repos)
 - `zypper`
 
 You can override detection:
@@ -36,6 +36,8 @@ You can override detection:
 ```bash
 ./install.sh --pm dnf
 ```
+
+On Arch, the helper is auto-detected. Force a specific one with `AUR_HELPER=paru ./install.sh`, or disable AUR with `--no-aur` (or `USE_AUR=0`) to stay on official repos only. If no helper is installed, the installer logs a warning and skips AUR-only packages.
 
 ## Package name mapping
 
@@ -51,7 +53,7 @@ If you add packages that have different names across distros, you’ll typically
 CSI tries to avoid reinstalling packages by checking the package DB:
 
 - `apt`: `dpkg -s`
-- `pacman`: `pacman -Qi`
+- `pacman`: `pacman -Qi` (covers AUR packages — they live in the same local DB)
 - `dnf/zypper`: `rpm -q`
 
 It also treats an existing command in `$PATH` as “installed” as a fallback.
