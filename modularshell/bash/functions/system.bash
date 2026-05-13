@@ -54,12 +54,34 @@ pkg_init() {
             pkg_autoremove(){ sudo dnf autoremove -y; }
             ;;
         pacman)
-            pkg_install()   { sudo pacman -S --noconfirm "$@"; }
-            pkg_search()    { pacman -Ss "$@"; }
-            pkg_update()    { sudo pacman -Sy; }
-            pkg_upgrade()   { sudo pacman -Syu --noconfirm; }
+            # Detect an AUR helper so install/search/upgrade transparently
+            # cover official repos + AUR. Removal stays on pacman because it's
+            # local-only and AUR helpers just delegate to pacman -R anyway.
+            if command_exists yay; then
+                PKG_AUR_HELPER=yay
+            elif command_exists paru; then
+                PKG_AUR_HELPER=paru
+            else
+                PKG_AUR_HELPER=""
+            fi
+            export PKG_AUR_HELPER
+
+            if [ -n "$PKG_AUR_HELPER" ]; then
+                # AUR helpers refuse to run as root and elevate internally
+                # only when pacman writes are needed — never prefix with sudo.
+                pkg_install()   { "$PKG_AUR_HELPER" -S --needed --noconfirm "$@"; }
+                pkg_search()    { "$PKG_AUR_HELPER" -Ss "$@"; }
+                pkg_update()    { "$PKG_AUR_HELPER" -Sy; }
+                pkg_upgrade()   { "$PKG_AUR_HELPER" -Syu --noconfirm; }
+                pkg_uplist()    { "$PKG_AUR_HELPER" -Qu; }
+            else
+                pkg_install()   { sudo pacman -S --noconfirm "$@"; }
+                pkg_search()    { pacman -Ss "$@"; }
+                pkg_update()    { sudo pacman -Sy; }
+                pkg_upgrade()   { sudo pacman -Syu --noconfirm; }
+                pkg_uplist()    { pacman -Qu; }
+            fi
             pkg_remove()    { sudo pacman -R --noconfirm "$@"; }
-            pkg_uplist()    { pacman -Qu; }
             pkg_autoremove(){ sudo pacman -Rns --noconfirm $(pacman -Qtdq 2>/dev/null) 2>/dev/null || true; }
             ;;
         xbps-install)
