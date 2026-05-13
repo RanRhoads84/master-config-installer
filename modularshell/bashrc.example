@@ -118,13 +118,12 @@ fi
 # WELCOME MESSAGE
 # ============================================================================
 
-# Display system info on login (optional - comment out if not wanted)
-if [ -n "$PS1" ]; then
-    echo -e "\033[1;34m=== Welcome back, $USER! ===\033[0m"
-    echo -e "Date: $(date '+%A, %B %d, %Y - %H:%M:%S')"
-    echo -e "Uptime:$(uptime -p | sed 's/up //')"
-    echo -e "Load: $(uptime | awk -F'load average:' '{print $2}')"
-    echo
+# Runs after the loader above, so functions from $BASH_CONFIG_DIR/functions
+# (print_distro_logo, system_overview) are guaranteed to be defined.
+if [ -n "$PS1" ] && [ -z "$SYSTEM_OVERVIEW_SHOWN" ]; then
+    export SYSTEM_OVERVIEW_SHOWN=1
+    declare -F print_distro_logo >/dev/null && print_distro_logo
+    declare -F system_overview   >/dev/null && system_overview
 fi
 
 # ============================================================================

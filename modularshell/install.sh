@@ -65,6 +65,8 @@ install_modularshell() {
     
     # Create config directory
     mkdir -p "$MODULARSHELL_DIR/functions" "$MODULARSHELL_DIR/libs"
+    # Clean up files removed in newer versions before copying (motd.bash was folded into bashrc.example)
+    rm -f "$MODULARSHELL_DIR/motd.bash"
     # Copy configuration files
     cp -r bash/* "$MODULARSHELL_DIR/"
     print_msg "   ✓ Copied configuration files" "$GREEN"
