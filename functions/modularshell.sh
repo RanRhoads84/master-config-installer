@@ -20,6 +20,8 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         zypper) PM_INSTALL_CMD="sudo zypper install -y" ;;
         *)      PM_INSTALL_CMD="" ;;
     esac
+    # shellcheck source=../libs/aur_helper.bash
+    [ -f "$_REPO_ROOT/libs/aur_helper.bash" ] && source "$_REPO_ROOT/libs/aur_helper.bash" && apply_aur_helper "$PM"
     log() { printf "%s %s\n" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$1"; }
     run_cmd() {
         log "RUN: $*"
