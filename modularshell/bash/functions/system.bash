@@ -70,7 +70,8 @@ pkg_init() {
                 # AUR helpers refuse to run as root and elevate internally
                 # only when pacman writes are needed — never prefix with sudo.
                 pkg_install()   { "$PKG_AUR_HELPER" -S --needed --noconfirm "$@"; }
-                pkg_search()    { "$PKG_AUR_HELPER" -Ss "$@"; }
+                # Hide maintainer-abandoned AUR results; --color=always keeps colors through the awk pipe.
+                pkg_search()    { "$PKG_AUR_HELPER" --color=always -Ss "$@" | awk '/^[^[:space:]]/{skip = /\(Orphaned\)/} !skip'; }
                 pkg_update()    { "$PKG_AUR_HELPER" -Sy; }
                 pkg_upgrade()   { "$PKG_AUR_HELPER" -Syu --noconfirm; }
                 pkg_uplist()    { "$PKG_AUR_HELPER" -Qu; }
