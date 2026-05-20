@@ -15,9 +15,9 @@ alias -- -='cd -'
 if command -v eza >/dev/null 2>&1; then
     alias l='eza -ll --color=always --group-directories-first'
     alias ls='eza -al --header --icons --group-directories-first'
-    alias ll='eza -la --icons --group-directories-first'
+    alias ll='eza -la --color=always --icons --group-directories-first | less -R'
     alias la='eza -la --icons --group-directories-first'
-    alias lt='eza --tree --level=2 --icons'
+    alias lt='eza -lT --color=always --level=2 --icons |less -R'
     alias lh='eza -la --sort=modified --reverse'
 elif command -v exa >/dev/null 2>&1; then
     alias l='exa -l --color=always --group-directories-first'
