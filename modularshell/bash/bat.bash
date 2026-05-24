@@ -2,7 +2,7 @@
 # bat / bat-extras configuration
 # Deployed by the installer only when bat is confirmed present.
 # Guard handles the edge case where bat is removed after install.
-command -v bat >/dev/null 2>&1 || return 0
+# command -v bat >/dev/null 2>&1 || return 0
 
 # ============================================================================
 # THEME
@@ -11,7 +11,7 @@ command -v bat >/dev/null 2>&1 || return 0
 # Active theme — run `bat --list-themes` to browse.
 # Override in ~/.bashrc.local; uncomment the DARK/LIGHT pair and set
 # BAT_THEME=auto to use terminal-based dark/light auto-detection instead.
-export BAT_THEME="${BAT_THEME:-Dracula}"
+export BAT_THEME="${BAT_THEME:-AyuDark}"
 # export BAT_THEME="auto"
 # export BAT_THEME_DARK="${BAT_THEME_DARK:-TwoDark}"
 # export BAT_THEME_LIGHT="${BAT_THEME_LIGHT:-GitHub}"
@@ -30,13 +30,18 @@ export BAT_STYLE="${BAT_STYLE:-numbers,changes,header-filename,grid,snip}"
 # Pager command — set to empty string ("") to globally disable paging.
 # bat passes -RFKX to less by default; explicit args here override that.
 export BAT_PAGER="${BAT_PAGER:-less -RFiKX}"
+export MANWIDTH=$(tput cols)
 
 # ============================================================================
 # BATMAN — coloured man pages
 # ============================================================================
-if command -v batman >/dev/null 2>&1; then
-    eval "$(batman --export-env)"   # exports MANPAGER and MANROFFOPT
-fi
+
+eval "$(batman --export-env)"   # exports MANPAGER and MANROFFOPT
+
+#if command -v batman >/dev/null 2>&1; then
+#    eval "$(batman --export-env)"   # exports MANPAGER and MANROFFOPT
+#fi
+
 
 # ============================================================================
 # BATPIPE — bat as a preprocessor inside less
@@ -59,23 +64,23 @@ fi
 # ============================================================================
 
 # cat replacement — decorations auto-off when output is piped (bat detects TTY)
-alias cat='bat --pager=never'
+alias cat='bat --paging=auto'
 
 # Plain cat-like output — no decorations, safe for copy-paste or scripting
-alias catp='bat --style=plain --pager=never'
+alias catp='bat --style=plain --paging=auto'
 
 # Full decorations with pager (like coloured less)
 alias bless='bat --style=full'
 
 # Line numbers only, no pager — quick reference view
-alias bn='bat --style=numbers --pager=never'
+alias bn='bat --style=numbers --paging=auto'
 
 # Reveal non-printable characters: tabs, trailing spaces, newlines
-alias bshow='bat --show-all --pager=never'
+alias bshow='bat --show-all --paging=auto'
 
 # Live file following with syntax highlighting (pipe to this from tail -f)
 # Usage: tail -f /var/log/pacman.log | batlog
-alias batlog='bat --paging=never --style=plain -f'
+alias batlog='bat --paging=auto --style=plain -f'
 
 # ============================================================================
 # HELP TEXT COLORIZER
@@ -83,7 +88,7 @@ alias batlog='bat --paging=never --style=plain -f'
 
 # Render a command's --help output with bat syntax highlighting.
 # Usage: bhelp grep    bhelp git commit    bhelp ffmpeg
-bhelp() {
+help() {
     "$@" --help 2>&1 | bat --plain --language=help
 }
 
@@ -92,7 +97,7 @@ bhelp() {
 # ============================================================================
 
 # batman — coloured man pages (also wired via MANPAGER above)
-command -v batman   >/dev/null 2>&1 && alias man='batman'
+# command -v batman   >/dev/null 2>&1 && alias man='batman'
 
 # batdiff — syntax-highlighted diff against git index or between two files
 # Set BATDIFF_USE_DELTA=true in ~/.bashrc.local to use delta as the renderer
