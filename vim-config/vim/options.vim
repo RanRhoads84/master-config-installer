@@ -35,3 +35,9 @@ set scrolloff=8
 set updatetime=50
 
 set laststatus=2
+
+" Enable all Python highlighting features
+let g:python_highlight_all = 1
+
+" Autoformat on save for specific file types
+autocmd BufWritePre *.c,*.cpp,*.cs,*.sh,*.py :Autoformat

@@ -12,6 +12,7 @@ alias -- -='cd -'
 # ============================================================================
 # LS VARIANTS
 # ============================================================================
+# --sort=Ext will only sort file extentions thereby leaving your .folders to be sorted by name 
 if command -v eza >/dev/null 2>&1; then
     alias l='eza -ll --color=always --group-directories-first'
     alias ls='eza -lah --header --icons --group-directories-first | less -R'
@@ -20,7 +21,7 @@ if command -v eza >/dev/null 2>&1; then
     alias lt='eza -lT --level=2 --icons'
     alias ltt='eza -lT --color=always --level=2 --icons |less -R'
     alias lh='eza -la --sort=modified --reverse'
-    alias ll='eza -lha --color=always --icons --group-directories-first'
+    alias ll='eza -lha --sort=Ext --color=always --icons --group-directories-first'
 elif command -v exa >/dev/null 2>&1; then
     alias l='exa -l --color=always --group-directories-first'
     alias ls='exa -a --icons --group-directories-first'

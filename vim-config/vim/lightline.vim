@@ -1,13 +1,13 @@
-set laststatus=2
+" https://github.com/itchyny/lightline.vim/blob/master/colorscheme.md
 let g:lightline = {
-      \ 'colorscheme' : 'jellybeans',
+      \ 'colorscheme' : 'powerline',
       \ 'active': {
       \   'left': [ [ 'mode', 'paste' ],
       \             [ 'gitbranch', 'readonly', 'filename', 'modified' ] ],
       \   'right': [ [ 'lineinfo' ], [ 'fileformat', 'fileencoding', 'filetype' ] ]
       \ },
       \ 'component_function': {
-      \   'gitbranch': 'FugitiveHead',
+      \   'gitbranch': 'gitbranch#name',
       \   'filename': 'LightlineFilename'
       \ }
       \ }
