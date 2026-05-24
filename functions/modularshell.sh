@@ -71,7 +71,7 @@ _ms_install_files() {
         log "libs/ not found; skipping library copy"
     fi
 
-    run_cmd "cp \"$src_bashrc\" \"$HOME/.bashrc\""
+    run_cmd "cp \"$src_bashrc\" \"$HOME/.bashrc\" \"$HOME/.bashrc.local\""
     log "Installed .bashrc"
 }
 
