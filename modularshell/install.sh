@@ -33,6 +33,22 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
+# Set INSTALL_CMD for the detected package manager; return 1 if none found
+_get_install_cmd() {
+    if command_exists apt; then
+        INSTALL_CMD="sudo apt install -y"
+    elif command_exists dnf; then
+        INSTALL_CMD="sudo dnf install -y"
+    elif command_exists pacman; then
+        INSTALL_CMD="sudo pacman -S --noconfirm"
+    elif command_exists zypper; then
+        INSTALL_CMD="sudo zypper install -y"
+    else
+        INSTALL_CMD=""
+        return 1
+    fi
+}
+
 # Backup existing configuration
 backup_existing() {
     if [ -d "$MODULARSHELL_DIR" ] || [ -f "$HOME/.bashrc" ]; then
@@ -80,6 +96,51 @@ install_modularshell() {
     # Install main bashrc
     cp bashrc.example "$HOME/.bashrc"
     print_msg "   ✓ Installed .bashrc" "$GREEN"
+}
+
+# Check for bat/bat-extras and offer to install if missing
+install_bat_support() {
+    echo
+    if command_exists bat; then
+        print_msg "   ✓ bat already installed — syntax-highlighted aliases and env active" "$GREEN"
+        return 0
+    fi
+
+    local reply
+    if [[ -t 0 ]]; then
+        read -p "$(echo -e ${YELLOW}Would you like to install bat for syntax-highlighted file viewing? \(y/N\): ${NC})" -n 1 -r reply
+    elif [[ -e /dev/tty ]]; then
+        read -p "$(echo -e ${YELLOW}Would you like to install bat for syntax-highlighted file viewing? \(y/N\): ${NC})" -n 1 -r reply </dev/tty
+    else
+        print_msg "   ℹ Skipping bat install (no terminal available)" "$YELLOW"
+        return
+    fi
+    echo
+
+    [[ ! $reply =~ ^[Yy]$ ]] && { print_msg "   ℹ Skipping bat install" "$YELLOW"; return; }
+
+    local INSTALL_CMD
+    if ! _get_install_cmd; then
+        print_msg "   ⚠ Could not detect package manager — skipping bat install" "$YELLOW"
+        return
+    fi
+
+    print_msg "📦 Installing bat..." "$BLUE"
+    if command_exists pacman; then
+        # bat-extras is available in the Arch extra repo alongside bat
+        if $INSTALL_CMD bat bat-extras; then
+            print_msg "   ✓ bat + bat-extras installed" "$GREEN"
+        else
+            print_msg "   ⚠ bat install failed" "$YELLOW"
+        fi
+    else
+        # apt/dnf/zypper: install bat only; bat-extras not in standard repos
+        if $INSTALL_CMD bat; then
+            print_msg "   ✓ bat installed" "$GREEN"
+        else
+            print_msg "   ⚠ bat install failed" "$YELLOW"
+        fi
+    fi
 }
 
 install_man_page() {
@@ -193,6 +254,7 @@ main() {
     install_modularshell
     install_man_page
     install_dependencies
+    install_bat_support
     
     # Success message
     echo

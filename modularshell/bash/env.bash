@@ -1,25 +1,23 @@
 #!/usr/bin/env bash
 
-# Envitroment Variables for Bash
+# Global Environment Variables for Bash
 
-# set bat as manpager
-eval "$(batman --export-env)"
+# ============================================================================
+# BAT / BAT-EXTRAS
+# ============================================================================
+if command -v bat >/dev/null 2>&1; then
+    # Default theme and style — override in ~/.bashrc.local
+    export BAT_THEME="${BAT_THEME:-Dracula}"
+    export BAT_STYLE="${BAT_STYLE:-numbers,changes,header-filename}"
 
-# Bash completion with 'uv'
-. "$HOME/.local/bin/env"
-eval "$(uv generate-shell-completion bash)"
+    # batman: renders man pages through bat (sets MANPAGER + MANROFFOPT)
+    if command -v batman >/dev/null 2>&1; then
+        eval "$(batman --export-env)"
+    fi
 
-# Python is Python3 and Maybe pip too...
-alias python="python3"
-# alias pip="pip3"
-
-# Neovim Path
-export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
-
-export PATH="$HOME/.opencode/bin:$PATH"
-
-# Cargo Just Path
-export PATH="$HOME/.cargo/bin:$PATH"
-
-. "$HOME/.local/share/../bin/env"
+    # batpipe: hooks bat into less via LESSOPEN so piped content is highlighted
+    if command -v batpipe >/dev/null 2>&1; then
+        eval "$(batpipe)"
+    fi
+fi
 
