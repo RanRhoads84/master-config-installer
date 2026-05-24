@@ -124,6 +124,7 @@ if [ -n "$PS1" ] && [ -z "$SYSTEM_OVERVIEW_SHOWN" ]; then
     export SYSTEM_OVERVIEW_SHOWN=1
     declare -F print_distro_logo >/dev/null && print_distro_logo
     declare -F system_overview   >/dev/null && system_overview
+    echo "  als [term] — search aliases  |  shelp [term] — browse shell help  |  shelp -h for usage"
 fi
 
 # ============================================================================

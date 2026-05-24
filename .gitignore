@@ -1,5 +1,6 @@
 tmp/
 temp/
+**/.bashrc.local
 backups/
 backups/modularconfig-suite-backup-20251219192321.tar.gz
 .kdev4/modularconfig-suite.kdev4

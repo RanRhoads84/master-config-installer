@@ -46,6 +46,9 @@ FZF integration (optional).
 .I ~/.config/bash/functions/system.bash
 System helpers and convenience functions.
 .TP
+.I ~/.config/bash/functions/help.bash
+Alias search (\fBals\fR) and shell help browser (\fBshelp\fR).
+.TP
 .I ~/.bashrc
 Bootstrap file installed by the module.
 .TP
@@ -71,6 +74,61 @@ Print basic system information.
 .TP
 .B install_tools
 Install recommended CLI tools (fzf, ripgrep) using the detected package manager.
+.SH ALIAS SEARCH AND HELP
+.TP
+.B als
+.RI [ term ]
+Search active aliases. With no argument, launches an interactive fzf picker
+(if fzf is available) or lists all aliases in plain text. With a
+.I term
+argument, filters aliases by name or expansion (case-insensitive).
+.PP
+.RS
+.EX
+als           # interactive picker / list all
+als git       # show all aliases whose name or value contains "git"
+.EE
+.RE
+.TP
+.B shelp
+.RI [ \-\-aliases | \-\-functions ]
+.RI [ term ]
+Browse and search the shell's built-in aliases and functions.
+.PP
+With no arguments, displays all aliases grouped by section (NAVIGATION,
+GIT, UTILITIES, etc.) followed by all available shell functions.
+.PP
+With a
+.I term
+argument, searches both aliases and functions and prefixes each result
+with its section or source file in dim text.
+.PP
+Options:
+.RS
+.TP
+.B \-\-aliases
+Show aliases only.
+.TP
+.B \-\-functions
+Show functions only.
+.TP
+.B \-h\fR,\fB\ \-\-help
+Print usage and exit.
+.RE
+.PP
+.RS
+.EX
+shelp                  # full reference
+shelp git              # aliases and functions matching "git"
+shelp --aliases        # alias sections only
+shelp --functions      # function list only
+shelp -h               # usage summary
+.EE
+.RE
+.PP
+Respects the
+.B NO_COLOR
+environment variable.
 .SH KEY BINDINGS
 .TP
 .B Ctrl+L

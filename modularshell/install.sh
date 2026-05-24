@@ -33,6 +33,22 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
+# Set INSTALL_CMD for the detected package manager; return 1 if none found
+_get_install_cmd() {
+    if command_exists apt; then
+        INSTALL_CMD="sudo apt install -y"
+    elif command_exists dnf; then
+        INSTALL_CMD="sudo dnf install -y"
+    elif command_exists pacman; then
+        INSTALL_CMD="sudo pacman -S --noconfirm"
+    elif command_exists zypper; then
+        INSTALL_CMD="sudo zypper install -y"
+    else
+        INSTALL_CMD=""
+        return 1
+    fi
+}
+
 # Backup existing configuration
 backup_existing() {
     if [ -d "$MODULARSHELL_DIR" ] || [ -f "$HOME/.bashrc" ]; then
@@ -67,8 +83,9 @@ install_modularshell() {
     mkdir -p "$MODULARSHELL_DIR/functions" "$MODULARSHELL_DIR/libs"
     # Clean up files removed in newer versions before copying (motd.bash was folded into bashrc.example)
     rm -f "$MODULARSHELL_DIR/motd.bash"
-    # Copy configuration files
+    # Copy configuration files (bat.bash is deployed conditionally by install_bat_support)
     cp -r bash/* "$MODULARSHELL_DIR/"
+    rm -f "$MODULARSHELL_DIR/bat.bash"
     print_msg "   ✓ Copied configuration files" "$GREEN"
     if [ -d "../libs" ]; then
         cp -r ../libs/* "$MODULARSHELL_DIR/libs/"
@@ -80,6 +97,67 @@ install_modularshell() {
     # Install main bashrc
     cp bashrc.example "$HOME/.bashrc"
     print_msg "   ✓ Installed .bashrc" "$GREEN"
+}
+
+# Deploy bat.bash to the installed config directory
+_deploy_bat_config() {
+    if [ -f "bash/bat.bash" ]; then
+        cp "bash/bat.bash" "$MODULARSHELL_DIR/bat.bash"
+        print_msg "   ✓ bat config deployed (~/.config/bash/bat.bash)" "$GREEN"
+    else
+        print_msg "   ⚠ bash/bat.bash not found — skipping config deploy" "$YELLOW"
+    fi
+}
+
+# Check for bat/bat-extras and offer to install if missing; deploy bat.bash when present
+install_bat_support() {
+    echo
+    if command_exists bat; then
+        print_msg "   ✓ bat already installed" "$GREEN"
+        _deploy_bat_config
+        return 0
+    fi
+
+    local reply
+    if [[ -t 0 ]]; then
+        read -p "$(echo -e ${YELLOW}Would you like to install bat for syntax-highlighted file viewing? \(y/N\): ${NC})" -n 1 -r reply
+    elif [[ -e /dev/tty ]]; then
+        read -p "$(echo -e ${YELLOW}Would you like to install bat for syntax-highlighted file viewing? \(y/N\): ${NC})" -n 1 -r reply </dev/tty
+    else
+        print_msg "   ℹ Skipping bat install (no terminal available)" "$YELLOW"
+        return
+    fi
+    echo
+
+    [[ ! $reply =~ ^[Yy]$ ]] && { print_msg "   ℹ Skipping bat install" "$YELLOW"; return; }
+
+    local INSTALL_CMD
+    if ! _get_install_cmd; then
+        print_msg "   ⚠ Could not detect package manager — skipping bat install" "$YELLOW"
+        return
+    fi
+
+    print_msg "📦 Installing bat..." "$BLUE"
+    local installed=0
+    if command_exists pacman; then
+        # bat-extras is in the Arch extra repo alongside bat
+        if $INSTALL_CMD bat bat-extras; then
+            print_msg "   ✓ bat + bat-extras installed" "$GREEN"
+            installed=1
+        else
+            print_msg "   ⚠ bat install failed" "$YELLOW"
+        fi
+    else
+        # apt/dnf/zypper: bat-extras not in standard repos
+        if $INSTALL_CMD bat; then
+            print_msg "   ✓ bat installed" "$GREEN"
+            installed=1
+        else
+            print_msg "   ⚠ bat install failed" "$YELLOW"
+        fi
+    fi
+
+    [ "$installed" -eq 1 ] && _deploy_bat_config
 }
 
 install_man_page() {
@@ -193,6 +271,7 @@ main() {
     install_modularshell
     install_man_page
     install_dependencies
+    install_bat_support
     
     # Success message
     echo
