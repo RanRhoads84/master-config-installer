@@ -83,8 +83,9 @@ install_modularshell() {
     mkdir -p "$MODULARSHELL_DIR/functions" "$MODULARSHELL_DIR/libs"
     # Clean up files removed in newer versions before copying (motd.bash was folded into bashrc.example)
     rm -f "$MODULARSHELL_DIR/motd.bash"
-    # Copy configuration files
+    # Copy configuration files (bat.bash is deployed conditionally by install_bat_support)
     cp -r bash/* "$MODULARSHELL_DIR/"
+    rm -f "$MODULARSHELL_DIR/bat.bash"
     print_msg "   ✓ Copied configuration files" "$GREEN"
     if [ -d "../libs" ]; then
         cp -r ../libs/* "$MODULARSHELL_DIR/libs/"
@@ -98,11 +99,22 @@ install_modularshell() {
     print_msg "   ✓ Installed .bashrc" "$GREEN"
 }
 
-# Check for bat/bat-extras and offer to install if missing
+# Deploy bat.bash to the installed config directory
+_deploy_bat_config() {
+    if [ -f "bash/bat.bash" ]; then
+        cp "bash/bat.bash" "$MODULARSHELL_DIR/bat.bash"
+        print_msg "   ✓ bat config deployed (~/.config/bash/bat.bash)" "$GREEN"
+    else
+        print_msg "   ⚠ bash/bat.bash not found — skipping config deploy" "$YELLOW"
+    fi
+}
+
+# Check for bat/bat-extras and offer to install if missing; deploy bat.bash when present
 install_bat_support() {
     echo
     if command_exists bat; then
-        print_msg "   ✓ bat already installed — syntax-highlighted aliases and env active" "$GREEN"
+        print_msg "   ✓ bat already installed" "$GREEN"
+        _deploy_bat_config
         return 0
     fi
 
@@ -126,21 +138,26 @@ install_bat_support() {
     fi
 
     print_msg "📦 Installing bat..." "$BLUE"
+    local installed=0
     if command_exists pacman; then
-        # bat-extras is available in the Arch extra repo alongside bat
+        # bat-extras is in the Arch extra repo alongside bat
         if $INSTALL_CMD bat bat-extras; then
             print_msg "   ✓ bat + bat-extras installed" "$GREEN"
+            installed=1
         else
             print_msg "   ⚠ bat install failed" "$YELLOW"
         fi
     else
-        # apt/dnf/zypper: install bat only; bat-extras not in standard repos
+        # apt/dnf/zypper: bat-extras not in standard repos
         if $INSTALL_CMD bat; then
             print_msg "   ✓ bat installed" "$GREEN"
+            installed=1
         else
             print_msg "   ⚠ bat install failed" "$YELLOW"
         fi
     fi
+
+    [ "$installed" -eq 1 ] && _deploy_bat_config
 }
 
 install_man_page() {

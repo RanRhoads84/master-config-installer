@@ -125,18 +125,3 @@ alias killall='killall -v'
 # Misc
 alias ff='fastfetch || neofetch'
 alias hi='(pgrep -x dunst >/dev/null || pgrep -x swaync >/dev/null) && notify-send "Hi there!" "Welcome to ${XDG_CURRENT_DESKTOP:-${DESKTOP_SESSION:-Linux}}! 🍃" -i ""'
-
-# ============================================================================
-# BAT
-# ============================================================================
-if command -v bat >/dev/null 2>&1; then
-    alias cat='bat --pager=never'           # bat as cat; decorations auto-off when piped
-    alias catp='bat --style=plain --pager=never'  # plain output, no line numbers or headers
-    alias bless='bat --style=full'          # full decorations with pager
-
-    command -v batman   >/dev/null 2>&1 && alias man='batman'
-    command -v batdiff  >/dev/null 2>&1 && alias bd='batdiff'
-    command -v batgrep  >/dev/null 2>&1 && alias bgrep='batgrep'
-    command -v batwatch >/dev/null 2>&1 && alias bwatch='batwatch'
-    command -v prettybat >/dev/null 2>&1 && alias pbat='prettybat'
-fi
